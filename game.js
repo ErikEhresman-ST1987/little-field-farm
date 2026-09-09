@@ -3,10 +3,17 @@
 
   const SAVE_KEY = "littleFieldFarm.v1";
   const UPGRADE_COST = 24;
+  const COOP_COST = 60;
+  const EGG_TIME_MS = 60000;
+  const EGGS_PER_BATCH = 2;
   const CROPS = {
     carrot: { name: "Carrots", cost: 2, price: 5, growMs: 20000, storage: 1, color: "#ef8137" },
     wheat: { name: "Wheat", cost: 4, price: 10, growMs: 45000, storage: 1, color: "#e2b84f" },
     pumpkin: { name: "Pumpkin", cost: 7, price: 19, growMs: 90000, storage: 2, color: "#df6f2e" }
+  };
+  const PRODUCTS = {
+    ...CROPS,
+    egg: { name: "Eggs", price: 8, storage: 1, color: "#f3e7bd" }
   };
   const ORDERS = [
     { id: "carrot-basket", title: "Carrot Basket", needs: { carrot: 2 }, reward: 12 },
@@ -15,7 +22,11 @@
     { id: "harvest-pair", title: "Harvest Pair", needs: { carrot: 2, wheat: 1 }, reward: 24 },
     { id: "autumn-basket", title: "Autumn Basket", needs: { carrot: 1, pumpkin: 1 }, reward: 29 },
     { id: "baker-supply", title: "Baker’s Supply", needs: { wheat: 1, pumpkin: 1 }, reward: 35 },
-    { id: "pumpkin-porch", title: "Pumpkin Porch", needs: { pumpkin: 2 }, reward: 46 }
+    { id: "pumpkin-porch", title: "Pumpkin Porch", needs: { pumpkin: 2 }, reward: 46 },
+    { id: "breakfast-dozen", title: "Breakfast Basket", needs: { egg: 2 }, reward: 20, requiresCoop: true },
+    { id: "country-breakfast", title: "Country Breakfast", needs: { carrot: 1, egg: 2 }, reward: 26, requiresCoop: true },
+    { id: "baker-eggs", title: "Baker’s Eggs", needs: { wheat: 1, egg: 2 }, reward: 32, requiresCoop: true },
+    { id: "autumn-kitchen", title: "Autumn Kitchen", needs: { pumpkin: 1, egg: 2 }, reward: 43, requiresCoop: true }
   ];
 
   const freshState = () => ({
@@ -23,12 +34,14 @@
     capacity: 6,
     upgraded: false,
     activeOrder: null,
-    inventory: { carrot: 0, wheat: 0, pumpkin: 0 },
+    inventory: { carrot: 0, wheat: 0, pumpkin: 0, egg: 0 },
+    coop: { built: false, readyAt: null, eggsReady: 0 },
     plots: Array.from({ length: 6 }, () => null)
   });
 
   let state = loadState();
-  if (!findOrder(state.activeOrder)) {
+  const loadedOrder = findOrder(state.activeOrder);
+  if (!loadedOrder || (loadedOrder.requiresCoop && !state.coop.built)) {
     state.activeOrder = chooseOrder();
     saveState();
   }
@@ -41,6 +54,12 @@
     grid: document.querySelector("#plot-grid"), status: document.querySelector("#status-message"),
     overlay: document.querySelector("#overlay"), plantSheet: document.querySelector("#plant-sheet"),
     storageSheet: document.querySelector("#storage-sheet"), marketSheet: document.querySelector("#market-sheet"),
+    coopSheet: document.querySelector("#coop-sheet"), coopButton: document.querySelector("#coop-button"),
+    coopBoardLabel: document.querySelector("#coop-board-label"), eggReadyBadge: document.querySelector("#egg-ready-badge"),
+    coopSubtitle: document.querySelector("#coop-subtitle"), coopStateTitle: document.querySelector("#coop-state-title"),
+    coopStateMessage: document.querySelector("#coop-state-message"), coopProgress: document.querySelector("#coop-progress"),
+    coopProgressBar: document.querySelector("#coop-progress-bar"), coopRecipe: document.querySelector("#coop-recipe"),
+    coopAction: document.querySelector("#coop-action-button"),
     cropChoices: document.querySelector("#crop-choices"), inventoryList: document.querySelector("#inventory-list"),
     marketList: document.querySelector("#market-list"), upgradeButton: document.querySelector("#upgrade-button"),
     upgradeCard: document.querySelector("#upgrade-card"), shed: document.querySelector("#shed-button"),
@@ -53,7 +72,7 @@
   function findOrder(orderId) { return ORDERS.find(order => order.id === orderId); }
 
   function chooseOrder(excludeId = null) {
-    const choices = ORDERS.filter(order => order.id !== excludeId);
+    const choices = ORDERS.filter(order => order.id !== excludeId && (!order.requiresCoop || state.coop.built));
     return choices[Math.floor(Math.random() * choices.length)].id;
   }
 
@@ -64,13 +83,14 @@
       return {
         ...freshState(), ...saved,
         inventory: { ...freshState().inventory, ...(saved.inventory || {}) },
+        coop: { ...freshState().coop, ...(saved.coop || {}) },
         plots: Array.from({ length: 6 }, (_, i) => saved.plots[i] || null)
       };
     } catch (_) { return freshState(); }
   }
 
   function saveState() { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); }
-  function usedStorage() { return Object.entries(state.inventory).reduce((sum, [key, count]) => sum + CROPS[key].storage * count, 0); }
+  function usedStorage() { return Object.entries(state.inventory).reduce((sum, [key, count]) => sum + PRODUCTS[key].storage * count, 0); }
   function totalItems() { return Object.values(state.inventory).reduce((sum, count) => sum + count, 0); }
   function canCompleteOrder(order) {
     return Object.entries(order.needs).every(([key, amount]) => state.inventory[key] >= amount);
@@ -90,14 +110,43 @@
 
   function setStatus(message) { els.status.textContent = message; }
 
+  function updateCoopProduction(now = Date.now()) {
+    if (!state.coop.built || !state.coop.readyAt || now < state.coop.readyAt) return false;
+    state.coop.readyAt = null;
+    state.coop.eggsReady = EGGS_PER_BATCH;
+    saveState();
+    return true;
+  }
+
+  function coopRemainingMs(now = Date.now()) {
+    return Math.max(0, (state.coop.readyAt || now) - now);
+  }
+
   function render() {
+    const eggsJustReady = updateCoopProduction();
     els.coins.textContent = state.coins;
     els.storageCount.textContent = `${usedStorage()}/${state.capacity}`;
     els.shed.classList.toggle("upgraded", state.upgraded);
+    renderCoopBoard();
     renderPlots();
     if (!els.storageSheet.hidden) renderStorage();
     if (!els.marketSheet.hidden) renderMarket();
     if (!els.plantSheet.hidden) renderCropChoices();
+    if (!els.coopSheet.hidden) renderCoop();
+    if (eggsJustReady) setStatus("The chickens have laid two eggs. Tap the coop to collect them!");
+  }
+
+  function renderCoopBoard() {
+    els.coopButton.classList.toggle("locked", !state.coop.built);
+    els.coopButton.classList.toggle("built", state.coop.built);
+    els.coopButton.classList.toggle("working", Boolean(state.coop.readyAt));
+    els.coopButton.classList.toggle("ready", state.coop.eggsReady > 0);
+    els.eggReadyBadge.hidden = state.coop.eggsReady === 0;
+    if (!state.coop.built) els.coopBoardLabel.textContent = `Build Coop • ${COOP_COST}`;
+    else if (state.coop.eggsReady) els.coopBoardLabel.textContent = "Eggs Ready!";
+    else if (state.coop.readyAt) els.coopBoardLabel.textContent = `${Math.ceil(coopRemainingMs() / 1000)}s`;
+    else els.coopBoardLabel.textContent = "Chicken Coop";
+    els.coopButton.setAttribute("aria-label", els.coopBoardLabel.textContent);
   }
 
   function renderPlots() {
@@ -187,11 +236,11 @@
   function renderStorage() {
     els.storageSubtitle.textContent = `${usedStorage()} of ${state.capacity} spaces used`;
     els.inventoryList.replaceChildren();
-    Object.entries(CROPS).forEach(([key, crop]) => {
+    Object.entries(PRODUCTS).forEach(([key, crop]) => {
       const row = document.createElement("div");
       row.className = "inventory-row";
       row.style.setProperty("--item-color", crop.color);
-      row.innerHTML = `<span class="item-dot" aria-hidden="true"></span><div><strong>${crop.name}</strong><span>${crop.storage} storage space${crop.storage > 1 ? "s" : ""} each</span></div><strong>× ${state.inventory[key]}</strong>`;
+      row.innerHTML = `<span class="item-dot${key === "egg" ? " egg-dot" : ""}" aria-hidden="true"></span><div><strong>${crop.name}</strong><span>${crop.storage} storage space${crop.storage > 1 ? "s" : ""} each</span></div><strong>× ${state.inventory[key]}</strong>`;
       els.inventoryList.appendChild(row);
     });
     if (state.upgraded) {
@@ -215,12 +264,12 @@
   function renderMarket() {
     renderOrder();
     els.marketList.replaceChildren();
-    Object.entries(CROPS).forEach(([key, crop]) => {
+    Object.entries(PRODUCTS).forEach(([key, crop]) => {
       const count = state.inventory[key];
       const row = document.createElement("div");
       row.className = "market-row";
       row.style.setProperty("--item-color", crop.color);
-      row.innerHTML = `<span class="item-dot" aria-hidden="true"></span><div><strong>${crop.name}</strong><span>${count} stored • ${crop.price} coins each</span></div>`;
+      row.innerHTML = `<span class="item-dot${key === "egg" ? " egg-dot" : ""}" aria-hidden="true"></span><div><strong>${crop.name}</strong><span>${count} stored • ${crop.price} coins each</span></div>`;
       const button = document.createElement("button");
       button.type = "button";
       button.disabled = count === 0;
@@ -239,13 +288,13 @@
     els.orderReward.textContent = `${order.reward} coins`;
     els.orderRequirements.replaceChildren();
     Object.entries(order.needs).forEach(([key, amount]) => {
-      const crop = CROPS[key];
+      const crop = PRODUCTS[key];
       const stored = state.inventory[key];
       const met = stored >= amount;
       const requirement = document.createElement("div");
       requirement.className = `order-requirement${met ? " met" : ""}`;
       requirement.style.setProperty("--item-color", crop.color);
-      requirement.innerHTML = `<span class="item-dot" aria-hidden="true"></span><span>${crop.name}</span><strong>${Math.min(stored, amount)} / ${amount}</strong>`;
+      requirement.innerHTML = `<span class="item-dot${key === "egg" ? " egg-dot" : ""}" aria-hidden="true"></span><span>${crop.name}</span><strong>${Math.min(stored, amount)} / ${amount}</strong>`;
       els.orderRequirements.appendChild(requirement);
     });
     els.completeOrder.disabled = !ready || completingOrder;
@@ -275,16 +324,16 @@
   function sellOne(cropKey) {
     if (state.inventory[cropKey] <= 0) return;
     state.inventory[cropKey] -= 1;
-    state.coins += CROPS[cropKey].price;
+    state.coins += PRODUCTS[cropKey].price;
     saveState();
-    setStatus(`${CROPS[cropKey].name} sold for ${CROPS[cropKey].price} coins.`);
+    setStatus(`${PRODUCTS[cropKey].name} sold for ${PRODUCTS[cropKey].price} coins.`);
     render();
   }
 
   function sellEverything() {
     let earnings = 0;
-    Object.keys(CROPS).forEach(key => {
-      earnings += state.inventory[key] * CROPS[key].price;
+    Object.keys(PRODUCTS).forEach(key => {
+      earnings += state.inventory[key] * PRODUCTS[key].price;
       state.inventory[key] = 0;
     });
     if (!earnings) return;
@@ -294,8 +343,73 @@
     render();
   }
 
+  function renderCoop() {
+    updateCoopProduction();
+    els.coopProgress.hidden = true;
+    els.coopRecipe.hidden = !state.coop.built;
+    if (!state.coop.built) {
+      els.coopSubtitle.textContent = "A new home for two hens.";
+      els.coopStateTitle.textContent = "Build the Coop";
+      els.coopStateMessage.textContent = "Add two chickens and turn stored wheat into fresh eggs.";
+      els.coopAction.disabled = state.coins < COOP_COST;
+      els.coopAction.textContent = state.coins < COOP_COST ? `${COOP_COST - state.coins} more coins needed` : `Build for ${COOP_COST} coins`;
+      return;
+    }
+    if (state.coop.eggsReady) {
+      const spaceNeeded = state.coop.eggsReady * PRODUCTS.egg.storage;
+      const hasSpace = usedStorage() + spaceNeeded <= state.capacity;
+      els.coopSubtitle.textContent = "Your two hens are finished.";
+      els.coopStateTitle.textContent = "Fresh Eggs!";
+      els.coopStateMessage.textContent = hasSpace ? "Collect two eggs and place them in the shed." : `Make ${spaceNeeded} spaces in the shed to collect them.`;
+      els.coopAction.disabled = !hasSpace;
+      els.coopAction.textContent = hasSpace ? "Collect 2 eggs" : "Shed needs more room";
+      return;
+    }
+    if (state.coop.readyAt) {
+      const remaining = coopRemainingMs();
+      const progress = Math.min(100, Math.max(0, 100 - (remaining / EGG_TIME_MS * 100)));
+      els.coopSubtitle.textContent = "The hens are pecking happily.";
+      els.coopStateTitle.textContent = "Making Eggs";
+      els.coopStateMessage.textContent = `Ready in ${Math.ceil(remaining / 1000)} seconds. They’ll keep working while you’re away.`;
+      els.coopProgress.hidden = false;
+      els.coopProgressBar.style.width = `${progress}%`;
+      els.coopAction.disabled = true;
+      els.coopAction.textContent = "Chickens are fed";
+      return;
+    }
+    els.coopSubtitle.textContent = "Two hens are ready to be fed.";
+    els.coopStateTitle.textContent = "Feed the Chickens";
+    els.coopStateMessage.textContent = state.inventory.wheat ? "Use one stored wheat to produce two eggs." : "Grow and store one wheat to feed them.";
+    els.coopAction.disabled = state.inventory.wheat < 1;
+    els.coopAction.textContent = state.inventory.wheat ? "Feed 1 wheat" : "1 wheat needed";
+  }
+
+  function handleCoopAction() {
+    updateCoopProduction();
+    if (!state.coop.built) {
+      if (state.coins < COOP_COST) return;
+      state.coins -= COOP_COST;
+      state.coop.built = true;
+      saveState();
+      setStatus("The chicken coop is built, and two hens have moved in!");
+    } else if (state.coop.eggsReady) {
+      const spaceNeeded = state.coop.eggsReady * PRODUCTS.egg.storage;
+      if (usedStorage() + spaceNeeded > state.capacity) return;
+      state.inventory.egg += state.coop.eggsReady;
+      state.coop.eggsReady = 0;
+      saveState();
+      setStatus("Two fresh eggs collected and stored in the shed.");
+    } else if (!state.coop.readyAt && state.inventory.wheat >= 1) {
+      state.inventory.wheat -= 1;
+      state.coop.readyAt = Date.now() + EGG_TIME_MS;
+      saveState();
+      setStatus("The chickens are fed. Two eggs will be ready in 60 seconds.");
+    }
+    render();
+  }
+
   function openSheet(sheet) {
-    [els.plantSheet, els.storageSheet, els.marketSheet].forEach(item => { item.hidden = true; });
+    [els.plantSheet, els.storageSheet, els.marketSheet, els.coopSheet].forEach(item => { item.hidden = true; });
     els.overlay.hidden = false;
     sheet.hidden = false;
     sheet.querySelector("button")?.focus();
@@ -303,18 +417,20 @@
 
   function closeSheets() {
     els.overlay.hidden = true;
-    [els.plantSheet, els.storageSheet, els.marketSheet].forEach(sheet => { sheet.hidden = true; });
+    [els.plantSheet, els.storageSheet, els.marketSheet, els.coopSheet].forEach(sheet => { sheet.hidden = true; });
     selectedPlot = null;
   }
 
   document.querySelector("#storage-button").addEventListener("click", () => { renderStorage(); openSheet(els.storageSheet); });
   document.querySelector("#shed-button").addEventListener("click", () => { renderStorage(); openSheet(els.storageSheet); });
   document.querySelector("#market-button").addEventListener("click", () => { renderMarket(); openSheet(els.marketSheet); });
+  els.coopButton.addEventListener("click", () => { renderCoop(); openSheet(els.coopSheet); });
   document.querySelectorAll("[data-close]").forEach(button => button.addEventListener("click", closeSheets));
   els.overlay.addEventListener("click", closeSheets);
   els.upgradeButton.addEventListener("click", buyUpgrade);
   els.sellAll.addEventListener("click", sellEverything);
   els.completeOrder.addEventListener("click", completeOrder);
+  els.coopAction.addEventListener("click", handleCoopAction);
   document.addEventListener("keydown", event => { if (event.key === "Escape") closeSheets(); });
   document.addEventListener("visibilitychange", () => { if (!document.hidden) render(); });
 
