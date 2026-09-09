@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#386641">
+  <meta name="description" content="A small, cheerful farming game.">
+  <title>Little Field Farm</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="game-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Welcome to</p>
+        <h1>Little Field Farm</h1>
+      </div>
+      <div class="resources" aria-label="Farm resources">
+        <div class="resource"><span class="coin-icon" aria-hidden="true">●</span><strong id="coin-count">18</strong><span>coins</span></div>
+        <button class="resource resource-button" id="storage-button" type="button" aria-label="Open storage">
+          <span class="crate-icon" aria-hidden="true"></span><strong id="storage-count">0/6</strong><span>stored</span>
+        </button>
+      </div>
+    </header>
+
+    <section class="farm" aria-label="Farm board">
+      <div class="sky-strip" aria-hidden="true"><span class="cloud cloud-one"></span><span class="cloud cloud-two"></span></div>
+
+      <div class="building-row">
+        <button class="building market" id="market-button" type="button" aria-label="Open roadside market">
+          <span class="awning" aria-hidden="true"></span>
+          <span class="building-face"><span class="market-boxes" aria-hidden="true"></span></span>
+          <span class="building-label">Market</span>
+        </button>
+
+        <button class="building shed" id="shed-button" type="button" aria-label="Open storage shed">
+          <span class="shed-roof" aria-hidden="true"></span>
+          <span class="building-face"><span class="shed-door" aria-hidden="true"></span><span class="shed-window" aria-hidden="true"></span></span>
+          <span class="shed-extension" id="shed-extension" aria-hidden="true"></span>
+          <span class="building-label">Shed</span>
+        </button>
+      </div>
+
+      <div class="plot-grid" id="plot-grid" aria-label="Crop plots"></div>
+
+      <div class="farm-edge" aria-hidden="true">
+        <span class="fence"></span>
+        <span class="tree tree-one"><i></i></span>
+        <span class="tree tree-two"><i></i></span>
+        <span class="flowers"></span>
+      </div>
+    </section>
+
+    <p class="status-message" id="status-message" role="status" aria-live="polite">Tap an empty plot to plant your first crop.</p>
+  </main>
+
+  <div class="overlay" id="overlay" hidden></div>
+
+  <section class="sheet" id="plant-sheet" aria-labelledby="plant-title" hidden>
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <div class="sheet-heading"><h2 id="plant-title">Choose a crop</h2><button class="close-button" type="button" data-close aria-label="Close">×</button></div>
+    <div class="crop-choices" id="crop-choices"></div>
+  </section>
+
+  <section class="sheet" id="storage-sheet" aria-labelledby="storage-title" hidden>
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <div class="sheet-heading"><div><h2 id="storage-title">The Shed</h2><p id="storage-subtitle"></p></div><button class="close-button" type="button" data-close aria-label="Close">×</button></div>
+    <div class="inventory-list" id="inventory-list"></div>
+    <div class="upgrade-card" id="upgrade-card">
+      <div class="upgrade-art" aria-hidden="true"><span></span></div>
+      <div><h3>Roomier Shed</h3><p>Expand storage from 6 to 10 spaces.</p></div>
+      <button id="upgrade-button" type="button">24 coins</button>
+    </div>
+  </section>
+
+  <section class="sheet" id="market-sheet" aria-labelledby="market-title" hidden>
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <div class="sheet-heading"><div><h2 id="market-title">Roadside Market</h2><p>Sell what you’ve grown.</p></div><button class="close-button" type="button" data-close aria-label="Close">×</button></div>
+    <div class="market-list" id="market-list"></div>
+    <button class="sell-all" id="sell-all-button" type="button">Sell everything</button>
+  </section>
+
+  <template id="plot-template">
+    <button class="plot empty" type="button"><span class="soil-lines" aria-hidden="true"></span><span class="plot-content"></span><span class="plot-label"></span></button>
+  </template>
+
+  <script src="game.js"></script>
+</body>
+</html>
