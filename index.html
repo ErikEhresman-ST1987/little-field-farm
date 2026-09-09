@@ -76,6 +76,16 @@
   <section class="sheet" id="market-sheet" aria-labelledby="market-title" hidden>
     <div class="sheet-handle" aria-hidden="true"></div>
     <div class="sheet-heading"><div><h2 id="market-title">Roadside Market</h2><p>Sell what you’ve grown.</p></div><button class="close-button" type="button" data-close aria-label="Close">×</button></div>
+    <article class="order-card" aria-labelledby="order-title">
+      <div class="order-heading">
+        <span class="order-board" aria-hidden="true"><i></i></span>
+        <div><p class="order-kicker">Customer order</p><h3 id="order-title">Farmstand Request</h3></div>
+        <strong class="order-reward" id="order-reward"></strong>
+      </div>
+      <div class="order-requirements" id="order-requirements"></div>
+      <button class="complete-order" id="complete-order-button" type="button">Gather the requested produce</button>
+    </article>
+    <h3 class="market-stock-title">Market sales</h3>
     <div class="market-list" id="market-list"></div>
     <button class="sell-all" id="sell-all-button" type="button">Sell everything</button>
   </section>
