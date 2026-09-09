@@ -8,18 +8,33 @@
     wheat: { name: "Wheat", cost: 4, price: 10, growMs: 45000, storage: 1, color: "#e2b84f" },
     pumpkin: { name: "Pumpkin", cost: 7, price: 19, growMs: 90000, storage: 2, color: "#df6f2e" }
   };
+  const ORDERS = [
+    { id: "carrot-basket", title: "Carrot Basket", needs: { carrot: 2 }, reward: 12 },
+    { id: "pantry-basics", title: "Pantry Basics", needs: { carrot: 1, wheat: 1 }, reward: 18 },
+    { id: "miller-bundle", title: "Miller’s Bundle", needs: { wheat: 2 }, reward: 24 },
+    { id: "harvest-pair", title: "Harvest Pair", needs: { carrot: 2, wheat: 1 }, reward: 24 },
+    { id: "autumn-basket", title: "Autumn Basket", needs: { carrot: 1, pumpkin: 1 }, reward: 29 },
+    { id: "baker-supply", title: "Baker’s Supply", needs: { wheat: 1, pumpkin: 1 }, reward: 35 },
+    { id: "pumpkin-porch", title: "Pumpkin Porch", needs: { pumpkin: 2 }, reward: 46 }
+  ];
 
   const freshState = () => ({
     coins: 18,
     capacity: 6,
     upgraded: false,
+    activeOrder: null,
     inventory: { carrot: 0, wheat: 0, pumpkin: 0 },
     plots: Array.from({ length: 6 }, () => null)
   });
 
   let state = loadState();
+  if (!findOrder(state.activeOrder)) {
+    state.activeOrder = chooseOrder();
+    saveState();
+  }
   let selectedPlot = null;
   let ticker = null;
+  let completingOrder = false;
 
   const els = {
     coins: document.querySelector("#coin-count"), storageCount: document.querySelector("#storage-count"),
@@ -30,8 +45,17 @@
     marketList: document.querySelector("#market-list"), upgradeButton: document.querySelector("#upgrade-button"),
     upgradeCard: document.querySelector("#upgrade-card"), shed: document.querySelector("#shed-button"),
     shedExtension: document.querySelector("#shed-extension"), storageSubtitle: document.querySelector("#storage-subtitle"),
-    sellAll: document.querySelector("#sell-all-button")
+    sellAll: document.querySelector("#sell-all-button"), orderTitle: document.querySelector("#order-title"),
+    orderReward: document.querySelector("#order-reward"), orderRequirements: document.querySelector("#order-requirements"),
+    completeOrder: document.querySelector("#complete-order-button")
   };
+
+  function findOrder(orderId) { return ORDERS.find(order => order.id === orderId); }
+
+  function chooseOrder(excludeId = null) {
+    const choices = ORDERS.filter(order => order.id !== excludeId);
+    return choices[Math.floor(Math.random() * choices.length)].id;
+  }
 
   function loadState() {
     try {
@@ -48,6 +72,9 @@
   function saveState() { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); }
   function usedStorage() { return Object.entries(state.inventory).reduce((sum, [key, count]) => sum + CROPS[key].storage * count, 0); }
   function totalItems() { return Object.values(state.inventory).reduce((sum, count) => sum + count, 0); }
+  function canCompleteOrder(order) {
+    return Object.entries(order.needs).every(([key, amount]) => state.inventory[key] >= amount);
+  }
   function cropStage(plot, now = Date.now()) {
     const ratio = Math.max(0, (now - plot.plantedAt) / CROPS[plot.crop].growMs);
     if (ratio >= 1) return 3;
@@ -186,6 +213,7 @@
   }
 
   function renderMarket() {
+    renderOrder();
     els.marketList.replaceChildren();
     Object.entries(CROPS).forEach(([key, crop]) => {
       const count = state.inventory[key];
@@ -202,6 +230,46 @@
       els.marketList.appendChild(row);
     });
     els.sellAll.disabled = totalItems() === 0;
+  }
+
+  function renderOrder() {
+    const order = findOrder(state.activeOrder);
+    const ready = canCompleteOrder(order);
+    els.orderTitle.textContent = order.title;
+    els.orderReward.textContent = `${order.reward} coins`;
+    els.orderRequirements.replaceChildren();
+    Object.entries(order.needs).forEach(([key, amount]) => {
+      const crop = CROPS[key];
+      const stored = state.inventory[key];
+      const met = stored >= amount;
+      const requirement = document.createElement("div");
+      requirement.className = `order-requirement${met ? " met" : ""}`;
+      requirement.style.setProperty("--item-color", crop.color);
+      requirement.innerHTML = `<span class="item-dot" aria-hidden="true"></span><span>${crop.name}</span><strong>${Math.min(stored, amount)} / ${amount}</strong>`;
+      els.orderRequirements.appendChild(requirement);
+    });
+    els.completeOrder.disabled = !ready || completingOrder;
+    els.completeOrder.textContent = ready ? `Complete order • +${order.reward}` : "Gather the requested produce";
+  }
+
+  function completeOrder() {
+    const order = findOrder(state.activeOrder);
+    if (completingOrder || !order || !canCompleteOrder(order)) return;
+    completingOrder = true;
+    Object.entries(order.needs).forEach(([key, amount]) => { state.inventory[key] -= amount; });
+    state.coins += order.reward;
+    state.activeOrder = chooseOrder(order.id);
+    saveState();
+    setStatus(`Order complete! You earned ${order.reward} coins.`);
+    render();
+    const card = document.querySelector(".order-card");
+    card.classList.remove("order-complete");
+    void card.offsetWidth;
+    card.classList.add("order-complete");
+    window.setTimeout(() => {
+      completingOrder = false;
+      if (!els.marketSheet.hidden) renderMarket();
+    }, 500);
   }
 
   function sellOne(cropKey) {
@@ -246,6 +314,7 @@
   els.overlay.addEventListener("click", closeSheets);
   els.upgradeButton.addEventListener("click", buyUpgrade);
   els.sellAll.addEventListener("click", sellEverything);
+  els.completeOrder.addEventListener("click", completeOrder);
   document.addEventListener("keydown", event => { if (event.key === "Escape") closeSheets(); });
   document.addEventListener("visibilitychange", () => { if (!document.hidden) render(); });
 
