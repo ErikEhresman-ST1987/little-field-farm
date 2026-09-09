@@ -43,6 +43,17 @@
 
       <div class="plot-grid" id="plot-grid" aria-label="Crop plots"></div>
 
+      <div class="animal-row">
+        <button class="coop-site locked" id="coop-button" type="button" aria-label="Chicken coop building site">
+          <span class="coop-fence" aria-hidden="true"></span>
+          <span class="coop-house" aria-hidden="true"><i class="coop-roof"></i><i class="coop-door"></i></span>
+          <span class="chicken chicken-one" aria-hidden="true"><i></i></span>
+          <span class="chicken chicken-two" aria-hidden="true"><i></i></span>
+          <span class="coop-sign" id="coop-board-label">Build Coop</span>
+          <span class="egg-ready-badge" id="egg-ready-badge" hidden>2 eggs</span>
+        </button>
+      </div>
+
       <div class="farm-edge" aria-hidden="true">
         <span class="fence"></span>
         <span class="tree tree-one"><i></i></span>
@@ -88,6 +99,18 @@
     <h3 class="market-stock-title">Market sales</h3>
     <div class="market-list" id="market-list"></div>
     <button class="sell-all" id="sell-all-button" type="button">Sell everything</button>
+  </section>
+
+  <section class="sheet" id="coop-sheet" aria-labelledby="coop-title" hidden>
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <div class="sheet-heading"><div><h2 id="coop-title">Chicken Coop</h2><p id="coop-subtitle">A new home for two hens.</p></div><button class="close-button" type="button" data-close aria-label="Close">×</button></div>
+    <div class="coop-panel">
+      <div class="coop-portrait" aria-hidden="true"><span class="portrait-chicken portrait-one"><i></i></span><span class="portrait-chicken portrait-two"><i></i></span><span class="portrait-eggs"></span></div>
+      <div class="coop-copy"><h3 id="coop-state-title">Build the Coop</h3><p id="coop-state-message">Add two chickens and turn stored wheat into fresh eggs.</p></div>
+    </div>
+    <div class="coop-progress" id="coop-progress" hidden><span id="coop-progress-bar"></span></div>
+    <p class="coop-recipe" id="coop-recipe">1 wheat → 2 eggs</p>
+    <button class="coop-action" id="coop-action-button" type="button">Build for 60 coins</button>
   </section>
 
   <template id="plot-template">
