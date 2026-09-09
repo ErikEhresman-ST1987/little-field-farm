@@ -70,7 +70,7 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
 .farm {
   position: relative;
   min-height: calc(100vh - 160px);
-  padding: 54px 16px 90px;
+  padding: 54px 16px 80px;
   overflow: hidden;
   background: linear-gradient(#cbe8f0 0 52px, #91c958 52px 100%);
 }
@@ -128,6 +128,27 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
 .plot.ready { box-shadow: inset 0 0 0 5px #b27d4c, 0 0 0 4px #f7d35e, 0 5px 0 #61943e; }
 .plot.blocked { animation: shake .32s ease; }
 
+.animal-row { position: relative; z-index: 2; height: 132px; max-width: 500px; margin: 10px auto 0; display: flex; justify-content: center; align-items: center; }
+.coop-site { position: relative; width: 185px; height: 116px; padding: 0; border: 0; background: transparent; cursor: pointer; filter: drop-shadow(0 4px 2px #35562945); }
+.coop-site:active { transform: translateY(2px); }
+.coop-fence { position: absolute; left: 0; right: 0; bottom: 17px; height: 40px; border: 4px solid #c49a5d; border-top-width: 7px; border-radius: 10px; background: #7fb64d; box-shadow: inset 0 -8px #6ca143; }
+.coop-fence::after { content: ""; position: absolute; inset: -9px 12px -4px; background: repeating-linear-gradient(90deg, #9b713d 0 6px, transparent 6px 38px); }
+.coop-house { display: none; position: absolute; z-index: 2; left: 57px; bottom: 31px; width: 72px; height: 55px; border: 3px solid #6c3e25; border-radius: 4px; background: #d46b42; }
+.coop-roof { position: absolute; left: -10px; right: -10px; top: -22px; height: 27px; clip-path: polygon(50% 0,100% 85%,94% 100%,6% 100%,0 85%); background: #7a382e; }
+.coop-door { position: absolute; left: 24px; bottom: -1px; width: 24px; height: 34px; border: 3px solid #6c3e25; border-radius: 12px 12px 2px 2px; background: #412e23; }
+.chicken { display: none; position: absolute; z-index: 3; bottom: 23px; width: 26px; height: 23px; border: 2px solid #765339; border-radius: 50% 55% 45% 48%; background: #fff4d4; }
+.chicken::before { content: ""; position: absolute; right: -4px; top: -6px; width: 12px; height: 13px; border: 2px solid #765339; border-radius: 50%; background: #fff4d4; }
+.chicken::after { content: ""; position: absolute; right: -9px; top: -1px; border-left: 7px solid #e3a22d; border-top: 3px solid transparent; border-bottom: 3px solid transparent; }
+.chicken i { position: absolute; left: 7px; top: 6px; width: 12px; height: 10px; border-radius: 50%; background: #e5c698; }
+.chicken-one { left: 22px; }.chicken-two { right: 20px; transform: scale(.88); }
+.coop-sign { position: absolute; z-index: 5; left: 50%; bottom: 0; transform: translateX(-50%); min-width: 104px; padding: 4px 10px; border: 2px solid #684427; border-radius: 6px; background: #fff0c8; font-size: .76rem; font-weight: 900; white-space: nowrap; }
+.coop-site.locked .coop-fence { opacity: .72; filter: saturate(.55); }
+.coop-site.locked::before { content: "+"; position: absolute; z-index: 4; left: 50%; top: 26px; width: 35px; height: 35px; transform: translateX(-50%); display: grid; place-items: center; border: 3px dashed #fff0c8; border-radius: 50%; color: #fff0c8; font-size: 1.45rem; font-weight: 900; }
+.coop-site.built .coop-house, .coop-site.built .chicken { display: block; animation: pop .35s ease-out; }
+.coop-site.working .chicken { animation: chickenPeck 1.2s ease-in-out infinite; }
+.coop-site.ready { filter: drop-shadow(0 0 5px #f6d25e) drop-shadow(0 4px 2px #35562945); }
+.egg-ready-badge { position: absolute; z-index: 6; right: 2px; top: 5px; padding: 5px 8px; border: 2px solid #956822; border-radius: 13px; background: var(--gold); color: #563c11; font-size: .72rem; font-weight: 900; animation: readyPulse 1.6s ease-in-out infinite; }
+
 .farm-edge { position: absolute; z-index: 1; inset: auto 0 0; height: 92px; background: #78b749; }
 .fence { position: absolute; left: 0; right: 0; bottom: 38px; height: 8px; background: #e5c586; box-shadow: 0 16px #d3ae69; }
 .fence::after { content: ""; position: absolute; inset: -9px 18px -28px; background: repeating-linear-gradient(90deg, #987042 0 8px, transparent 8px 62px); }
@@ -172,6 +193,21 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
 .market-stock-title { margin: 0 0 8px !important; color: #58634f; font-size: .84rem; letter-spacing: .06em; text-transform: uppercase; }
 .order-card.order-complete { animation: orderSuccess .48s ease-out; }
 
+.coop-panel { padding: 13px; display: grid; grid-template-columns: 96px 1fr; gap: 14px; align-items: center; border: 2px solid #d7c898; border-radius: 16px; background: #fffdf1; }
+.coop-copy p { margin-top: 5px; color: #68705e; font-size: .86rem; line-height: 1.35; }
+.coop-portrait { position: relative; width: 92px; height: 78px; overflow: hidden; border-radius: 14px; background: linear-gradient(#bde0ec 0 38%, #8fc554 38%); box-shadow: inset 0 -5px #74a747; }
+.portrait-chicken { position: absolute; bottom: 15px; width: 33px; height: 28px; border: 2px solid #765339; border-radius: 50%; background: #fff4d4; }
+.portrait-chicken::before { content: ""; position: absolute; right: -4px; top: -7px; width: 14px; height: 15px; border: 2px solid #765339; border-radius: 50%; background: #fff4d4; }
+.portrait-chicken::after { content: ""; position: absolute; right: -10px; top: -1px; border-left: 8px solid #e3a22d; border-top: 4px solid transparent; border-bottom: 4px solid transparent; }
+.portrait-chicken i { position: absolute; left: 8px; top: 7px; width: 15px; height: 12px; border-radius: 50%; background: #e5c698; }
+.portrait-one { left: 10px; }.portrait-two { right: 9px; transform: scale(.88); }
+.portrait-eggs { position: absolute; left: 39px; bottom: 8px; width: 13px; height: 17px; border: 2px solid #b8a373; border-radius: 55% 55% 48% 48%; background: #fff5d6; box-shadow: 12px 1px 0 -2px #fff5d6, 12px 1px 0 0 #b8a373; }
+.coop-progress { height: 12px; margin: 14px 2px 0; overflow: hidden; border: 2px solid #9c7b3e; border-radius: 8px; background: #e5d8b1; }
+.coop-progress span { display: block; width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--green), var(--green-light)); transition: width .6s linear; }
+.coop-recipe { margin: 13px 0 8px !important; color: #58634f; font-weight: 900; text-align: center; }
+.coop-action { width: 100%; min-height: 48px; padding: 0 14px; border: 0; border-radius: 11px; background: var(--green-dark); color: white; font-weight: 900; cursor: pointer; }
+.coop-action:disabled { background: #c9c2aa; color: #716e63; cursor: not-allowed; }
+
 [hidden] { display: none !important; }
 @keyframes sheetUp { from { transform: translate(-50%, 100%); } }
 @keyframes sprout { from { opacity: 0; transform: scale(.1); } }
@@ -179,9 +215,10 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
 @keyframes shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
 @keyframes pop { from { transform: scale(.2); opacity: 0; } }
 @keyframes orderSuccess { 45% { transform: scale(1.025); background: #e8f4c9; } }
+@keyframes chickenPeck { 50% { transform: translateY(3px) rotate(4deg); } }
 
 @media (max-width: 390px) {
-  .topbar { padding-inline: 12px; }.resource { min-width: 60px; }.farm { padding-inline: 11px; }.plot-grid { gap: 12px 9px; }.plot { min-height: 83px; }.crop-choice { padding-inline: 3px; }.upgrade-card { grid-template-columns: 42px 1fr; }.upgrade-card button { grid-column: 1/-1; }.order-heading { grid-template-columns: 38px 1fr; }.order-reward { grid-column: 2; justify-self: start; }.order-requirements { grid-template-columns: 1fr; }
+  .topbar { padding-inline: 12px; }.resource { min-width: 60px; }.farm { padding-inline: 11px; }.plot-grid { gap: 12px 9px; }.plot { min-height: 83px; }.crop-choice { padding-inline: 3px; }.upgrade-card { grid-template-columns: 42px 1fr; }.upgrade-card button { grid-column: 1/-1; }.order-heading { grid-template-columns: 38px 1fr; }.order-reward { grid-column: 2; justify-self: start; }.order-requirements { grid-template-columns: 1fr; }.coop-panel { grid-template-columns: 80px 1fr; gap: 10px; }.coop-portrait { width: 78px; }
 }
 
 @media (min-width: 621px) {
