@@ -18,6 +18,13 @@
   const COW_PASTURE_SUPPLY_COST = 2;
   const MILK_TIME_MS = 90000;
   const MILK_PER_BATCH = 2;
+  const GOAT_MEADOW_COST = 190;
+  const GOAT_MEADOW_SUPPLY_COST = 2;
+  const GOAT_MILK_TIME_MS = 75000;
+  const GOAT_MILK_PER_BATCH = 2;
+  const CREAMERY_COST = 240;
+  const CREAMERY_SUPPLY_COST = 3;
+  const CHEESE_TIME_MS = 120000;
   const CROPS = {
     carrot: { name: "Carrots", cost: 2, price: 5, growMs: 20000, storage: 1, color: "#ef8137" },
     wheat: { name: "Wheat", cost: 4, price: 10, growMs: 45000, storage: 1, color: "#e2b84f" },
@@ -27,7 +34,9 @@
     ...CROPS,
     egg: { name: "Eggs", price: 8, storage: 1, color: "#f3e7bd" },
     bread: { name: "Bread", price: 25, storage: 1, color: "#c9823d" },
-    milk: { name: "Milk", price: 12, storage: 1, color: "#f5f4e9" }
+    milk: { name: "Milk", price: 12, storage: 1, color: "#f5f4e9" },
+    goatMilk: { name: "Goat Milk", price: 14, storage: 1, color: "#f7f0df" },
+    cheese: { name: "Goat Cheese", price: 38, storage: 1, color: "#f2d56b" }
   };
   const ORDERS = [
     { id: "carrot-basket", title: "Carrot Basket", requester: "Marta Hill", requesterType: "neighbor", reason: "My grandchildren are visiting, and carrot soup is their favorite.", needs: { carrot: 2 }, reward: 12 },
@@ -48,12 +57,17 @@
     { id: "morning-milk", title: "Morning Milk", requester: "Marta Hill", requesterType: "neighbor", reason: "The family would love fresh milk with breakfast tomorrow.", needs: { milk: 2 }, reward: 29, requiresCow: true },
     { id: "farm-breakfast", title: "Farm Breakfast", requester: "Sunrise Café", requesterType: "restaurant", reason: "We’re adding a complete farm breakfast to today’s chalkboard.", needs: { carrot: 1, egg: 1, milk: 1 }, reward: 31, requiresCoop: true, requiresCow: true },
     { id: "cafe-dairy", title: "Café Dairy", requester: "The Copper Kettle", requesterType: "restaurant", reason: "Fresh bread and milk will finish our afternoon service nicely.", needs: { bread: 1, milk: 1 }, reward: 44, requiresBakery: true, requiresCow: true },
+    { id: "hillside-milk", title: "Hillside Milk", requester: "Nora Finch", requesterType: "neighbor", reason: "I’d love fresh goat milk for a family recipe.", needs: { goatMilk: 2 }, reward: 34, requiresGoat: true },
+    { id: "cafe-goat-milk", title: "Café Goat Milk", requester: "Sunrise Café", requesterType: "restaurant", reason: "Our weekend breakfast special needs something from the goat meadow.", needs: { bread: 1, goatMilk: 1 }, reward: 47, requiresBakery: true, requiresGoat: true },
+    { id: "cheese-board", title: "Cheese Board", requester: "Hearth & Spoon", requesterType: "restaurant", reason: "A small farmhouse cheese would complete tonight’s tasting board.", needs: { cheese: 1 }, reward: 46, requiresCreamery: true },
+    { id: "market-cheese", title: "Market Cheese", requester: "Saturday Market", requesterType: "market", reason: "Shoppers have been asking for a locally made goat cheese.", needs: { cheese: 1, carrot: 1 }, reward: 53, requiresCreamery: true },
     { id: "picnic-preparations", title: "Picnic Preparations", requester: "Little Field Council", requesterType: "market", reason: "The town picnic needs a dependable basket of fresh produce.", needs: { carrot: 2, wheat: 1 }, reward: 26, supplyCrates: 1, special: true },
     { id: "harvest-window", title: "Harvest Window", requester: "Millbrook Grocer", requesterType: "market", reason: "Help us build a colorful window display for harvest week.", needs: { carrot: 1, wheat: 1, pumpkin: 1 }, reward: 41, supplyCrates: 1, special: true },
     { id: "breakfast-rush", title: "Breakfast Rush", requester: "Sunrise Café", requesterType: "restaurant", reason: "A visiting walking club has filled every breakfast table.", needs: { wheat: 1, egg: 2 }, reward: 28, supplyCrates: 1, special: true, requiresCoop: true },
     { id: "community-lunch", title: "Community Lunch", requester: "The Copper Kettle", requesterType: "restaurant", reason: "We’re preparing a thank-you lunch for local volunteers.", needs: { carrot: 1, egg: 1, bread: 1 }, reward: 44, supplyCrates: 1, special: true, requiresBakery: true },
     { id: "festival-table", title: "Festival Table", requester: "Saturday Market", requesterType: "market", reason: "The fall festival table needs a centerpiece and a fresh loaf.", needs: { pumpkin: 1, bread: 1 }, reward: 49, supplyCrates: 1, special: true, requiresBakery: true },
-    { id: "community-breakfast", title: "Community Breakfast", requester: "Little Field Council", requesterType: "market", reason: "The community breakfast needs fresh milk and grain from a local farm.", needs: { wheat: 1, milk: 2 }, reward: 40, supplyCrates: 1, special: true, requiresCow: true }
+    { id: "community-breakfast", title: "Community Breakfast", requester: "Little Field Council", requesterType: "market", reason: "The community breakfast needs fresh milk and grain from a local farm.", needs: { wheat: 1, milk: 2 }, reward: 40, supplyCrates: 1, special: true, requiresCow: true },
+    { id: "creamery-showcase", title: "Creamery Showcase", requester: "Hollow Creek Market", requesterType: "market", reason: "We’re featuring the valley’s newest farmhouse products this week.", needs: { goatMilk: 1, cheese: 1 }, reward: 61, supplyCrates: 1, special: true, requiresCreamery: true }
   ];
 
   const freshState = () => ({
@@ -65,16 +79,18 @@
     ordersSinceSpecial: 0,
     plotCount: 6,
     activeOrder: null,
-    inventory: { carrot: 0, wheat: 0, pumpkin: 0, egg: 0, bread: 0, milk: 0 },
+    inventory: { carrot: 0, wheat: 0, pumpkin: 0, egg: 0, bread: 0, milk: 0, goatMilk: 0, cheese: 0 },
     coop: { built: false, readyAt: null, eggsReady: 0 },
     bakery: { built: false, readyAt: null, breadReady: 0 },
     cow: { built: false, readyAt: null, milkReady: 0 },
+    goat: { built: false, readyAt: null, milkReady: 0 },
+    creamery: { built: false, readyAt: null, cheeseReady: 0 },
     plots: Array.from({ length: 6 }, () => null)
   });
 
   let state = loadState();
   const loadedOrder = findOrder(state.activeOrder);
-  if (!loadedOrder || (loadedOrder.requiresCoop && !state.coop.built) || (loadedOrder.requiresBakery && !state.bakery.built) || (loadedOrder.requiresCow && !state.cow.built)) {
+  if (!loadedOrder || (loadedOrder.requiresCoop && !state.coop.built) || (loadedOrder.requiresBakery && !state.bakery.built) || (loadedOrder.requiresCow && !state.cow.built) || (loadedOrder.requiresGoat && !state.goat.built) || (loadedOrder.requiresCreamery && !state.creamery.built)) {
     state.activeOrder = chooseOrder();
     saveState();
   }
@@ -111,6 +127,18 @@
     cowStateMessage: document.querySelector("#cow-state-message"), cowProgress: document.querySelector("#cow-progress"),
     cowProgressBar: document.querySelector("#cow-progress-bar"), cowRecipe: document.querySelector("#cow-recipe"),
     cowAction: document.querySelector("#cow-action-button"),
+    goatSheet: document.querySelector("#goat-sheet"), goatButton: document.querySelector("#goat-button"),
+    goatBoardLabel: document.querySelector("#goat-board-label"), goatMilkReadyBadge: document.querySelector("#goat-milk-ready-badge"),
+    goatSubtitle: document.querySelector("#goat-subtitle"), goatStateTitle: document.querySelector("#goat-state-title"),
+    goatStateMessage: document.querySelector("#goat-state-message"), goatProgress: document.querySelector("#goat-progress"),
+    goatProgressBar: document.querySelector("#goat-progress-bar"), goatRecipe: document.querySelector("#goat-recipe"),
+    goatAction: document.querySelector("#goat-action-button"),
+    creamerySheet: document.querySelector("#creamery-sheet"), creameryButton: document.querySelector("#creamery-button"),
+    creameryBoardLabel: document.querySelector("#creamery-board-label"), cheeseReadyBadge: document.querySelector("#cheese-ready-badge"),
+    creamerySubtitle: document.querySelector("#creamery-subtitle"), creameryStateTitle: document.querySelector("#creamery-state-title"),
+    creameryStateMessage: document.querySelector("#creamery-state-message"), creameryProgress: document.querySelector("#creamery-progress"),
+    creameryProgressBar: document.querySelector("#creamery-progress-bar"), creameryRecipe: document.querySelector("#creamery-recipe"),
+    creameryAction: document.querySelector("#creamery-action-button"),
     cropChoices: document.querySelector("#crop-choices"), inventoryList: document.querySelector("#inventory-list"),
     marketList: document.querySelector("#market-list"), upgradeButton: document.querySelector("#upgrade-button"),
     upgradeTitle: document.querySelector("#upgrade-title"), upgradeDescription: document.querySelector("#upgrade-description"),
@@ -127,7 +155,7 @@
   function findOrder(orderId) { return ORDERS.find(order => order.id === orderId); }
 
   function chooseOrder(excludeId = null) {
-    const eligible = ORDERS.filter(order => order.id !== excludeId && (!order.requiresCoop || state.coop.built) && (!order.requiresBakery || state.bakery.built) && (!order.requiresCow || state.cow.built));
+    const eligible = ORDERS.filter(order => order.id !== excludeId && (!order.requiresCoop || state.coop.built) && (!order.requiresBakery || state.bakery.built) && (!order.requiresCow || state.cow.built) && (!order.requiresGoat || state.goat.built) && (!order.requiresCreamery || state.creamery.built));
     const specialDue = state.ordersSinceSpecial >= 3;
     const choices = eligible.filter(order => specialDue ? order.special : !order.special);
     return choices[Math.floor(Math.random() * choices.length)].id;
@@ -146,6 +174,8 @@
         coop: { ...freshState().coop, ...(saved.coop || {}) },
         bakery: { ...freshState().bakery, ...(saved.bakery || {}) },
         cow: { ...freshState().cow, ...(saved.cow || {}) },
+        goat: { ...freshState().goat, ...(saved.goat || {}) },
+        creamery: { ...freshState().creamery, ...(saved.creamery || {}) },
         plotCount: restoredPlotCount,
         plots: Array.from({ length: restoredPlotCount }, (_, i) => saved.plots[i] || null)
       };
@@ -218,14 +248,40 @@
     return Math.max(0, (state.cow.readyAt || now) - now);
   }
 
+  function updateGoatProduction(now = Date.now()) {
+    if (!state.goat.built || !state.goat.readyAt || now < state.goat.readyAt) return false;
+    state.goat.readyAt = null;
+    state.goat.milkReady = GOAT_MILK_PER_BATCH;
+    saveState();
+    return true;
+  }
+
+  function goatRemainingMs(now = Date.now()) {
+    return Math.max(0, (state.goat.readyAt || now) - now);
+  }
+
+  function updateCreameryProduction(now = Date.now()) {
+    if (!state.creamery.built || !state.creamery.readyAt || now < state.creamery.readyAt) return false;
+    state.creamery.readyAt = null;
+    state.creamery.cheeseReady = 1;
+    saveState();
+    return true;
+  }
+
+  function creameryRemainingMs(now = Date.now()) {
+    return Math.max(0, (state.creamery.readyAt || now) - now);
+  }
+
   function itemDotClass(key) {
-    return key === "egg" ? " egg-dot" : key === "bread" ? " bread-dot" : key === "milk" ? " milk-dot" : "";
+    return key === "egg" ? " egg-dot" : key === "bread" ? " bread-dot" : key === "milk" ? " milk-dot" : key === "goatMilk" ? " goat-milk-dot" : key === "cheese" ? " cheese-dot" : "";
   }
 
   function render() {
     const eggsJustReady = updateCoopProduction();
     const breadJustReady = updateBakeryProduction();
     const milkJustReady = updateCowProduction();
+    const goatMilkJustReady = updateGoatProduction();
+    const cheeseJustReady = updateCreameryProduction();
     els.coins.textContent = state.coins;
     els.storageCount.textContent = `${usedStorage()}/${state.capacity}`;
     els.supplyCount.textContent = state.supplyCrates;
@@ -236,6 +292,8 @@
     renderCoopBoard();
     renderBakeryBoard();
     renderCowBoard();
+    renderGoatBoard();
+    renderCreameryBoard();
     renderPlots();
     if (!els.storageSheet.hidden) renderStorage();
     if (!els.marketSheet.hidden) renderMarket();
@@ -243,9 +301,13 @@
     if (!els.coopSheet.hidden) renderCoop();
     if (!els.bakerySheet.hidden) renderBakery();
     if (!els.cowSheet.hidden) renderCow();
+    if (!els.goatSheet.hidden) renderGoat();
+    if (!els.creamerySheet.hidden) renderCreamery();
     if (eggsJustReady) setStatus("The chickens have laid two eggs. Tap the coop to collect them!");
     if (breadJustReady) setStatus("A warm loaf is ready. Tap the bakery to collect it!");
     if (milkJustReady) setStatus("Fresh milk is ready. Tap the cow pasture to collect it!");
+    if (goatMilkJustReady) setStatus("Fresh goat milk is ready. Tap the goat meadow to collect it!");
+    if (cheeseJustReady) setStatus("The goat cheese is ready. Tap the creamery to collect it!");
   }
 
   function renderCoopBoard() {
@@ -285,6 +347,32 @@
     else if (state.cow.readyAt) els.cowBoardLabel.textContent = `${Math.ceil(cowRemainingMs() / 1000)}s`;
     else els.cowBoardLabel.textContent = "Cow Pasture";
     els.cowButton.setAttribute("aria-label", els.cowBoardLabel.textContent);
+  }
+
+  function renderGoatBoard() {
+    els.goatButton.classList.toggle("locked", !state.goat.built);
+    els.goatButton.classList.toggle("built", state.goat.built);
+    els.goatButton.classList.toggle("working", Boolean(state.goat.readyAt));
+    els.goatButton.classList.toggle("ready", state.goat.milkReady > 0);
+    els.goatMilkReadyBadge.hidden = state.goat.milkReady === 0;
+    if (!state.goat.built) els.goatBoardLabel.textContent = `Goat Meadow • ${GOAT_MEADOW_COST} + ${GOAT_MEADOW_SUPPLY_COST} crates`;
+    else if (state.goat.milkReady) els.goatBoardLabel.textContent = "Goat Milk Ready!";
+    else if (state.goat.readyAt) els.goatBoardLabel.textContent = `${Math.ceil(goatRemainingMs() / 1000)}s`;
+    else els.goatBoardLabel.textContent = "Goat Meadow";
+    els.goatButton.setAttribute("aria-label", els.goatBoardLabel.textContent);
+  }
+
+  function renderCreameryBoard() {
+    els.creameryButton.classList.toggle("locked", !state.creamery.built);
+    els.creameryButton.classList.toggle("built", state.creamery.built);
+    els.creameryButton.classList.toggle("working", Boolean(state.creamery.readyAt));
+    els.creameryButton.classList.toggle("ready", state.creamery.cheeseReady > 0);
+    els.cheeseReadyBadge.hidden = state.creamery.cheeseReady === 0;
+    if (!state.creamery.built) els.creameryBoardLabel.textContent = `Creamery • ${CREAMERY_COST} + ${CREAMERY_SUPPLY_COST} crates`;
+    else if (state.creamery.cheeseReady) els.creameryBoardLabel.textContent = "Cheese Ready!";
+    else if (state.creamery.readyAt) els.creameryBoardLabel.textContent = `${Math.ceil(creameryRemainingMs() / 1000)}s`;
+    else els.creameryBoardLabel.textContent = "Farm Creamery";
+    els.creameryButton.setAttribute("aria-label", els.creameryBoardLabel.textContent);
   }
 
   function renderPlots() {
@@ -750,8 +838,159 @@
     render();
   }
 
+  function renderGoat() {
+    updateGoatProduction();
+    els.goatProgress.hidden = true;
+    els.goatRecipe.hidden = !state.goat.built;
+    if (!state.goat.built) {
+      const cowNeeded = !state.cow.built;
+      const coinShortage = Math.max(0, GOAT_MEADOW_COST - state.coins);
+      const supplyShortage = Math.max(0, GOAT_MEADOW_SUPPLY_COST - state.supplyCrates);
+      els.goatSubtitle.textContent = "A sunny hillside home for two dairy goats.";
+      els.goatStateTitle.textContent = "Build the Goat Meadow";
+      if (cowNeeded) els.goatStateMessage.textContent = "Build the cow pasture first to open this later farm expansion.";
+      else if (coinShortage || supplyShortage) {
+        const missing = [];
+        if (coinShortage) missing.push(`${coinShortage} more coin${coinShortage === 1 ? "" : "s"}`);
+        if (supplyShortage) missing.push(`${supplyShortage} more Supply Crate${supplyShortage === 1 ? "" : "s"}`);
+        els.goatStateMessage.textContent = `Still needed: ${missing.join(" and ")}.`;
+      } else els.goatStateMessage.textContent = "Everything is ready for two playful goats to move in.";
+      els.goatAction.disabled = cowNeeded || coinShortage > 0 || supplyShortage > 0;
+      els.goatAction.textContent = cowNeeded ? "Build the cow pasture first" : `Build for ${GOAT_MEADOW_COST} coins + ${GOAT_MEADOW_SUPPLY_COST} crates`;
+      return;
+    }
+    if (state.goat.milkReady) {
+      const spaceNeeded = state.goat.milkReady * PRODUCTS.goatMilk.storage;
+      const hasSpace = usedStorage() + spaceNeeded <= state.capacity;
+      els.goatSubtitle.textContent = "The goats are waiting beside their milk cans.";
+      els.goatStateTitle.textContent = "Fresh Goat Milk!";
+      els.goatStateMessage.textContent = hasSpace ? "Collect two bottles of goat milk and place them in the shed." : `Make ${spaceNeeded} spaces in the shed to collect them.`;
+      els.goatAction.disabled = !hasSpace;
+      els.goatAction.textContent = hasSpace ? "Collect 2 goat milk" : "Shed needs more room";
+      return;
+    }
+    if (state.goat.readyAt) {
+      const remaining = goatRemainingMs();
+      const progress = Math.min(100, Math.max(0, 100 - (remaining / GOAT_MILK_TIME_MS * 100)));
+      els.goatSubtitle.textContent = "The goats are happily nibbling their feed.";
+      els.goatStateTitle.textContent = "Making Goat Milk";
+      els.goatStateMessage.textContent = `Ready in ${Math.ceil(remaining / 1000)} seconds. They’ll keep grazing while you’re away.`;
+      els.goatProgress.hidden = false;
+      els.goatProgressBar.style.width = `${progress}%`;
+      els.goatAction.disabled = true;
+      els.goatAction.textContent = "Goats are fed";
+      return;
+    }
+    const hasCarrot = state.inventory.carrot >= 1;
+    const hasWheat = state.inventory.wheat >= 1;
+    els.goatSubtitle.textContent = "Two goats are ready to be fed.";
+    els.goatStateTitle.textContent = "Feed the Goats";
+    els.goatStateMessage.textContent = hasCarrot && hasWheat ? "Use one carrot and one wheat to produce two goat milk." : "Grow and store one carrot and one wheat for their feed.";
+    els.goatAction.disabled = !hasCarrot || !hasWheat;
+    els.goatAction.textContent = hasCarrot && hasWheat ? "Feed 1 carrot + 1 wheat" : "Ingredients needed";
+  }
+
+  function handleGoatAction() {
+    updateGoatProduction();
+    if (!state.goat.built) {
+      if (!state.cow.built || state.coins < GOAT_MEADOW_COST || state.supplyCrates < GOAT_MEADOW_SUPPLY_COST) return;
+      state.coins -= GOAT_MEADOW_COST;
+      state.supplyCrates -= GOAT_MEADOW_SUPPLY_COST;
+      state.goat.built = true;
+      saveState();
+      setStatus("The goat meadow is ready, and two playful goats have moved in!");
+    } else if (state.goat.milkReady) {
+      const spaceNeeded = state.goat.milkReady * PRODUCTS.goatMilk.storage;
+      if (usedStorage() + spaceNeeded > state.capacity) return;
+      state.inventory.goatMilk += state.goat.milkReady;
+      state.goat.milkReady = 0;
+      saveState();
+      setStatus("Two bottles of fresh goat milk collected and stored in the shed.");
+    } else if (!state.goat.readyAt && state.inventory.carrot >= 1 && state.inventory.wheat >= 1) {
+      state.inventory.carrot -= 1;
+      state.inventory.wheat -= 1;
+      state.goat.readyAt = Date.now() + GOAT_MILK_TIME_MS;
+      saveState();
+      setStatus("The goats are fed. Two bottles of goat milk will be ready in 75 seconds.");
+    }
+    render();
+  }
+
+  function renderCreamery() {
+    updateCreameryProduction();
+    els.creameryProgress.hidden = true;
+    els.creameryRecipe.hidden = !state.creamery.built;
+    if (!state.creamery.built) {
+      const goatNeeded = !state.goat.built;
+      const coinShortage = Math.max(0, CREAMERY_COST - state.coins);
+      const supplyShortage = Math.max(0, CREAMERY_SUPPLY_COST - state.supplyCrates);
+      els.creamerySubtitle.textContent = "Turn fresh goat milk into farmhouse cheese.";
+      els.creameryStateTitle.textContent = "Build the Creamery";
+      if (goatNeeded) els.creameryStateMessage.textContent = "Build the goat meadow first so the creamery has fresh milk.";
+      else if (coinShortage || supplyShortage) {
+        const missing = [];
+        if (coinShortage) missing.push(`${coinShortage} more coin${coinShortage === 1 ? "" : "s"}`);
+        if (supplyShortage) missing.push(`${supplyShortage} more Supply Crate${supplyShortage === 1 ? "" : "s"}`);
+        els.creameryStateMessage.textContent = `Still needed: ${missing.join(" and ")}.`;
+      } else els.creameryStateMessage.textContent = "Everything is ready to build the creamery.";
+      els.creameryAction.disabled = goatNeeded || coinShortage > 0 || supplyShortage > 0;
+      els.creameryAction.textContent = goatNeeded ? "Build the goat meadow first" : `Build for ${CREAMERY_COST} coins + ${CREAMERY_SUPPLY_COST} crates`;
+      return;
+    }
+    if (state.creamery.cheeseReady) {
+      const hasSpace = usedStorage() + PRODUCTS.cheese.storage <= state.capacity;
+      els.creamerySubtitle.textContent = "The cheese wheel has finished setting.";
+      els.creameryStateTitle.textContent = "Farmhouse Cheese!";
+      els.creameryStateMessage.textContent = hasSpace ? "Collect the goat cheese and place it in the shed." : "Make one space in the shed to collect the cheese.";
+      els.creameryAction.disabled = !hasSpace;
+      els.creameryAction.textContent = hasSpace ? "Collect 1 cheese" : "Shed needs more room";
+      return;
+    }
+    if (state.creamery.readyAt) {
+      const remaining = creameryRemainingMs();
+      const progress = Math.min(100, Math.max(0, 100 - (remaining / CHEESE_TIME_MS * 100)));
+      els.creamerySubtitle.textContent = "The fresh cheese is slowly setting.";
+      els.creameryStateTitle.textContent = "Making Cheese";
+      els.creameryStateMessage.textContent = `Ready in ${Math.ceil(remaining / 1000)} seconds. It’ll keep setting while you’re away.`;
+      els.creameryProgress.hidden = false;
+      els.creameryProgressBar.style.width = `${progress}%`;
+      els.creameryAction.disabled = true;
+      els.creameryAction.textContent = "Cheese is setting";
+      return;
+    }
+    els.creamerySubtitle.textContent = "The creamery is ready for fresh goat milk.";
+    els.creameryStateTitle.textContent = "Make Goat Cheese";
+    els.creameryStateMessage.textContent = state.inventory.goatMilk >= 2 ? "Use two stored goat milk to make one farmhouse cheese." : `Collect ${2 - state.inventory.goatMilk} more goat milk.`;
+    els.creameryAction.disabled = state.inventory.goatMilk < 2;
+    els.creameryAction.textContent = state.inventory.goatMilk >= 2 ? "Make 1 cheese" : "2 goat milk needed";
+  }
+
+  function handleCreameryAction() {
+    updateCreameryProduction();
+    if (!state.creamery.built) {
+      if (!state.goat.built || state.coins < CREAMERY_COST || state.supplyCrates < CREAMERY_SUPPLY_COST) return;
+      state.coins -= CREAMERY_COST;
+      state.supplyCrates -= CREAMERY_SUPPLY_COST;
+      state.creamery.built = true;
+      saveState();
+      setStatus("The farm creamery is built and ready for fresh goat milk!");
+    } else if (state.creamery.cheeseReady) {
+      if (usedStorage() + PRODUCTS.cheese.storage > state.capacity) return;
+      state.inventory.cheese += 1;
+      state.creamery.cheeseReady = 0;
+      saveState();
+      setStatus("One farmhouse goat cheese collected and stored in the shed.");
+    } else if (!state.creamery.readyAt && state.inventory.goatMilk >= 2) {
+      state.inventory.goatMilk -= 2;
+      state.creamery.readyAt = Date.now() + CHEESE_TIME_MS;
+      saveState();
+      setStatus("The goat cheese is setting. It will be ready in 120 seconds.");
+    }
+    render();
+  }
+
   function openSheet(sheet) {
-    [els.plantSheet, els.storageSheet, els.marketSheet, els.landSheet, els.coopSheet, els.bakerySheet, els.cowSheet].forEach(item => { item.hidden = true; });
+    [els.plantSheet, els.storageSheet, els.marketSheet, els.landSheet, els.coopSheet, els.bakerySheet, els.cowSheet, els.goatSheet, els.creamerySheet].forEach(item => { item.hidden = true; });
     els.overlay.hidden = false;
     sheet.hidden = false;
     sheet.querySelector("button")?.focus();
@@ -759,7 +998,7 @@
 
   function closeSheets() {
     els.overlay.hidden = true;
-    [els.plantSheet, els.storageSheet, els.marketSheet, els.landSheet, els.coopSheet, els.bakerySheet, els.cowSheet].forEach(sheet => { sheet.hidden = true; });
+    [els.plantSheet, els.storageSheet, els.marketSheet, els.landSheet, els.coopSheet, els.bakerySheet, els.cowSheet, els.goatSheet, els.creamerySheet].forEach(sheet => { sheet.hidden = true; });
     selectedPlot = null;
   }
 
@@ -770,6 +1009,8 @@
   els.coopButton.addEventListener("click", () => { renderCoop(); openSheet(els.coopSheet); });
   els.bakeryButton.addEventListener("click", () => { renderBakery(); openSheet(els.bakerySheet); });
   els.cowButton.addEventListener("click", () => { renderCow(); openSheet(els.cowSheet); });
+  els.goatButton.addEventListener("click", () => { renderGoat(); openSheet(els.goatSheet); });
+  els.creameryButton.addEventListener("click", () => { renderCreamery(); openSheet(els.creamerySheet); });
   document.querySelectorAll("[data-close]").forEach(button => button.addEventListener("click", closeSheets));
   els.overlay.addEventListener("click", closeSheets);
   els.upgradeButton.addEventListener("click", buyUpgrade);
@@ -779,6 +1020,8 @@
   els.bakeryAction.addEventListener("click", handleBakeryAction);
   els.landAction.addEventListener("click", buyLand);
   els.cowAction.addEventListener("click", handleCowAction);
+  els.goatAction.addEventListener("click", handleGoatAction);
+  els.creameryAction.addEventListener("click", handleCreameryAction);
   document.addEventListener("keydown", event => { if (event.key === "Escape") closeSheets(); });
   document.addEventListener("visibilitychange", () => { if (!document.hidden) render(); });
 
