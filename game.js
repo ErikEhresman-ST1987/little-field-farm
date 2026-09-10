@@ -14,6 +14,10 @@
   const BAKERY_COST = 100;
   const BREAD_TIME_MS = 90000;
   const LAND_EXPANSION = { name: "South Field", plotCount: 9, coinCost: 90, supplyCost: 1 };
+  const COW_PASTURE_COST = 140;
+  const COW_PASTURE_SUPPLY_COST = 2;
+  const MILK_TIME_MS = 90000;
+  const MILK_PER_BATCH = 2;
   const CROPS = {
     carrot: { name: "Carrots", cost: 2, price: 5, growMs: 20000, storage: 1, color: "#ef8137" },
     wheat: { name: "Wheat", cost: 4, price: 10, growMs: 45000, storage: 1, color: "#e2b84f" },
@@ -22,7 +26,8 @@
   const PRODUCTS = {
     ...CROPS,
     egg: { name: "Eggs", price: 8, storage: 1, color: "#f3e7bd" },
-    bread: { name: "Bread", price: 25, storage: 1, color: "#c9823d" }
+    bread: { name: "Bread", price: 25, storage: 1, color: "#c9823d" },
+    milk: { name: "Milk", price: 12, storage: 1, color: "#f5f4e9" }
   };
   const ORDERS = [
     { id: "carrot-basket", title: "Carrot Basket", requester: "Marta Hill", requesterType: "neighbor", reason: "My grandchildren are visiting, and carrot soup is their favorite.", needs: { carrot: 2 }, reward: 12 },
@@ -40,11 +45,15 @@
     { id: "lunch-basket", title: "Lunch Basket", requester: "Marta Hill", requesterType: "neighbor", reason: "I’m packing a farm lunch for a day by the creek.", needs: { carrot: 1, bread: 1 }, reward: 36, requiresBakery: true },
     { id: "harvest-table", title: "Harvest Table", requester: "Hollow Creek Market", requesterType: "market", reason: "We’re featuring complete farm meals at this week’s stall.", needs: { pumpkin: 1, bread: 1 }, reward: 53, requiresBakery: true },
     { id: "two-loaves", title: "Two Loaves", requester: "Hearth & Spoon", requesterType: "restaurant", reason: "The dinner tables need two more fresh loaves tonight.", needs: { bread: 2 }, reward: 60, requiresBakery: true },
+    { id: "morning-milk", title: "Morning Milk", requester: "Marta Hill", requesterType: "neighbor", reason: "The family would love fresh milk with breakfast tomorrow.", needs: { milk: 2 }, reward: 29, requiresCow: true },
+    { id: "farm-breakfast", title: "Farm Breakfast", requester: "Sunrise Café", requesterType: "restaurant", reason: "We’re adding a complete farm breakfast to today’s chalkboard.", needs: { carrot: 1, egg: 1, milk: 1 }, reward: 31, requiresCoop: true, requiresCow: true },
+    { id: "cafe-dairy", title: "Café Dairy", requester: "The Copper Kettle", requesterType: "restaurant", reason: "Fresh bread and milk will finish our afternoon service nicely.", needs: { bread: 1, milk: 1 }, reward: 44, requiresBakery: true, requiresCow: true },
     { id: "picnic-preparations", title: "Picnic Preparations", requester: "Little Field Council", requesterType: "market", reason: "The town picnic needs a dependable basket of fresh produce.", needs: { carrot: 2, wheat: 1 }, reward: 26, supplyCrates: 1, special: true },
     { id: "harvest-window", title: "Harvest Window", requester: "Millbrook Grocer", requesterType: "market", reason: "Help us build a colorful window display for harvest week.", needs: { carrot: 1, wheat: 1, pumpkin: 1 }, reward: 41, supplyCrates: 1, special: true },
     { id: "breakfast-rush", title: "Breakfast Rush", requester: "Sunrise Café", requesterType: "restaurant", reason: "A visiting walking club has filled every breakfast table.", needs: { wheat: 1, egg: 2 }, reward: 28, supplyCrates: 1, special: true, requiresCoop: true },
     { id: "community-lunch", title: "Community Lunch", requester: "The Copper Kettle", requesterType: "restaurant", reason: "We’re preparing a thank-you lunch for local volunteers.", needs: { carrot: 1, egg: 1, bread: 1 }, reward: 44, supplyCrates: 1, special: true, requiresBakery: true },
-    { id: "festival-table", title: "Festival Table", requester: "Saturday Market", requesterType: "market", reason: "The fall festival table needs a centerpiece and a fresh loaf.", needs: { pumpkin: 1, bread: 1 }, reward: 49, supplyCrates: 1, special: true, requiresBakery: true }
+    { id: "festival-table", title: "Festival Table", requester: "Saturday Market", requesterType: "market", reason: "The fall festival table needs a centerpiece and a fresh loaf.", needs: { pumpkin: 1, bread: 1 }, reward: 49, supplyCrates: 1, special: true, requiresBakery: true },
+    { id: "community-breakfast", title: "Community Breakfast", requester: "Little Field Council", requesterType: "market", reason: "The community breakfast needs fresh milk and grain from a local farm.", needs: { wheat: 1, milk: 2 }, reward: 40, supplyCrates: 1, special: true, requiresCow: true }
   ];
 
   const freshState = () => ({
@@ -56,15 +65,16 @@
     ordersSinceSpecial: 0,
     plotCount: 6,
     activeOrder: null,
-    inventory: { carrot: 0, wheat: 0, pumpkin: 0, egg: 0, bread: 0 },
+    inventory: { carrot: 0, wheat: 0, pumpkin: 0, egg: 0, bread: 0, milk: 0 },
     coop: { built: false, readyAt: null, eggsReady: 0 },
     bakery: { built: false, readyAt: null, breadReady: 0 },
+    cow: { built: false, readyAt: null, milkReady: 0 },
     plots: Array.from({ length: 6 }, () => null)
   });
 
   let state = loadState();
   const loadedOrder = findOrder(state.activeOrder);
-  if (!loadedOrder || (loadedOrder.requiresCoop && !state.coop.built) || (loadedOrder.requiresBakery && !state.bakery.built)) {
+  if (!loadedOrder || (loadedOrder.requiresCoop && !state.coop.built) || (loadedOrder.requiresBakery && !state.bakery.built) || (loadedOrder.requiresCow && !state.cow.built)) {
     state.activeOrder = chooseOrder();
     saveState();
   }
@@ -95,6 +105,12 @@
     bakeryStateMessage: document.querySelector("#bakery-state-message"), bakeryProgress: document.querySelector("#bakery-progress"),
     bakeryProgressBar: document.querySelector("#bakery-progress-bar"), bakeryRecipe: document.querySelector("#bakery-recipe"),
     bakeryAction: document.querySelector("#bakery-action-button"),
+    cowSheet: document.querySelector("#cow-sheet"), cowButton: document.querySelector("#cow-button"),
+    cowBoardLabel: document.querySelector("#cow-board-label"), milkReadyBadge: document.querySelector("#milk-ready-badge"),
+    cowSubtitle: document.querySelector("#cow-subtitle"), cowStateTitle: document.querySelector("#cow-state-title"),
+    cowStateMessage: document.querySelector("#cow-state-message"), cowProgress: document.querySelector("#cow-progress"),
+    cowProgressBar: document.querySelector("#cow-progress-bar"), cowRecipe: document.querySelector("#cow-recipe"),
+    cowAction: document.querySelector("#cow-action-button"),
     cropChoices: document.querySelector("#crop-choices"), inventoryList: document.querySelector("#inventory-list"),
     marketList: document.querySelector("#market-list"), upgradeButton: document.querySelector("#upgrade-button"),
     upgradeTitle: document.querySelector("#upgrade-title"), upgradeDescription: document.querySelector("#upgrade-description"),
@@ -111,7 +127,7 @@
   function findOrder(orderId) { return ORDERS.find(order => order.id === orderId); }
 
   function chooseOrder(excludeId = null) {
-    const eligible = ORDERS.filter(order => order.id !== excludeId && (!order.requiresCoop || state.coop.built) && (!order.requiresBakery || state.bakery.built));
+    const eligible = ORDERS.filter(order => order.id !== excludeId && (!order.requiresCoop || state.coop.built) && (!order.requiresBakery || state.bakery.built) && (!order.requiresCow || state.cow.built));
     const specialDue = state.ordersSinceSpecial >= 3;
     const choices = eligible.filter(order => specialDue ? order.special : !order.special);
     return choices[Math.floor(Math.random() * choices.length)].id;
@@ -129,6 +145,7 @@
         inventory: { ...freshState().inventory, ...(saved.inventory || {}) },
         coop: { ...freshState().coop, ...(saved.coop || {}) },
         bakery: { ...freshState().bakery, ...(saved.bakery || {}) },
+        cow: { ...freshState().cow, ...(saved.cow || {}) },
         plotCount: restoredPlotCount,
         plots: Array.from({ length: restoredPlotCount }, (_, i) => saved.plots[i] || null)
       };
@@ -189,9 +206,26 @@
     return Math.max(0, (state.bakery.readyAt || now) - now);
   }
 
+  function updateCowProduction(now = Date.now()) {
+    if (!state.cow.built || !state.cow.readyAt || now < state.cow.readyAt) return false;
+    state.cow.readyAt = null;
+    state.cow.milkReady = MILK_PER_BATCH;
+    saveState();
+    return true;
+  }
+
+  function cowRemainingMs(now = Date.now()) {
+    return Math.max(0, (state.cow.readyAt || now) - now);
+  }
+
+  function itemDotClass(key) {
+    return key === "egg" ? " egg-dot" : key === "bread" ? " bread-dot" : key === "milk" ? " milk-dot" : "";
+  }
+
   function render() {
     const eggsJustReady = updateCoopProduction();
     const breadJustReady = updateBakeryProduction();
+    const milkJustReady = updateCowProduction();
     els.coins.textContent = state.coins;
     els.storageCount.textContent = `${usedStorage()}/${state.capacity}`;
     els.supplyCount.textContent = state.supplyCrates;
@@ -201,14 +235,17 @@
     els.landButton.hidden = state.plotCount >= LAND_EXPANSION.plotCount;
     renderCoopBoard();
     renderBakeryBoard();
+    renderCowBoard();
     renderPlots();
     if (!els.storageSheet.hidden) renderStorage();
     if (!els.marketSheet.hidden) renderMarket();
     if (!els.plantSheet.hidden) renderCropChoices();
     if (!els.coopSheet.hidden) renderCoop();
     if (!els.bakerySheet.hidden) renderBakery();
+    if (!els.cowSheet.hidden) renderCow();
     if (eggsJustReady) setStatus("The chickens have laid two eggs. Tap the coop to collect them!");
     if (breadJustReady) setStatus("A warm loaf is ready. Tap the bakery to collect it!");
+    if (milkJustReady) setStatus("Fresh milk is ready. Tap the cow pasture to collect it!");
   }
 
   function renderCoopBoard() {
@@ -235,6 +272,19 @@
     else if (state.bakery.readyAt) els.bakeryBoardLabel.textContent = `${Math.ceil(bakeryRemainingMs() / 1000)}s`;
     else els.bakeryBoardLabel.textContent = "Farm Bakery";
     els.bakeryButton.setAttribute("aria-label", els.bakeryBoardLabel.textContent);
+  }
+
+  function renderCowBoard() {
+    els.cowButton.classList.toggle("locked", !state.cow.built);
+    els.cowButton.classList.toggle("built", state.cow.built);
+    els.cowButton.classList.toggle("working", Boolean(state.cow.readyAt));
+    els.cowButton.classList.toggle("ready", state.cow.milkReady > 0);
+    els.milkReadyBadge.hidden = state.cow.milkReady === 0;
+    if (!state.cow.built) els.cowBoardLabel.textContent = `Cow Pasture • ${COW_PASTURE_COST} + ${COW_PASTURE_SUPPLY_COST} crates`;
+    else if (state.cow.milkReady) els.cowBoardLabel.textContent = "Milk Ready!";
+    else if (state.cow.readyAt) els.cowBoardLabel.textContent = `${Math.ceil(cowRemainingMs() / 1000)}s`;
+    else els.cowBoardLabel.textContent = "Cow Pasture";
+    els.cowButton.setAttribute("aria-label", els.cowBoardLabel.textContent);
   }
 
   function renderPlots() {
@@ -357,7 +407,7 @@
       const row = document.createElement("div");
       row.className = "inventory-row";
       row.style.setProperty("--item-color", crop.color);
-      row.innerHTML = `<span class="item-dot${key === "egg" ? " egg-dot" : key === "bread" ? " bread-dot" : ""}" aria-hidden="true"></span><div><strong>${crop.name}</strong><span>${crop.storage} storage space${crop.storage > 1 ? "s" : ""} each</span></div><strong>× ${state.inventory[key]}</strong>`;
+      row.innerHTML = `<span class="item-dot${itemDotClass(key)}" aria-hidden="true"></span><div><strong>${crop.name}</strong><span>${crop.storage} storage space${crop.storage > 1 ? "s" : ""} each</span></div><strong>× ${state.inventory[key]}</strong>`;
       els.inventoryList.appendChild(row);
     });
     const nextLevel = SHED_LEVELS[state.shedLevel + 1];
@@ -403,7 +453,7 @@
       const row = document.createElement("div");
       row.className = "market-row";
       row.style.setProperty("--item-color", crop.color);
-      row.innerHTML = `<span class="item-dot${key === "egg" ? " egg-dot" : key === "bread" ? " bread-dot" : ""}" aria-hidden="true"></span><div><strong>${crop.name}</strong><span>${count} stored • ${crop.price} coins each</span></div>`;
+      row.innerHTML = `<span class="item-dot${itemDotClass(key)}" aria-hidden="true"></span><div><strong>${crop.name}</strong><span>${count} stored • ${crop.price} coins each</span></div>`;
       const button = document.createElement("button");
       button.type = "button";
       button.disabled = count === 0;
@@ -437,7 +487,7 @@
       const requirement = document.createElement("div");
       requirement.className = `order-requirement${met ? " met" : ""}`;
       requirement.style.setProperty("--item-color", crop.color);
-      requirement.innerHTML = `<span class="item-dot${key === "egg" ? " egg-dot" : key === "bread" ? " bread-dot" : ""}" aria-hidden="true"></span><span>${crop.name}</span><strong>${Math.min(stored, amount)} / ${amount}</strong>`;
+      requirement.innerHTML = `<span class="item-dot${itemDotClass(key)}" aria-hidden="true"></span><span>${crop.name}</span><strong>${Math.min(stored, amount)} / ${amount}</strong>`;
       els.orderRequirements.appendChild(requirement);
     });
     els.completeOrder.disabled = !ready || completingOrder;
@@ -625,8 +675,83 @@
     render();
   }
 
+  function renderCow() {
+    updateCowProduction();
+    els.cowProgress.hidden = true;
+    els.cowRecipe.hidden = !state.cow.built;
+    if (!state.cow.built) {
+      const fieldNeeded = state.plotCount < LAND_EXPANSION.plotCount;
+      const coinShortage = Math.max(0, COW_PASTURE_COST - state.coins);
+      const supplyShortage = Math.max(0, COW_PASTURE_SUPPLY_COST - state.supplyCrates);
+      els.cowSubtitle.textContent = "A grassy home for two gentle cows.";
+      els.cowStateTitle.textContent = "Build the Cow Pasture";
+      if (fieldNeeded) els.cowStateMessage.textContent = "Open the South Field first to make room for the pasture.";
+      else if (coinShortage || supplyShortage) {
+        const missing = [];
+        if (coinShortage) missing.push(`${coinShortage} more coin${coinShortage === 1 ? "" : "s"}`);
+        if (supplyShortage) missing.push(`${supplyShortage} more Supply Crate${supplyShortage === 1 ? "" : "s"}`);
+        els.cowStateMessage.textContent = `Still needed: ${missing.join(" and ")}.`;
+      } else els.cowStateMessage.textContent = "Everything is ready for two cows to move in.";
+      els.cowAction.disabled = fieldNeeded || coinShortage > 0 || supplyShortage > 0;
+      els.cowAction.textContent = fieldNeeded ? "Open the South Field first" : `Build for ${COW_PASTURE_COST} coins + ${COW_PASTURE_SUPPLY_COST} crates`;
+      return;
+    }
+    if (state.cow.milkReady) {
+      const spaceNeeded = state.cow.milkReady * PRODUCTS.milk.storage;
+      const hasSpace = usedStorage() + spaceNeeded <= state.capacity;
+      els.cowSubtitle.textContent = "The cows are waiting by the milk pail.";
+      els.cowStateTitle.textContent = "Fresh Milk!";
+      els.cowStateMessage.textContent = hasSpace ? "Collect two bottles of milk and place them in the shed." : `Make ${spaceNeeded} spaces in the shed to collect them.`;
+      els.cowAction.disabled = !hasSpace;
+      els.cowAction.textContent = hasSpace ? "Collect 2 milk" : "Shed needs more room";
+      return;
+    }
+    if (state.cow.readyAt) {
+      const remaining = cowRemainingMs();
+      const progress = Math.min(100, Math.max(0, 100 - (remaining / MILK_TIME_MS * 100)));
+      els.cowSubtitle.textContent = "The cows are munching contentedly.";
+      els.cowStateTitle.textContent = "Making Milk";
+      els.cowStateMessage.textContent = `Ready in ${Math.ceil(remaining / 1000)} seconds. They’ll keep grazing while you’re away.`;
+      els.cowProgress.hidden = false;
+      els.cowProgressBar.style.width = `${progress}%`;
+      els.cowAction.disabled = true;
+      els.cowAction.textContent = "Cows are fed";
+      return;
+    }
+    els.cowSubtitle.textContent = "Two cows are ready to be fed.";
+    els.cowStateTitle.textContent = "Feed the Cows";
+    els.cowStateMessage.textContent = state.inventory.wheat >= 2 ? "Use two stored wheat to produce two milk." : `Grow and store ${2 - state.inventory.wheat} more wheat.`;
+    els.cowAction.disabled = state.inventory.wheat < 2;
+    els.cowAction.textContent = state.inventory.wheat >= 2 ? "Feed 2 wheat" : "2 wheat needed";
+  }
+
+  function handleCowAction() {
+    updateCowProduction();
+    if (!state.cow.built) {
+      if (state.plotCount < LAND_EXPANSION.plotCount || state.coins < COW_PASTURE_COST || state.supplyCrates < COW_PASTURE_SUPPLY_COST) return;
+      state.coins -= COW_PASTURE_COST;
+      state.supplyCrates -= COW_PASTURE_SUPPLY_COST;
+      state.cow.built = true;
+      saveState();
+      setStatus("The cow pasture is ready, and two gentle cows have moved in!");
+    } else if (state.cow.milkReady) {
+      const spaceNeeded = state.cow.milkReady * PRODUCTS.milk.storage;
+      if (usedStorage() + spaceNeeded > state.capacity) return;
+      state.inventory.milk += state.cow.milkReady;
+      state.cow.milkReady = 0;
+      saveState();
+      setStatus("Two bottles of fresh milk collected and stored in the shed.");
+    } else if (!state.cow.readyAt && state.inventory.wheat >= 2) {
+      state.inventory.wheat -= 2;
+      state.cow.readyAt = Date.now() + MILK_TIME_MS;
+      saveState();
+      setStatus("The cows are fed. Two bottles of milk will be ready in 90 seconds.");
+    }
+    render();
+  }
+
   function openSheet(sheet) {
-    [els.plantSheet, els.storageSheet, els.marketSheet, els.landSheet, els.coopSheet, els.bakerySheet].forEach(item => { item.hidden = true; });
+    [els.plantSheet, els.storageSheet, els.marketSheet, els.landSheet, els.coopSheet, els.bakerySheet, els.cowSheet].forEach(item => { item.hidden = true; });
     els.overlay.hidden = false;
     sheet.hidden = false;
     sheet.querySelector("button")?.focus();
@@ -634,7 +759,7 @@
 
   function closeSheets() {
     els.overlay.hidden = true;
-    [els.plantSheet, els.storageSheet, els.marketSheet, els.landSheet, els.coopSheet, els.bakerySheet].forEach(sheet => { sheet.hidden = true; });
+    [els.plantSheet, els.storageSheet, els.marketSheet, els.landSheet, els.coopSheet, els.bakerySheet, els.cowSheet].forEach(sheet => { sheet.hidden = true; });
     selectedPlot = null;
   }
 
@@ -644,6 +769,7 @@
   els.landButton.addEventListener("click", () => { if (state.plotCount < LAND_EXPANSION.plotCount) { renderLand(); openSheet(els.landSheet); } });
   els.coopButton.addEventListener("click", () => { renderCoop(); openSheet(els.coopSheet); });
   els.bakeryButton.addEventListener("click", () => { renderBakery(); openSheet(els.bakerySheet); });
+  els.cowButton.addEventListener("click", () => { renderCow(); openSheet(els.cowSheet); });
   document.querySelectorAll("[data-close]").forEach(button => button.addEventListener("click", closeSheets));
   els.overlay.addEventListener("click", closeSheets);
   els.upgradeButton.addEventListener("click", buyUpgrade);
@@ -652,6 +778,7 @@
   els.coopAction.addEventListener("click", handleCoopAction);
   els.bakeryAction.addEventListener("click", handleBakeryAction);
   els.landAction.addEventListener("click", buyLand);
+  els.cowAction.addEventListener("click", handleCowAction);
   document.addEventListener("keydown", event => { if (event.key === "Escape") closeSheets(); });
   document.addEventListener("visibilitychange", () => { if (!document.hidden) render(); });
 
