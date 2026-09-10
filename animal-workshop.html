@@ -30,6 +30,18 @@
     .control { min-height: 54px; padding: 8px 10px; display: flex; gap: 8px; align-items: center; border: 2px solid #d8cca7; border-radius: 13px; background: #f4edd4; font-size: .88rem; font-weight: 850; cursor: pointer; }
     .control input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--green-dark); }
     .color-control { justify-content: space-between; }.color-control input { width: 34px; height: 34px; padding: 0; border: 0; border-radius: 8px; background: transparent; }
+    .part-editor { display: grid; grid-template-columns: 210px 1fr; gap: 16px; }
+    .part-picker label { display: block; margin-bottom: 6px; color: var(--green-dark); font-size: .85rem; font-weight: 900; }
+    .part-picker select { width: 100%; min-height: 48px; padding: 0 12px; border: 2px solid #bbae7e; border-radius: 11px; background: white; color: var(--ink); font: inherit; font-weight: 800; }
+    .part-picker p { margin-top: 9px; color: var(--muted); font-size: .82rem; line-height: 1.4; }
+    .editor-actions { margin-top: 12px; display: grid; gap: 8px; }
+    .editor-button { min-height: 43px; padding: 0 10px; border: 0; border-radius: 10px; background: var(--green-dark); color: white; font-weight: 900; cursor: pointer; }
+    .editor-button.secondary { border: 2px solid #b9ac7d; background: #f3ead0; color: #594e32; }
+    .sliders { display: grid; grid-template-columns: repeat(2, minmax(150px, 1fr)); gap: 10px 16px; }
+    .slider-control { display: grid; grid-template-columns: 1fr auto; gap: 5px 10px; align-items: center; color: #4b5a42; font-size: .84rem; font-weight: 850; }
+    .slider-control output { min-width: 48px; padding: 3px 6px; border-radius: 7px; background: #eee5c9; color: #564927; text-align: center; font-variant-numeric: tabular-nums; }
+    .slider-control input { grid-column: 1/-1; width: 100%; height: 30px; accent-color: var(--green-dark); }
+    .settings-readout { margin-top: 13px; padding: 10px 12px; border-radius: 11px; background: #e9f0d7; color: #3f5737; font-size: .84rem; font-weight: 800; line-height: 1.4; }
     .design-stage { position: relative; min-height: 330px; overflow: hidden; display: grid; place-items: center; border: 3px solid #8dbb62; border-radius: 18px; background: linear-gradient(#cbe8f0 0 43%, #91c958 43%); box-shadow: inset 0 -25px #79b04b; }
     .design-stage.neutral { border-color: #c8b986; background: repeating-linear-gradient(0deg, #f4efd9 0 24px, #e8e0c4 25px 26px), repeating-linear-gradient(90deg, transparent 0 24px, #d8cfb2 25px 26px); box-shadow: none; }
     .orientation { position: absolute; left: 12px; right: 12px; bottom: 10px; display: flex; justify-content: space-between; color: #35562f; font-size: .72rem; font-weight: 900; letter-spacing: .08em; }
@@ -59,6 +71,7 @@
     .udder::after { content: ""; position: absolute; left: 3px; bottom: -6px; width: 3px; height: 7px; border-radius: 0 0 3px 3px; background: #ad756e; box-shadow: 8px 0 #ad756e; }
     .animal.animate .head, .animal.animate .muzzle, .animal.animate .eyes, .animal.animate .ears, .animal.animate .horns, .animal.animate .beard { animation: browse 2s ease-in-out infinite; }
     .animal.animate .tail { animation: tail 2.6s ease-in-out infinite; }
+    .design-stage .animal .selected-part { outline: 2px dashed #d33e35; outline-offset: 2px; filter: drop-shadow(0 0 2px #fff); }
     @keyframes browse { 50% { translate: 0 3px; } }
     @keyframes tail { 50% { transform: rotate(-15deg); } }
 
@@ -84,10 +97,10 @@
     .steps { margin: 10px 0 0; padding-left: 21px; color: #4f5e48; line-height: 1.55; }.steps li + li { margin-top: 5px; }
     .note { margin-top: 12px; padding: 11px; border-left: 5px solid var(--gold); border-radius: 8px; background: #fff3c6; color: #5d512d; line-height: 1.4; }
     @media (max-width: 700px) {
-      .controls { grid-template-columns: 1fr 1fr; }.design-stage { min-height: 285px; }.animal-wrap { width: 360px; transform: scale(.78); }.animal-wrap.flipped { transform: scale(-.78,.78); }.preview-grid { grid-template-columns: 1fr; }.checklist { grid-template-columns: 1fr; }
+      .controls { grid-template-columns: 1fr 1fr; }.part-editor { grid-template-columns: 1fr; }.sliders { grid-template-columns: 1fr 1fr; }.design-stage { min-height: 285px; }.animal-wrap { width: 360px; transform: scale(.78); }.animal-wrap.flipped { transform: scale(-.78,.78); }.preview-grid { grid-template-columns: 1fr; }.checklist { grid-template-columns: 1fr; }
     }
     @media (max-width: 390px) {
-      main { padding: 12px; }.card { padding: 12px; }.controls { grid-template-columns: 1fr; }.design-stage { min-height: 245px; }.animal-wrap { transform: scale(.62); }.animal-wrap.flipped { transform: scale(-.62,.62); }
+      main { padding: 12px; }.card { padding: 12px; }.controls, .sliders { grid-template-columns: 1fr; }.design-stage { min-height: 245px; }.animal-wrap { transform: scale(.62); }.animal-wrap.flipped { transform: scale(-.62,.62); }
     }
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; } }
   </style>
@@ -111,6 +124,34 @@
           <label class="control color-control">Markings <input id="marking-color" type="color" value="#a67e58"></label>
           <label class="control color-control">Ears <input id="ear-color" type="color" value="#b48a62"></label>
           <button class="control" id="reset" type="button">Reset colors</button>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="editor-title">
+        <div class="card-heading"><div><h2 id="editor-title">Shape and placement editor</h2><p>Select one anatomical layer, then move or reshape it. Every preview updates immediately.</p></div></div>
+        <div class="part-editor">
+          <div class="part-picker">
+            <label for="part-select">Animal part</label>
+            <select id="part-select">
+              <option value="ears">Ears</option><option value="eyes">Eyes</option><option value="head">Head</option>
+              <option value="muzzle">Muzzle</option><option value="horns">Horns</option><option value="beard">Beard</option>
+              <option value="neck">Neck</option><option value="body">Body</option><option value="markings">Markings</option>
+              <option value="legs">Legs</option><option value="tail">Tail</option><option value="udder">Udder</option>
+            </select>
+            <p>The red outline identifies the selected layer on the large canvas. The paired second ear or horn follows its main layer.</p>
+            <div class="editor-actions"><button class="editor-button" id="reset-part" type="button">Reset selected part</button><button class="editor-button secondary" id="reset-all-shapes" type="button">Reset all shapes</button></div>
+          </div>
+          <div>
+            <div class="sliders">
+              <label class="slider-control">Horizontal position <output id="x-output">0 px</output><input id="x-control" type="range" min="-25" max="135" step="1"></label>
+              <label class="slider-control">Vertical position <output id="y-output">0 px</output><input id="y-control" type="range" min="-20" max="85" step="1"></label>
+              <label class="slider-control">Width <output id="width-output">0 px</output><input id="width-control" type="range" min="2" max="100" step="1"></label>
+              <label class="slider-control">Height <output id="height-output">0 px</output><input id="height-control" type="range" min="2" max="80" step="1"></label>
+              <label class="slider-control">Rotation <output id="rotation-output">0°</output><input id="rotation-control" type="range" min="-90" max="90" step="1"></label>
+              <label class="slider-control">Roundness <output id="roundness-output">50%</output><input id="roundness-control" type="range" min="0" max="80" step="1"></label>
+            </div>
+            <p class="settings-readout" id="settings-readout" aria-live="polite"></p>
+          </div>
         </div>
       </section>
 
@@ -176,6 +217,46 @@
       const direction = document.querySelector("#direction");
       const stage = document.querySelector("#design-stage");
       const root = document.documentElement;
+      const storageKey = "cssAnimalWorkshop.nubianGoat.v1";
+      const defaults = {
+        ears:{x:88,y:25,width:9,height:28,rotation:18,roundness:55}, eyes:{x:103,y:25,width:4,height:4,rotation:0,roundness:50},
+        head:{x:86,y:16,width:25,height:29,rotation:-7,roundness:48}, muzzle:{x:103,y:34,width:19,height:11,rotation:4,roundness:50},
+        horns:{x:91,y:5,width:8,height:17,rotation:8,roundness:0}, beard:{x:100,y:43,width:8,height:16,rotation:-8,roundness:35},
+        neck:{x:77,y:22,width:20,height:34,rotation:-8,roundness:45}, body:{x:20,y:23,width:67,height:34,rotation:0,roundness:42},
+        markings:{x:30,y:29,width:19,height:14,rotation:-9,roundness:50}, legs:{x:33,y:52,width:7,height:23,rotation:0,roundness:5},
+        tail:{x:12,y:21,width:18,height:9,rotation:-38,roundness:60}, udder:{x:34,y:52,width:19,height:10,rotation:0,roundness:55}
+      };
+      let shapes;
+      try { shapes = { ...defaults, ...JSON.parse(localStorage.getItem(storageKey) || "{}") }; } catch (_) { shapes = structuredClone(defaults); }
+      const partSelect = document.querySelector("#part-select");
+      const properties = ["x","y","width","height","rotation","roundness"];
+      const controls = Object.fromEntries(properties.map(property => [property, document.querySelector(`#${property}-control`)]));
+      const outputs = Object.fromEntries(properties.map(property => [property, document.querySelector(`#${property}-output`)]));
+      const readout = document.querySelector("#settings-readout");
+      function applyShape(part) {
+        const shape = shapes[part];
+        document.querySelectorAll(`.animal .${part}`).forEach(element => {
+          element.style.left = `${shape.x}px`; element.style.top = `${shape.y}px`;
+          element.style.width = `${shape.width}px`; element.style.height = `${shape.height}px`;
+          element.style.transform = `rotate(${shape.rotation}deg)`; element.style.borderRadius = `${shape.roundness}%`;
+        });
+      }
+      function selectPart() {
+        const part = partSelect.value, shape = shapes[part];
+        document.querySelectorAll(".selected-part").forEach(element => element.classList.remove("selected-part"));
+        hosts[0].querySelector(`.${part}`).classList.add("selected-part");
+        properties.forEach(property => { controls[property].value = shape[property]; outputs[property].textContent = `${shape[property]}${property === "rotation" ? "°" : property === "roundness" ? "%" : " px"}`; });
+        readout.textContent = `${part[0].toUpperCase()+part.slice(1)} — x ${shape.x}, y ${shape.y}, ${shape.width} × ${shape.height}, rotation ${shape.rotation}°, roundness ${shape.roundness}%.`;
+      }
+      function saveShapes() { localStorage.setItem(storageKey, JSON.stringify(shapes)); }
+      Object.entries(shapes).forEach(([part]) => applyShape(part));
+      partSelect.addEventListener("change", selectPart);
+      properties.forEach(property => controls[property].addEventListener("input", event => {
+        const part = partSelect.value; shapes[part] = { ...shapes[part], [property]: Number(event.target.value) };
+        applyShape(part); saveShapes(); selectPart();
+      }));
+      document.querySelector("#reset-part").addEventListener("click", () => { const part=partSelect.value; shapes[part]={...defaults[part]}; applyShape(part); saveShapes(); selectPart(); });
+      document.querySelector("#reset-all-shapes").addEventListener("click", () => { shapes=structuredClone(defaults); Object.keys(shapes).forEach(applyShape); saveShapes(); selectPart(); });
       guides.addEventListener("change", () => hosts[0].classList.toggle("show-guides", guides.checked));
       motion.addEventListener("change", () => animals().forEach(animal => animal.classList.toggle("animate", motion.checked)));
       background.addEventListener("change", () => stage.classList.toggle("neutral", background.checked));
@@ -183,6 +264,7 @@
       const colors = { "coat-color": ["--coat", "#eee3c9"], "marking-color": ["--marking", "#a67e58"], "ear-color": ["--ear", "#b48a62"] };
       Object.entries(colors).forEach(([id, [property]]) => document.querySelector(`#${id}`).addEventListener("input", event => root.style.setProperty(property, event.target.value)));
       document.querySelector("#reset").addEventListener("click", () => Object.entries(colors).forEach(([id, [property, value]]) => { document.querySelector(`#${id}`).value = value; root.style.setProperty(property, value); }));
+      selectPart();
     })();
   </script>
 </body>
