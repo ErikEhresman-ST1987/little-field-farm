@@ -59,8 +59,8 @@
         <button class="coop-site locked" id="coop-button" type="button" aria-label="Chicken coop building site">
           <span class="coop-fence" aria-hidden="true"></span>
           <span class="coop-house" aria-hidden="true"><i class="coop-roof"></i><i class="coop-door"></i></span>
-          <span class="chicken chicken-one" aria-hidden="true"><i></i></span>
-          <span class="chicken chicken-two" aria-hidden="true"><i></i></span>
+          <span class="chicken chicken-one" aria-hidden="true"><i></i><b></b></span>
+          <span class="chicken chicken-two" aria-hidden="true"><i></i><b></b></span>
           <span class="coop-sign" id="coop-board-label">Build Coop</span>
           <span class="egg-ready-badge" id="egg-ready-badge" hidden>2 eggs</span>
         </button>
@@ -76,8 +76,8 @@
       <button class="cow-site locked" id="cow-button" type="button" aria-label="Cow pasture building site">
         <span class="cow-pasture" aria-hidden="true"></span>
         <span class="cow-shelter" aria-hidden="true"></span>
-        <span class="cow cow-one" aria-hidden="true"><i></i></span>
-        <span class="cow cow-two" aria-hidden="true"><i></i></span>
+        <span class="cow cow-one" aria-hidden="true"><i></i><b></b><em></em></span>
+        <span class="cow cow-two" aria-hidden="true"><i></i><b></b><em></em></span>
         <span class="cow-sign" id="cow-board-label">Cow Pasture</span>
         <span class="milk-ready-badge" id="milk-ready-badge" hidden>2 milk</span>
       </button>
@@ -147,7 +147,7 @@
     <div class="sheet-handle" aria-hidden="true"></div>
     <div class="sheet-heading"><div><h2 id="coop-title">Chicken Coop</h2><p id="coop-subtitle">A new home for two hens.</p></div><button class="close-button" type="button" data-close aria-label="Close">×</button></div>
     <div class="coop-panel">
-      <div class="coop-portrait" aria-hidden="true"><span class="portrait-chicken portrait-one"><i></i></span><span class="portrait-chicken portrait-two"><i></i></span><span class="portrait-eggs"></span></div>
+      <div class="coop-portrait" aria-hidden="true"><span class="portrait-chicken portrait-one"><i></i><b></b></span><span class="portrait-chicken portrait-two"><i></i><b></b></span><span class="portrait-eggs"></span></div>
       <div class="coop-copy"><h3 id="coop-state-title">Build the Coop</h3><p id="coop-state-message">Add two chickens and turn stored wheat into fresh eggs.</p></div>
     </div>
     <div class="coop-progress" id="coop-progress" hidden><span id="coop-progress-bar"></span></div>
@@ -171,7 +171,7 @@
     <div class="sheet-handle" aria-hidden="true"></div>
     <div class="sheet-heading"><div><h2 id="cow-title">Cow Pasture</h2><p id="cow-subtitle">A grassy home for two gentle cows.</p></div><button class="close-button" type="button" data-close aria-label="Close">×</button></div>
     <div class="cow-panel">
-      <div class="cow-portrait" aria-hidden="true"><span class="portrait-cow portrait-cow-one"><i></i></span><span class="portrait-cow portrait-cow-two"><i></i></span><span class="portrait-milk"></span></div>
+      <div class="cow-portrait" aria-hidden="true"><span class="portrait-cow portrait-cow-one"><i></i><b></b><em></em></span><span class="portrait-cow portrait-cow-two"><i></i><b></b><em></em></span><span class="portrait-milk"></span></div>
       <div class="cow-copy"><h3 id="cow-state-title">Build the Cow Pasture</h3><p id="cow-state-message">Open the South Field and prepare a home for two cows.</p></div>
     </div>
     <div class="cow-progress" id="cow-progress" hidden><span id="cow-progress-bar"></span></div>
