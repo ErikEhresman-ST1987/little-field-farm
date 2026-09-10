@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#386641">
+  <meta name="description" content="A lightweight HTML and CSS animal design workshop.">
+  <title>CSS Animal Workshop</title>
+  <style>
+    :root {
+      --ink: #293326; --muted: #68705e; --cream: #fff8df; --paper: #fffdf1;
+      --green-dark: #386641; --green: #6a994e; --green-light: #a7c957;
+      --gold: #f2c14e; --line: #d7c898; --coat: #eee3c9; --marking: #a67e58;
+      --outline: #5d4a39; --ear: #b48a62; --udder: #dba39b;
+      font-family: ui-rounded, "Avenir Next Rounded", "Avenir Next", system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { min-height: 100vh; margin: 0; background: #d9efc5; color: var(--ink); }
+    button, input { font: inherit; }
+    .shell { width: min(100%, 940px); min-height: 100vh; margin: 0 auto; padding-bottom: max(28px, env(safe-area-inset-bottom)); background: var(--cream); box-shadow: 0 0 50px #3866412b; }
+    header { padding: max(18px, env(safe-area-inset-top)) 20px 17px; border-bottom: 3px solid #eadca9; }
+    .eyebrow { margin: 0 0 3px; color: var(--green); font-size: .78rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+    h1, h2, h3, p { margin: 0; } h1 { color: var(--green-dark); font-size: clamp(1.5rem, 6vw, 2.25rem); }
+    header p:last-child { max-width: 650px; margin-top: 6px; color: var(--muted); line-height: 1.45; }
+    main { padding: 18px; display: grid; gap: 16px; }
+    .card { padding: 16px; border: 2px solid var(--line); border-radius: 18px; background: var(--paper); box-shadow: 0 4px 0 #dbcda0; }
+    .card-heading { display: flex; justify-content: space-between; gap: 12px; align-items: start; margin-bottom: 13px; }
+    .card-heading p, .help { margin-top: 4px; color: var(--muted); font-size: .9rem; line-height: 1.4; }
+    .controls { display: grid; grid-template-columns: repeat(4, minmax(120px, 1fr)); gap: 10px; }
+    .control { min-height: 54px; padding: 8px 10px; display: flex; gap: 8px; align-items: center; border: 2px solid #d8cca7; border-radius: 13px; background: #f4edd4; font-size: .88rem; font-weight: 850; cursor: pointer; }
+    .control input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--green-dark); }
+    .color-control { justify-content: space-between; }.color-control input { width: 34px; height: 34px; padding: 0; border: 0; border-radius: 8px; background: transparent; }
+    .design-stage { position: relative; min-height: 330px; overflow: hidden; display: grid; place-items: center; border: 3px solid #8dbb62; border-radius: 18px; background: linear-gradient(#cbe8f0 0 43%, #91c958 43%); box-shadow: inset 0 -25px #79b04b; }
+    .design-stage.neutral { border-color: #c8b986; background: repeating-linear-gradient(0deg, #f4efd9 0 24px, #e8e0c4 25px 26px), repeating-linear-gradient(90deg, transparent 0 24px, #d8cfb2 25px 26px); box-shadow: none; }
+    .orientation { position: absolute; left: 12px; right: 12px; bottom: 10px; display: flex; justify-content: space-between; color: #35562f; font-size: .72rem; font-weight: 900; letter-spacing: .08em; }
+    .neutral .orientation { color: #766a4b; }
+    .animal-wrap { position: relative; width: 520px; height: 230px; display: grid; place-items: center; }
+    .animal-wrap.flipped { transform: scaleX(-1); }.animal-wrap.flipped .label { transform: scaleX(-1); }
+
+    /* Every anatomical feature has its own explicit layer. */
+    .animal { --scale: 3.35; position: relative; width: 112px; height: 70px; transform: scale(var(--scale)); transform-origin: center; }
+    .body { position: absolute; z-index: 2; left: 20px; top: 23px; width: 67px; height: 34px; border: 3px solid var(--outline); border-radius: 46% 39% 35% 48%; background: var(--coat); box-shadow: 0 15px 0 -9px #35562945; }
+    .body::after { content: ""; position: absolute; left: 8px; right: 5px; top: 4px; height: 8px; border-radius: 50%; background: #fff5; transform: rotate(-3deg); }
+    .markings { position: absolute; z-index: 3; left: 30px; top: 29px; width: 19px; height: 14px; border-radius: 60% 40% 55% 45%; background: var(--marking); transform: rotate(-9deg); box-shadow: 34px 10px 0 -4px var(--marking); }
+    .legs { position: absolute; z-index: 1; left: 33px; top: 52px; width: 7px; height: 23px; border: 2px solid var(--outline); border-radius: 0 0 3px 3px; background: var(--coat); box-shadow: 37px 0 0 -2px var(--coat), 37px 0 0 0 var(--outline); }
+    .legs::after { content: ""; position: absolute; left: -2px; bottom: -2px; width: 7px; height: 5px; border-radius: 1px 1px 4px 4px; background: var(--outline); box-shadow: 37px 0 var(--outline); }
+    .neck { position: absolute; z-index: 3; left: 77px; top: 22px; width: 20px; height: 34px; border: 3px solid var(--outline); border-radius: 40% 45% 55% 38%; background: var(--coat); transform: rotate(-8deg); }
+    .head { position: absolute; z-index: 5; left: 86px; top: 16px; width: 25px; height: 29px; border: 3px solid var(--outline); border-radius: 52% 42% 60% 45%; background: var(--coat); transform: rotate(-7deg); }
+    .muzzle { position: absolute; z-index: 6; left: 103px; top: 34px; width: 19px; height: 11px; border: 2px solid #856957; border-radius: 42% 62% 58% 45%; background: #c9997d; transform: rotate(4deg); }
+    .muzzle::after { content: ""; position: absolute; right: 4px; top: 3px; width: 3px; height: 2px; border-radius: 50%; background: #59453a; }
+    .eyes { position: absolute; z-index: 8; left: 103px; top: 25px; width: 4px; height: 4px; border-radius: 50%; background: #221e1a; box-shadow: 0 0 0 1px #f5d77c; }
+    .ears { position: absolute; z-index: 7; left: 88px; top: 25px; width: 9px; height: 28px; border: 2px solid var(--outline); border-radius: 45% 55% 75% 65%; background: var(--ear); transform: rotate(18deg); }
+    .ears::after { content: ""; position: absolute; left: 10px; top: -3px; width: 8px; height: 27px; border: 2px solid var(--outline); border-radius: 45% 55% 75% 65%; background: var(--ear); transform: rotate(-25deg); }
+    .horns { position: absolute; z-index: 4; left: 91px; top: 5px; width: 8px; height: 17px; border-top: 4px solid #806c4d; border-left: 4px solid #806c4d; border-radius: 80% 0 0; transform: rotate(8deg); }
+    .horns::after { content: ""; position: absolute; left: 10px; top: -1px; width: 7px; height: 16px; border-top: 4px solid #806c4d; border-left: 4px solid #806c4d; border-radius: 80% 0 0; }
+    .beard { position: absolute; z-index: 4; left: 100px; top: 43px; width: 8px; height: 16px; border-radius: 15% 15% 70% 70%; background: #735a43; transform: rotate(-8deg); clip-path: polygon(10% 0, 100% 0, 65% 100%, 35% 85%); }
+    .tail { position: absolute; z-index: 3; left: 12px; top: 21px; width: 18px; height: 9px; border: 2px solid var(--outline); border-radius: 60%; background: var(--coat); transform: rotate(-38deg); transform-origin: right center; }
+    .udder { position: absolute; z-index: 2; left: 34px; top: 52px; width: 19px; height: 10px; border: 2px solid #967068; border-radius: 50% 50% 65% 65%; background: var(--udder); }
+    .udder::after { content: ""; position: absolute; left: 3px; bottom: -6px; width: 3px; height: 7px; border-radius: 0 0 3px 3px; background: #ad756e; box-shadow: 8px 0 #ad756e; }
+    .animal.animate .head, .animal.animate .muzzle, .animal.animate .eyes, .animal.animate .ears, .animal.animate .horns, .animal.animate .beard { animation: browse 2s ease-in-out infinite; }
+    .animal.animate .tail { animation: tail 2.6s ease-in-out infinite; }
+    @keyframes browse { 50% { translate: 0 3px; } }
+    @keyframes tail { 50% { transform: rotate(-15deg); } }
+
+    .label { display: none; position: absolute; z-index: 20; padding: 1px 3px; border: 1px solid currentColor; border-radius: 3px; background: #fffde8e8; color: #9f3c35; font-size: 5px; font-weight: 900; line-height: 1.1; white-space: nowrap; }
+    .show-guides .label { display: block; }.label::after { content: ""; position: absolute; height: 1px; background: currentColor; transform-origin: left; }
+    .label-head { left: 105px; top: 3px; }.label-head::after { left: 2px; top: 11px; width: 14px; transform: rotate(105deg); }
+    .label-ear { left: 111px; top: 12px; }.label-ear::after { left: -6px; top: 8px; width: 9px; transform: rotate(140deg); }
+    .label-eye { left: 112px; top: 25px; }.label-eye::after { left: -6px; top: 4px; width: 7px; transform: rotate(180deg); }
+    .label-muzzle { left: 111px; top: 48px; }.label-muzzle::after { left: 1px; top: -2px; width: 8px; transform: rotate(-70deg); }
+    .label-udder { left: 32px; top: 63px; }.label-udder::after { left: 7px; top: -3px; width: 8px; transform: rotate(-70deg); }
+    .label-tail { left: 0; top: 7px; }.label-tail::after { left: 7px; top: 9px; width: 13px; transform: rotate(45deg); }
+
+    .preview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .preview { min-height: 185px; padding: 13px; display: grid; grid-template-rows: auto 1fr; border: 2px solid #c4cf9d; border-radius: 15px; background: #f8f7e5; }
+    .preview h3 { font-size: .95rem; }.preview p { margin-top: 2px; color: var(--muted); font-size: .77rem; }
+    .preview-stage { position: relative; overflow: hidden; display: grid; place-items: center; border-radius: 12px; background: linear-gradient(#bde0ec 0 38%, #8fc554 38%); box-shadow: inset 0 -7px #74a747; }
+    .preview.farm .animal { --scale: .58; }.preview.portrait .animal { --scale: .82; }
+    .preview .animal-wrap { width: 100%; height: 125px; }
+    .variation { --coat: #f5efe0; --marking: #8d725c; --ear: #987259; }
+    .checklist { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 16px; margin-top: 12px; }
+    .check { padding: 9px 10px; border-radius: 11px; background: #f1ead0; font-size: .85rem; line-height: 1.35; }
+    .check strong { display: block; color: var(--green-dark); }
+    .steps { margin: 10px 0 0; padding-left: 21px; color: #4f5e48; line-height: 1.55; }.steps li + li { margin-top: 5px; }
+    .note { margin-top: 12px; padding: 11px; border-left: 5px solid var(--gold); border-radius: 8px; background: #fff3c6; color: #5d512d; line-height: 1.4; }
+    @media (max-width: 700px) {
+      .controls { grid-template-columns: 1fr 1fr; }.design-stage { min-height: 285px; }.animal-wrap { width: 360px; transform: scale(.78); }.animal-wrap.flipped { transform: scale(-.78,.78); }.preview-grid { grid-template-columns: 1fr; }.checklist { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 390px) {
+      main { padding: 12px; }.card { padding: 12px; }.controls { grid-template-columns: 1fr; }.design-stage { min-height: 245px; }.animal-wrap { transform: scale(.62); }.animal-wrap.flipped { transform: scale(-.62,.62); }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <p class="eyebrow">Little Field Farm</p>
+      <h1>CSS Animal Workshop</h1>
+      <p>Design anatomy at a readable size, then confirm that the same animal remains clear in its real game locations.</p>
+    </header>
+    <main>
+      <section class="card" aria-labelledby="controls-title">
+        <div class="card-heading"><div><h2 id="controls-title">Design controls</h2><p>These affect every preview together.</p></div></div>
+        <div class="controls">
+          <label class="control"><input id="guides" type="checkbox" checked> Anatomy labels</label>
+          <label class="control"><input id="motion" type="checkbox"> Idle animation</label>
+          <label class="control"><input id="background" type="checkbox"> Neutral grid</label>
+          <label class="control"><input id="direction" type="checkbox"> Face left</label>
+          <label class="control color-control">Coat <input id="coat-color" type="color" value="#eee3c9"></label>
+          <label class="control color-control">Markings <input id="marking-color" type="color" value="#a67e58"></label>
+          <label class="control color-control">Ears <input id="ear-color" type="color" value="#b48a62"></label>
+          <button class="control" id="reset" type="button">Reset colors</button>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="canvas-title">
+        <div class="card-heading"><div><h2 id="canvas-title">Nubian goat — design canvas</h2><p>Head and muzzle face right. Ears attach behind the eye and hang below the jaw.</p></div></div>
+        <div class="design-stage" id="design-stage">
+          <div class="animal-wrap show-guides" data-animal-host></div>
+          <div class="orientation"><span>REAR · tail</span><span>FRONT · muzzle</span></div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="preview-title">
+        <div class="card-heading"><div><h2 id="preview-title">True-size checks</h2><p>Details must remain readable here—not only on the enlarged canvas.</p></div></div>
+        <div class="preview-grid">
+          <article class="preview farm"><div><h3>Farm-board size</h3><p>Smallest working silhouette</p></div><div class="preview-stage"><div class="animal-wrap" data-animal-host></div></div></article>
+          <article class="preview portrait"><div><h3>Interaction portrait</h3><p>Larger sheet illustration</p></div><div class="preview-stage"><div class="animal-wrap variation" data-animal-host></div></div></article>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="layers-title">
+        <div class="card-heading"><div><h2 id="layers-title">Anatomy layer check</h2><p>Each structural feature has its own anchor and can be adjusted without moving another part.</p></div></div>
+        <div class="checklist">
+          <div class="check"><strong>Body structure</strong>Body, neck, head, muzzle and legs</div>
+          <div class="check"><strong>Head details</strong>Eyes, ears, horns and beard</div>
+          <div class="check"><strong>Rear anatomy</strong>Raised tail and udder under rear torso</div>
+          <div class="check"><strong>Safe variation</strong>Coat and markings change independently</div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="reuse-title">
+        <div class="card-heading"><div><h2 id="reuse-title">Reuse for another animal or app</h2><p>The workshop is intentionally independent of Little Field Farm’s game logic.</p></div></div>
+        <ol class="steps">
+          <li>Duplicate the animal’s layered markup and rename its animal class.</li>
+          <li>Write the direction and anatomy map before changing any shapes.</li>
+          <li>Build the large silhouette first; add recognizable features second.</li>
+          <li>Check both true-size previews and simplify anything that becomes muddy.</li>
+          <li>Transfer only the approved animal markup and CSS into the destination app.</li>
+        </ol>
+        <p class="note"><strong>Design gate:</strong> if the animal is not recognizable without labels, the silhouette needs another pass before animation or decorative markings are added.</p>
+      </section>
+    </main>
+  </div>
+
+  <template id="animal-template">
+    <div class="animal nubian-goat" role="img" aria-label="Right-facing Nubian dairy goat">
+      <span class="body"></span><span class="markings"></span><span class="legs"></span><span class="neck"></span>
+      <span class="head"></span><span class="muzzle"></span><span class="eyes"></span><span class="ears"></span>
+      <span class="horns"></span><span class="beard"></span><span class="tail"></span><span class="udder"></span>
+      <span class="label label-head">HEAD</span><span class="label label-ear">EAR ROOT</span><span class="label label-eye">EYE</span>
+      <span class="label label-muzzle">MUZZLE</span><span class="label label-udder">UDDER</span><span class="label label-tail">TAIL</span>
+    </div>
+  </template>
+  <script>
+    (() => {
+      "use strict";
+      const template = document.querySelector("#animal-template");
+      const hosts = [...document.querySelectorAll("[data-animal-host]")];
+      hosts.forEach(host => host.append(template.content.cloneNode(true)));
+      const animals = () => [...document.querySelectorAll(".animal")];
+      const guides = document.querySelector("#guides");
+      const motion = document.querySelector("#motion");
+      const background = document.querySelector("#background");
+      const direction = document.querySelector("#direction");
+      const stage = document.querySelector("#design-stage");
+      const root = document.documentElement;
+      guides.addEventListener("change", () => hosts[0].classList.toggle("show-guides", guides.checked));
+      motion.addEventListener("change", () => animals().forEach(animal => animal.classList.toggle("animate", motion.checked)));
+      background.addEventListener("change", () => stage.classList.toggle("neutral", background.checked));
+      direction.addEventListener("change", () => hosts.forEach(host => host.classList.toggle("flipped", direction.checked)));
+      const colors = { "coat-color": ["--coat", "#eee3c9"], "marking-color": ["--marking", "#a67e58"], "ear-color": ["--ear", "#b48a62"] };
+      Object.entries(colors).forEach(([id, [property]]) => document.querySelector(`#${id}`).addEventListener("input", event => root.style.setProperty(property, event.target.value)));
+      document.querySelector("#reset").addEventListener("click", () => Object.entries(colors).forEach(([id, [property, value]]) => { document.querySelector(`#${id}`).value = value; root.style.setProperty(property, value); }));
+    })();
+  </script>
+</body>
+</html>
