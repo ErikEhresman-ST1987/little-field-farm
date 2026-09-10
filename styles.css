@@ -217,6 +217,42 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
 .cow-site.ready { filter: drop-shadow(0 0 5px #eaf3ff) drop-shadow(0 4px 2px #35562945); }
 .milk-ready-badge { position: absolute; z-index: 7; right: 12px; top: 4px; padding: 5px 8px; border: 2px solid #66829b; border-radius: 13px; background: #f5f4e9; color: #3f596f; font-size: .72rem; font-weight: 900; animation: readyPulse 1.6s ease-in-out infinite; }
 
+.advanced-row { position: relative; z-index: 2; max-width: 500px; margin: 5px auto 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.goat-site, .creamery-site { position: relative; height: 120px; padding: 0; border: 0; background: transparent; cursor: pointer; filter: drop-shadow(0 4px 2px #35562945); }
+.goat-site:active, .creamery-site:active { transform: translateY(2px); }
+.goat-meadow { position: absolute; inset: 15px 2px 18px; border: 4px solid #aa8350; border-radius: 20px; background: #8fc35b; box-shadow: inset 0 -10px #75a94b; }
+.goat-meadow::after { content: ""; position: absolute; left: 16px; bottom: 12px; width: 24px; height: 16px; border-radius: 50% 50% 35% 35%; background: #9c8b70; box-shadow: 38px -28px 0 -3px #b2a087; }
+.goat-shelter { display: none; position: absolute; z-index: 2; left: 50%; top: 25px; width: 56px; height: 45px; transform: translateX(-50%); border: 3px solid #684427; border-radius: 4px; background: #d8a45f; }
+.goat-shelter::before { content: ""; position: absolute; left: -8px; right: -8px; top: -15px; height: 18px; background: #7d4a31; clip-path: polygon(50% 0,100% 82%,94% 100%,6% 100%,0 82%); }
+.goat { display: none; position: absolute; z-index: 4; bottom: 29px; width: 42px; height: 27px; border: 2px solid #5d4a39; border-radius: 52% 46% 42% 48%; background: #eee3c9; box-shadow: 0 10px 0 -6px #335a2d55; }
+.goat::before { content: ""; position: absolute; right: -12px; top: -2px; width: 17px; height: 20px; border: 2px solid #5d4a39; border-radius: 42% 48% 55% 50%; background: #eee3c9; }
+.goat::after { content: ""; position: absolute; left: 7px; bottom: -10px; width: 4px; height: 11px; border-radius: 3px; background: #5d4a39; box-shadow: 23px 0 #5d4a39; }
+.goat i { position: absolute; left: 5px; top: 5px; width: 13px; height: 10px; border-radius: 55%; background: #a67e58; box-shadow: 20px 5px 0 -3px #a67e58; transform: rotate(-8deg); }
+.goat b { position: absolute; z-index: 2; right: -11px; top: -7px; width: 7px; height: 10px; border-radius: 70% 20%; background: #a67e58; box-shadow: -10px 1px #a67e58; transform: rotate(18deg); }
+.goat b::before { content: ""; position: absolute; right: 1px; top: 9px; width: 3px; height: 3px; border-radius: 50%; background: #29231e; animation: animalBlink 5s step-end infinite; }
+.goat b::after { content: ""; position: absolute; right: 0; top: 14px; width: 5px; height: 9px; border-radius: 0 0 70% 70%; background: #8a684d; transform: rotate(-15deg); }
+.goat em { position: absolute; left: -7px; top: 2px; width: 9px; height: 4px; border-radius: 5px; background: #eee3c9; border: 1px solid #5d4a39; transform: rotate(-35deg); }
+.goat small { position: absolute; z-index: 1; left: 8px; bottom: -5px; width: 11px; height: 6px; border: 1px solid #967068; border-radius: 50% 50% 65% 65%; background: #dba39b; }
+.goat small::after { content: ""; position: absolute; left: 2px; bottom: -3px; width: 2px; height: 4px; border-radius: 0 0 2px 2px; background: #ad756e; box-shadow: 5px 0 #ad756e; }
+.goat-one { left: 18px; }.goat-two { right: 19px; bottom: 27px; transform: scale(.86); background: #f5efe0; }
+.goat-two i { left: 12px; width: 11px; transform: rotate(14deg); }
+.goat-sign, .creamery-sign { position: absolute; z-index: 6; left: 50%; bottom: 0; transform: translateX(-50%); min-width: 105px; padding: 4px 7px; border: 2px solid #684427; border-radius: 6px; background: #fff0c8; font-size: .7rem; font-weight: 900; white-space: nowrap; }
+.goat-site.locked .goat-meadow, .creamery-site.locked .creamery-ground { opacity: .72; filter: saturate(.55); }
+.goat-site.locked::before, .creamery-site.locked::before { content: "+"; position: absolute; z-index: 5; left: 50%; top: 38px; width: 31px; height: 31px; transform: translateX(-50%); display: grid; place-items: center; border: 3px dashed #fff0c8; border-radius: 50%; color: #fff0c8; font-size: 1.25rem; font-weight: 900; }
+.goat-site.built .goat-shelter, .goat-site.built .goat { display: block; animation: pop .35s ease-out; }
+.goat-site.working .goat { animation: goatNibble 1.5s ease-in-out infinite; }.goat-site.working .goat-two { animation-name: goatNibbleSmall; animation-delay: -.7s; }
+.goat-site.ready, .creamery-site.ready { filter: drop-shadow(0 0 5px #f4e8a1) drop-shadow(0 4px 2px #35562945); }
+.goat-milk-ready-badge, .cheese-ready-badge { position: absolute; z-index: 7; right: 2px; top: 3px; padding: 5px 7px; border: 2px solid #7c7154; border-radius: 13px; background: #f7f0df; color: #51472f; font-size: .66rem; font-weight: 900; animation: readyPulse 1.6s ease-in-out infinite; }
+.creamery-ground { position: absolute; inset: auto 3px 18px; height: 43px; border: 4px solid #b18b52; border-radius: 50%; background: #82b84f; }
+.creamery-house { display: none; position: absolute; z-index: 2; left: 50%; bottom: 28px; width: 72px; height: 54px; transform: translateX(-50%); border: 3px solid #684427; border-radius: 5px; background: #e7d18a; }
+.creamery-roof { position: absolute; left: -9px; right: -9px; top: -21px; height: 25px; clip-path: polygon(50% 0,100% 82%,94% 100%,6% 100%,0 82%); background: #7194a0; }
+.creamery-door { position: absolute; left: 25px; bottom: -1px; width: 22px; height: 32px; border: 3px solid #684427; border-radius: 9px 9px 2px 2px; background: #8f653e; }
+.creamery-window { position: absolute; left: 6px; top: 12px; width: 16px; height: 16px; border: 3px solid #fff4cf; background: #9bd3dc; }
+.creamery-churn { position: absolute; right: -13px; bottom: -3px; width: 17px; height: 27px; border: 3px solid #685742; border-radius: 5px 5px 8px 8px; background: #b9c4b7; }
+.creamery-churn::after { content: ""; position: absolute; left: -3px; top: 6px; width: 17px; height: 4px; background: #7c897e; }
+.creamery-site.built .creamery-house { display: block; animation: pop .35s ease-out; }
+.creamery-site.working .creamery-churn { animation: churn 1s ease-in-out infinite; }
+
 .farm-edge { position: absolute; z-index: 1; inset: auto 0 0; height: 92px; background: #78b749; }
 .fence { position: absolute; left: 0; right: 0; bottom: 38px; height: 8px; background: #e5c586; box-shadow: 0 16px #d3ae69; }
 .fence::after { content: ""; position: absolute; inset: -9px 18px -28px; background: repeating-linear-gradient(90deg, #987042 0 8px, transparent 8px 62px); }
@@ -342,6 +378,33 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
 .cow-action { width: 100%; min-height: 48px; padding: 0 14px; border: 0; border-radius: 11px; background: #527a48; color: white; font-weight: 900; cursor: pointer; }
 .cow-action:disabled { background: #c9c2aa; color: #716e63; cursor: not-allowed; }
 
+.goat-panel, .creamery-panel { padding: 13px; display: grid; grid-template-columns: 96px 1fr; gap: 14px; align-items: center; border: 2px solid #c8c49b; border-radius: 16px; background: #fbf8e7; }
+.goat-copy p, .creamery-copy p { margin-top: 5px; color: #68705e; font-size: .86rem; line-height: 1.35; }
+.goat-portrait, .creamery-portrait { position: relative; width: 92px; height: 78px; overflow: hidden; border-radius: 14px; background: linear-gradient(#c7e5ef 0 38%, #91c75a 38%); box-shadow: inset 0 -6px #74a747; }
+.portrait-goat { position: absolute; bottom: 17px; width: 37px; height: 24px; border: 2px solid #5d4a39; border-radius: 52% 46% 42% 48%; background: #eee3c9; }
+.portrait-goat::before { content: ""; position: absolute; right: -10px; top: -2px; width: 15px; height: 17px; border: 2px solid #5d4a39; border-radius: 44%; background: inherit; }
+.portrait-goat::after { content: ""; position: absolute; left: 6px; bottom: -8px; width: 3px; height: 9px; background: #5d4a39; box-shadow: 21px 0 #5d4a39; }
+.portrait-goat i { position: absolute; left: 5px; top: 5px; width: 11px; height: 8px; border-radius: 55%; background: #a67e58; box-shadow: 18px 4px 0 -3px #a67e58; }
+.portrait-goat b { position: absolute; z-index: 2; right: -9px; top: -6px; width: 6px; height: 8px; border-radius: 70% 20%; background: #a67e58; box-shadow: -8px 1px #a67e58; transform: rotate(18deg); }
+.portrait-goat b::before { content: ""; position: absolute; right: 1px; top: 8px; width: 2px; height: 2px; border-radius: 50%; background: #29231e; }
+.portrait-goat b::after { content: ""; position: absolute; right: 0; top: 11px; width: 4px; height: 8px; border-radius: 0 0 70% 70%; background: #8a684d; }
+.portrait-goat em { position: absolute; left: -6px; top: 2px; width: 8px; height: 3px; border: 1px solid #5d4a39; border-radius: 5px; background: inherit; transform: rotate(-35deg); }
+.portrait-goat small { position: absolute; left: 7px; bottom: -4px; width: 9px; height: 5px; border: 1px solid #967068; border-radius: 50% 50% 65% 65%; background: #dba39b; }
+.portrait-goat-one { left: 6px; }.portrait-goat-two { right: 6px; bottom: 14px; transform: scale(.84); background: #f5efe0; }
+.portrait-goat-milk { position: absolute; z-index: 4; left: 39px; bottom: 5px; width: 15px; height: 21px; border: 2px solid #7c7154; border-radius: 3px 3px 6px 6px; background: #f7f0df; }
+.creamery-portrait { background: #ead9a6; box-shadow: inset 0 -6px #c99b58; }
+.portrait-churn { position: absolute; left: 13px; bottom: 8px; width: 34px; height: 53px; border: 3px solid #685742; border-radius: 8px 8px 12px 12px; background: #b9c4b7; }
+.portrait-churn::before { content: ""; position: absolute; left: -3px; right: -3px; top: 11px; height: 7px; background: #7c897e; }
+.portrait-churn i { position: absolute; left: 12px; top: -13px; width: 5px; height: 22px; border-radius: 4px; background: #765339; }
+.portrait-cheese { position: absolute; right: 8px; bottom: 10px; width: 35px; height: 27px; border: 3px solid #9c792f; border-radius: 50% 50% 8px 8px; background: #f2d56b; clip-path: polygon(0 28%,100% 0,100% 100%,0 100%); }
+.portrait-cheese::after { content: ""; position: absolute; left: 9px; top: 10px; width: 5px; height: 5px; border-radius: 50%; background: #c59d43; box-shadow: 13px 5px #c59d43; }
+.goat-progress, .creamery-progress { height: 12px; margin: 14px 2px 0; overflow: hidden; border: 2px solid #8f8050; border-radius: 8px; background: #e3dcc0; }
+.goat-progress span, .creamery-progress span { display: block; width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #82ad62, #e2c85a); transition: width .6s linear; }
+.goat-recipe, .creamery-recipe { margin: 13px 0 8px !important; color: #58634f; font-weight: 900; text-align: center; }
+.goat-action, .creamery-action { width: 100%; min-height: 48px; padding: 0 14px; border: 0; border-radius: 11px; background: #657d4e; color: white; font-weight: 900; cursor: pointer; }
+.creamery-action { background: #697f89; }.goat-action:disabled, .creamery-action:disabled { background: #c9c2aa; color: #716e63; cursor: not-allowed; }
+.goat-milk-dot { border: 2px solid #7c7154; box-shadow: inset -4px -4px #ddd2bb; }.cheese-dot { border: 2px solid #9c792f; border-radius: 50% 50% 25% 25%; background: #f2d56b !important; }
+
 [hidden] { display: none !important; }
 @keyframes sheetUp { from { transform: translate(-50%, 100%); } }
 @keyframes sprout { from { opacity: 0; transform: scale(.1); } }
@@ -357,9 +420,12 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
 @keyframes cowGrazeSmall { 50% { transform: scale(.9) translateY(3px) rotate(-1deg); } }
 @keyframes tailSwish { 50% { transform: rotate(-24deg); } }
 @keyframes animalBlink { 0%, 45%, 48%, 100% { transform: scaleY(1); } 46%, 47% { transform: scaleY(.12); } }
+@keyframes goatNibble { 50% { transform: translateY(3px) rotate(2deg); } }
+@keyframes goatNibbleSmall { 50% { transform: scale(.86) translateY(3px) rotate(-2deg); } }
+@keyframes churn { 50% { transform: translateY(2px) rotate(2deg); } }
 
 @media (max-width: 390px) {
-  .topbar { padding-inline: 10px; gap: 6px; }.topbar h1 { font-size: 1.18rem; }.resources { gap: 4px; }.resource { min-width: 53px; padding-inline: 5px; }.supply-resource { min-width: 55px; }.farm { padding-inline: 11px; }.plot-grid { gap: 12px 9px; }.plot { min-height: 83px; }.land-expansion { grid-template-columns: 36px 1fr; }.land-price { grid-column: 2; justify-self: start; }.crop-choice { padding-inline: 3px; }.upgrade-card { grid-template-columns: 42px 1fr; }.upgrade-card button { grid-column: 1/-1; }.order-heading { grid-template-columns: 44px 1fr; }.order-rewards { grid-column: 2; justify-items: start; grid-template-columns: repeat(2, auto); }.order-requirements { grid-template-columns: 1fr; }.coop-panel, .bakery-panel, .cow-panel { grid-template-columns: 80px 1fr; gap: 10px; }.coop-portrait, .bakery-portrait, .cow-portrait { width: 78px; }.coop-sign, .bakery-sign, .cow-sign { min-width: 92px; padding-inline: 6px; font-size: .7rem; }.cow-one { left: 28px; }.cow-two { right: 32px; }
+  .topbar { padding-inline: 10px; gap: 6px; }.topbar h1 { font-size: 1.18rem; }.resources { gap: 4px; }.resource { min-width: 53px; padding-inline: 5px; }.supply-resource { min-width: 55px; }.farm { padding-inline: 11px; }.plot-grid { gap: 12px 9px; }.plot { min-height: 83px; }.land-expansion { grid-template-columns: 36px 1fr; }.land-price { grid-column: 2; justify-self: start; }.crop-choice { padding-inline: 3px; }.upgrade-card { grid-template-columns: 42px 1fr; }.upgrade-card button { grid-column: 1/-1; }.order-heading { grid-template-columns: 44px 1fr; }.order-rewards { grid-column: 2; justify-items: start; grid-template-columns: repeat(2, auto); }.order-requirements { grid-template-columns: 1fr; }.coop-panel, .bakery-panel, .cow-panel, .goat-panel, .creamery-panel { grid-template-columns: 80px 1fr; gap: 10px; }.coop-portrait, .bakery-portrait, .cow-portrait, .goat-portrait, .creamery-portrait { width: 78px; }.coop-sign, .bakery-sign, .cow-sign, .goat-sign, .creamery-sign { min-width: 88px; padding-inline: 5px; font-size: .66rem; }.cow-one { left: 28px; }.cow-two { right: 32px; }.goat-one { left: 10px; }.goat-two { right: 10px; }
 }
 
 @media (min-width: 621px) {
