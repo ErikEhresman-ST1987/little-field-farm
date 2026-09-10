@@ -20,6 +20,9 @@
         <button class="resource resource-button" id="storage-button" type="button" aria-label="Open storage">
           <span class="crate-icon" aria-hidden="true"></span><strong id="storage-count">0/6</strong><span>stored</span>
         </button>
+        <div class="resource supply-resource" aria-label="Supply crates">
+          <span class="crate-icon supply-icon" aria-hidden="true"></span><strong id="supply-count">0</strong><span>supplies</span>
+        </div>
       </div>
     </header>
 
@@ -99,10 +102,11 @@
     <div class="sheet-heading"><div><h2 id="market-title">Roadside Market</h2><p>Sell what you’ve grown.</p></div><button class="close-button" type="button" data-close aria-label="Close">×</button></div>
     <article class="order-card" aria-labelledby="order-title">
       <div class="order-heading">
-        <span class="order-board" aria-hidden="true"><i></i></span>
-        <div><p class="order-kicker">Customer order</p><h3 id="order-title">Farmstand Request</h3></div>
-        <strong class="order-reward" id="order-reward"></strong>
+        <span class="requester-avatar" id="order-avatar" aria-hidden="true">MH</span>
+        <div class="requester-copy"><p class="order-kicker" id="order-type">Neighbor request</p><h3 id="order-requester">Marta Hill</h3><p class="order-reason" id="order-reason"></p></div>
+        <div class="order-rewards"><strong class="order-reward" id="order-reward"></strong><span class="supply-reward" id="order-supply-reward" hidden></span></div>
       </div>
+      <h4 class="order-name" id="order-title">Farmstand Request</h4>
       <div class="order-requirements" id="order-requirements"></div>
       <button class="complete-order" id="complete-order-button" type="button">Gather the requested produce</button>
     </article>
