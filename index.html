@@ -52,6 +52,13 @@
           <span class="coop-sign" id="coop-board-label">Build Coop</span>
           <span class="egg-ready-badge" id="egg-ready-badge" hidden>2 eggs</span>
         </button>
+        <button class="bakery-site locked" id="bakery-button" type="button" aria-label="Bakery building site">
+          <span class="bakery-ground" aria-hidden="true"></span>
+          <span class="bakery-house" aria-hidden="true"><i class="bakery-roof"></i><i class="bakery-door"></i><i class="bakery-window"></i><i class="bakery-chimney"></i></span>
+          <span class="bakery-smoke smoke-one" aria-hidden="true"></span><span class="bakery-smoke smoke-two" aria-hidden="true"></span>
+          <span class="bakery-sign" id="bakery-board-label">Build Bakery</span>
+          <span class="bread-ready-badge" id="bread-ready-badge" hidden>1 loaf</span>
+        </button>
       </div>
 
       <div class="farm-edge" aria-hidden="true">
@@ -111,6 +118,18 @@
     <div class="coop-progress" id="coop-progress" hidden><span id="coop-progress-bar"></span></div>
     <p class="coop-recipe" id="coop-recipe">1 wheat → 2 eggs</p>
     <button class="coop-action" id="coop-action-button" type="button">Build for 60 coins</button>
+  </section>
+
+  <section class="sheet" id="bakery-sheet" aria-labelledby="bakery-title" hidden>
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <div class="sheet-heading"><div><h2 id="bakery-title">Farm Bakery</h2><p id="bakery-subtitle">Turn farm goods into warm bread.</p></div><button class="close-button" type="button" data-close aria-label="Close">×</button></div>
+    <div class="bakery-panel">
+      <div class="bakery-portrait" aria-hidden="true"><span class="portrait-oven"><i></i></span><span class="portrait-loaf"></span></div>
+      <div class="bakery-copy"><h3 id="bakery-state-title">Build the Bakery</h3><p id="bakery-state-message">Combine wheat and eggs into a valuable farm-baked loaf.</p></div>
+    </div>
+    <div class="bakery-progress" id="bakery-progress" hidden><span id="bakery-progress-bar"></span></div>
+    <p class="bakery-recipe" id="bakery-recipe">1 wheat + 1 egg → 1 bread</p>
+    <button class="bakery-action" id="bakery-action-button" type="button">Build for 100 coins</button>
   </section>
 
   <template id="plot-template">
