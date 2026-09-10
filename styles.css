@@ -66,6 +66,9 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
 .resource-button:active { transform: translateY(1px); }
 .coin-icon { color: var(--gold); -webkit-text-stroke: 1px #b98727; }
 .crate-icon { width: 15px; height: 13px; display: block; background: #b87836; border: 2px solid #714820; box-shadow: inset 0 3px #dba565; }
+.supply-resource { min-width: 61px; background: #e6efd1; box-shadow: inset 0 -2px #c9d7aa; }
+.supply-icon { position: relative; }
+.supply-icon::after { content: ""; position: absolute; width: 9px; height: 7px; right: -6px; bottom: -4px; border: 2px solid #714820; background: #ce9148; box-shadow: inset 0 2px #e4b56e; }
 
 .farm {
   position: relative;
@@ -205,14 +208,24 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
 .upgrade-card.complete .upgrade-art { width: 52px; box-shadow: -8px 8px 0 -2px #d66d55, -8px 8px 0 1px #684427; }
 .sell-all { width: 100%; margin-top: 14px; background: var(--green-dark); color: white; }.sell-all:disabled { background: #a7ad9e; }
 
-.order-card { margin-bottom: 17px; padding: 13px; border: 3px solid #b98727; border-radius: 17px; background: #fff4c9; box-shadow: inset 0 -3px #e8d28c; }
-.order-heading { display: grid; grid-template-columns: 42px 1fr auto; gap: 9px; align-items: center; }
+.order-card { margin-bottom: 17px; padding: 13px; border: 3px solid #b98727; border-radius: 17px; background: #fff4c9; box-shadow: inset 0 -3px #e8d28c; transition: border-color .2s, background .2s; }
+.order-card[data-requester-type="neighbor"] { border-color: #b98727; }
+.order-card[data-requester-type="restaurant"] { border-color: #a45136; background: #fff0d8; }
+.order-card[data-requester-type="market"] { border-color: #548044; background: #f2f4d5; }
+.order-card.special-order { border-color: #8a62a5; background: #f6ebff; box-shadow: inset 0 -3px #dbc3e8, 0 3px 0 #8a62a533; }
+.order-heading { display: grid; grid-template-columns: 46px 1fr auto; gap: 10px; align-items: center; }
 .order-heading h3 { color: #5c431a; font-size: 1.05rem; }
 .order-kicker { color: #8a6a2f; font-size: .72rem; font-weight: 900; letter-spacing: .09em; text-transform: uppercase; }
-.order-board { position: relative; width: 36px; height: 42px; border: 3px solid #724820; border-radius: 4px; background: #b97736; box-shadow: inset 0 0 0 4px #deb16a; }
-.order-board::before { content: ""; position: absolute; left: 7px; top: -7px; width: 16px; height: 9px; border: 3px solid #724820; border-radius: 5px 5px 2px 2px; background: #e8c477; }
-.order-board i { position: absolute; inset: 9px 7px 6px; background: repeating-linear-gradient(#fff4cf 0 3px, transparent 3px 7px); }
+.requester-avatar { width: 44px; height: 44px; display: grid; place-items: center; border: 3px solid #77502e; border-radius: 50%; background: #efc96e; color: #563c11; font-size: .82rem; font-weight: 900; box-shadow: inset 0 -4px #dba950; }
+.order-card[data-requester-type="restaurant"] .requester-avatar { border-color: #793d2d; background: #db7c55; color: #fff7df; box-shadow: inset 0 -4px #bd5a3c; }
+.order-card[data-requester-type="market"] .requester-avatar { border-color: #3f6337; background: #8fbd60; color: #264b2b; box-shadow: inset 0 -4px #70a24a; }
+.order-card.special-order .requester-avatar { border-color: #66437f; background: #ba8bd4; color: #fff; box-shadow: inset 0 -4px #986bb4; animation: specialGlow 2.2s ease-in-out infinite; }
+.requester-copy { min-width: 0; }
+.order-reason { margin-top: 3px; color: #6a604e; font-size: .78rem; line-height: 1.3; }
+.order-rewards { display: grid; gap: 5px; justify-items: end; }
 .order-reward { padding: 6px 9px; border-radius: 12px; background: var(--gold); color: #563c11; font-size: .8rem; white-space: nowrap; }
+.supply-reward { padding: 5px 8px; border: 2px solid #77508c; border-radius: 10px; background: #e4caef; color: #563669; font-size: .72rem; font-weight: 900; white-space: nowrap; }
+.order-name { margin: 12px 0 0; color: #4d593f; font-size: .86rem; letter-spacing: .04em; text-transform: uppercase; }
 .order-requirements { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; margin: 12px 0; }
 .order-requirement { min-height: 42px; padding: 6px 8px; display: grid; grid-template-columns: 26px 1fr auto; gap: 7px; align-items: center; border: 2px solid #dbc98e; border-radius: 11px; background: #fffaf0; color: #615b4c; }
 .order-requirement .item-dot { width: 23px; height: 23px; }
@@ -261,11 +274,12 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
 @keyframes shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
 @keyframes pop { from { transform: scale(.2); opacity: 0; } }
 @keyframes orderSuccess { 45% { transform: scale(1.025); background: #e8f4c9; } }
+@keyframes specialGlow { 50% { filter: brightness(1.12); transform: translateY(-1px); } }
 @keyframes chickenPeck { 50% { transform: translateY(3px) rotate(4deg); } }
 @keyframes smokeRise { from { opacity: .85; transform: translateY(4px) scale(.75); } to { opacity: 0; transform: translateY(-13px) scale(1.2); } }
 
 @media (max-width: 390px) {
-  .topbar { padding-inline: 12px; }.resource { min-width: 60px; }.farm { padding-inline: 11px; }.plot-grid { gap: 12px 9px; }.plot { min-height: 83px; }.crop-choice { padding-inline: 3px; }.upgrade-card { grid-template-columns: 42px 1fr; }.upgrade-card button { grid-column: 1/-1; }.order-heading { grid-template-columns: 38px 1fr; }.order-reward { grid-column: 2; justify-self: start; }.order-requirements { grid-template-columns: 1fr; }.coop-panel, .bakery-panel { grid-template-columns: 80px 1fr; gap: 10px; }.coop-portrait, .bakery-portrait { width: 78px; }.coop-sign, .bakery-sign { min-width: 92px; padding-inline: 6px; font-size: .7rem; }
+  .topbar { padding-inline: 10px; gap: 6px; }.topbar h1 { font-size: 1.18rem; }.resources { gap: 4px; }.resource { min-width: 53px; padding-inline: 5px; }.supply-resource { min-width: 55px; }.farm { padding-inline: 11px; }.plot-grid { gap: 12px 9px; }.plot { min-height: 83px; }.crop-choice { padding-inline: 3px; }.upgrade-card { grid-template-columns: 42px 1fr; }.upgrade-card button { grid-column: 1/-1; }.order-heading { grid-template-columns: 44px 1fr; }.order-rewards { grid-column: 2; justify-items: start; grid-template-columns: repeat(2, auto); }.order-requirements { grid-template-columns: 1fr; }.coop-panel, .bakery-panel { grid-template-columns: 80px 1fr; gap: 10px; }.coop-portrait, .bakery-portrait { width: 78px; }.coop-sign, .bakery-sign { min-width: 92px; padding-inline: 6px; font-size: .7rem; }
 }
 
 @media (min-width: 621px) {
