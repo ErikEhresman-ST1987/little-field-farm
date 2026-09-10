@@ -224,17 +224,18 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
 .goat-meadow::after { content: ""; position: absolute; left: 16px; bottom: 12px; width: 24px; height: 16px; border-radius: 50% 50% 35% 35%; background: #9c8b70; box-shadow: 38px -28px 0 -3px #b2a087; }
 .goat-shelter { display: none; position: absolute; z-index: 2; left: 50%; top: 25px; width: 56px; height: 45px; transform: translateX(-50%); border: 3px solid #684427; border-radius: 4px; background: #d8a45f; }
 .goat-shelter::before { content: ""; position: absolute; left: -8px; right: -8px; top: -15px; height: 18px; background: #7d4a31; clip-path: polygon(50% 0,100% 82%,94% 100%,6% 100%,0 82%); }
-.goat { display: none; position: absolute; z-index: 4; bottom: 29px; width: 42px; height: 27px; border: 2px solid #5d4a39; border-radius: 52% 46% 42% 48%; background: #eee3c9; box-shadow: 0 10px 0 -6px #335a2d55; }
-.goat::before { content: ""; position: absolute; right: -12px; top: -2px; width: 17px; height: 20px; border: 2px solid #5d4a39; border-radius: 42% 48% 55% 50%; background: #eee3c9; }
-.goat::after { content: ""; position: absolute; left: 7px; bottom: -10px; width: 4px; height: 11px; border-radius: 3px; background: #5d4a39; box-shadow: 23px 0 #5d4a39; }
-.goat i { position: absolute; left: 5px; top: 5px; width: 13px; height: 10px; border-radius: 55%; background: #a67e58; box-shadow: 20px 5px 0 -3px #a67e58; transform: rotate(-8deg); }
-.goat b { position: absolute; z-index: 2; right: -11px; top: -7px; width: 7px; height: 10px; border-radius: 70% 20%; background: #a67e58; box-shadow: -10px 1px #a67e58; transform: rotate(18deg); }
-.goat b::before { content: ""; position: absolute; right: 1px; top: 9px; width: 3px; height: 3px; border-radius: 50%; background: #29231e; animation: animalBlink 5s step-end infinite; }
-.goat b::after { content: ""; position: absolute; right: 0; top: 14px; width: 5px; height: 9px; border-radius: 0 0 70% 70%; background: #8a684d; transform: rotate(-15deg); }
-.goat em { position: absolute; left: -7px; top: 2px; width: 9px; height: 4px; border-radius: 5px; background: #eee3c9; border: 1px solid #5d4a39; transform: rotate(-35deg); }
+.goat { display: none; position: absolute; z-index: 4; bottom: 29px; width: 44px; height: 24px; border: 2px solid #5d4a39; border-radius: 46% 42% 38% 48%; background: #eee3c9; box-shadow: 0 10px 0 -6px #335a2d55; }
+.goat::before { content: ""; position: absolute; right: -11px; top: -1px; width: 16px; height: 19px; border: 2px solid #5d4a39; border-radius: 48% 40% 58% 45%; background: radial-gradient(circle at 72% 38%, #29231e 0 1.5px, transparent 2px), #eee3c9; transform: rotate(-5deg); }
+.goat::after { content: ""; position: absolute; left: 8px; bottom: -12px; width: 3px; height: 13px; border-radius: 2px; background: #5d4a39; box-shadow: 24px 0 #5d4a39; }
+.goat i { position: absolute; left: 6px; top: 4px; width: 12px; height: 9px; border-radius: 55%; background: #a67e58; box-shadow: 21px 4px 0 -3px #a67e58; transform: rotate(-8deg); }
+.goat b { position: absolute; z-index: 3; right: -9px; top: 6px; width: 6px; height: 17px; border: 1px solid #765b45; border-radius: 45% 55% 70% 60%; background: #b48a62; box-shadow: -10px -3px 0 -1px #b48a62, -10px -3px 0 0 #765b45; transform: rotate(-16deg); }
+.goat b::after { content: ""; position: absolute; right: 1px; top: 13px; width: 4px; height: 9px; border-radius: 0 0 75% 75%; background: #765b45; transform: rotate(-8deg); }
+.goat em { position: absolute; left: -7px; top: -2px; width: 10px; height: 5px; border-radius: 6px; background: #eee3c9; border: 1px solid #5d4a39; transform: rotate(-42deg); }
 .goat small { position: absolute; z-index: 1; left: 8px; bottom: -5px; width: 11px; height: 6px; border: 1px solid #967068; border-radius: 50% 50% 65% 65%; background: #dba39b; }
 .goat small::after { content: ""; position: absolute; left: 2px; bottom: -3px; width: 2px; height: 4px; border-radius: 0 0 2px 2px; background: #ad756e; box-shadow: 5px 0 #ad756e; }
+.goat strong { position: absolute; z-index: 2; right: -5px; top: -9px; width: 5px; height: 11px; border-top: 2px solid #715d45; border-left: 2px solid #715d45; border-radius: 70% 0 0; box-shadow: -8px 1px 0 -1px #eee3c9, -9px 0 0 -1px #715d45; transform: rotate(7deg); }
 .goat-one { left: 18px; }.goat-two { right: 19px; bottom: 27px; transform: scale(.86); background: #f5efe0; }
+.goat-two::before { background: radial-gradient(circle at 72% 38%, #29231e 0 1.5px, transparent 2px), #f5efe0; }
 .goat-two i { left: 12px; width: 11px; transform: rotate(14deg); }
 .goat-sign, .creamery-sign { position: absolute; z-index: 6; left: 50%; bottom: 0; transform: translateX(-50%); min-width: 105px; padding: 4px 7px; border: 2px solid #684427; border-radius: 6px; background: #fff0c8; font-size: .7rem; font-weight: 900; white-space: nowrap; }
 .goat-site.locked .goat-meadow, .creamery-site.locked .creamery-ground { opacity: .72; filter: saturate(.55); }
@@ -381,16 +382,17 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
 .goat-panel, .creamery-panel { padding: 13px; display: grid; grid-template-columns: 96px 1fr; gap: 14px; align-items: center; border: 2px solid #c8c49b; border-radius: 16px; background: #fbf8e7; }
 .goat-copy p, .creamery-copy p { margin-top: 5px; color: #68705e; font-size: .86rem; line-height: 1.35; }
 .goat-portrait, .creamery-portrait { position: relative; width: 92px; height: 78px; overflow: hidden; border-radius: 14px; background: linear-gradient(#c7e5ef 0 38%, #91c75a 38%); box-shadow: inset 0 -6px #74a747; }
-.portrait-goat { position: absolute; bottom: 17px; width: 37px; height: 24px; border: 2px solid #5d4a39; border-radius: 52% 46% 42% 48%; background: #eee3c9; }
-.portrait-goat::before { content: ""; position: absolute; right: -10px; top: -2px; width: 15px; height: 17px; border: 2px solid #5d4a39; border-radius: 44%; background: inherit; }
-.portrait-goat::after { content: ""; position: absolute; left: 6px; bottom: -8px; width: 3px; height: 9px; background: #5d4a39; box-shadow: 21px 0 #5d4a39; }
+.portrait-goat { position: absolute; bottom: 17px; width: 38px; height: 21px; border: 2px solid #5d4a39; border-radius: 46% 42% 38% 48%; background: #eee3c9; }
+.portrait-goat::before { content: ""; position: absolute; right: -10px; top: -1px; width: 14px; height: 17px; border: 2px solid #5d4a39; border-radius: 48% 40% 58% 45%; background: radial-gradient(circle at 72% 38%, #29231e 0 1px, transparent 1.5px), #eee3c9; transform: rotate(-5deg); }
+.portrait-goat::after { content: ""; position: absolute; left: 7px; bottom: -10px; width: 3px; height: 11px; background: #5d4a39; box-shadow: 21px 0 #5d4a39; }
 .portrait-goat i { position: absolute; left: 5px; top: 5px; width: 11px; height: 8px; border-radius: 55%; background: #a67e58; box-shadow: 18px 4px 0 -3px #a67e58; }
-.portrait-goat b { position: absolute; z-index: 2; right: -9px; top: -6px; width: 6px; height: 8px; border-radius: 70% 20%; background: #a67e58; box-shadow: -8px 1px #a67e58; transform: rotate(18deg); }
-.portrait-goat b::before { content: ""; position: absolute; right: 1px; top: 8px; width: 2px; height: 2px; border-radius: 50%; background: #29231e; }
-.portrait-goat b::after { content: ""; position: absolute; right: 0; top: 11px; width: 4px; height: 8px; border-radius: 0 0 70% 70%; background: #8a684d; }
-.portrait-goat em { position: absolute; left: -6px; top: 2px; width: 8px; height: 3px; border: 1px solid #5d4a39; border-radius: 5px; background: inherit; transform: rotate(-35deg); }
+.portrait-goat b { position: absolute; z-index: 3; right: -8px; top: 5px; width: 5px; height: 14px; border: 1px solid #765b45; border-radius: 45% 55% 70% 60%; background: #b48a62; box-shadow: -8px -2px 0 -1px #b48a62, -8px -2px 0 0 #765b45; transform: rotate(-16deg); }
+.portrait-goat b::after { content: ""; position: absolute; right: 1px; top: 11px; width: 3px; height: 7px; border-radius: 0 0 75% 75%; background: #765b45; }
+.portrait-goat em { position: absolute; left: -6px; top: -2px; width: 8px; height: 4px; border: 1px solid #5d4a39; border-radius: 5px; background: inherit; transform: rotate(-42deg); }
 .portrait-goat small { position: absolute; left: 7px; bottom: -4px; width: 9px; height: 5px; border: 1px solid #967068; border-radius: 50% 50% 65% 65%; background: #dba39b; }
+.portrait-goat strong { position: absolute; z-index: 2; right: -4px; top: -8px; width: 4px; height: 9px; border-top: 2px solid #715d45; border-left: 2px solid #715d45; border-radius: 70% 0 0; box-shadow: -7px 1px 0 -1px #eee3c9, -8px 0 0 -1px #715d45; transform: rotate(7deg); }
 .portrait-goat-one { left: 6px; }.portrait-goat-two { right: 6px; bottom: 14px; transform: scale(.84); background: #f5efe0; }
+.portrait-goat-two::before { background: radial-gradient(circle at 72% 38%, #29231e 0 1px, transparent 1.5px), #f5efe0; }
 .portrait-goat-milk { position: absolute; z-index: 4; left: 39px; bottom: 5px; width: 15px; height: 21px; border: 2px solid #7c7154; border-radius: 3px 3px 6px 6px; background: #f7f0df; }
 .creamery-portrait { background: #ead9a6; box-shadow: inset 0 -6px #c99b58; }
 .portrait-churn { position: absolute; left: 13px; bottom: 8px; width: 34px; height: 53px; border: 3px solid #685742; border-radius: 8px 8px 12px 12px; background: #b9c4b7; }
