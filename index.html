@@ -49,6 +49,12 @@
 
       <div class="plot-grid" id="plot-grid" aria-label="Crop plots"></div>
 
+      <button class="land-expansion" id="land-button" type="button" aria-label="View South Field expansion">
+        <span class="land-lock" aria-hidden="true">+</span>
+        <span class="land-label"><strong>South Field</strong><small>Unlock 3 more plots</small></span>
+        <span class="land-price">90 coins + 1 crate</span>
+      </button>
+
       <div class="animal-row">
         <button class="coop-site locked" id="coop-button" type="button" aria-label="Chicken coop building site">
           <span class="coop-fence" aria-hidden="true"></span>
@@ -113,6 +119,19 @@
     <h3 class="market-stock-title">Market sales</h3>
     <div class="market-list" id="market-list"></div>
     <button class="sell-all" id="sell-all-button" type="button">Sell everything</button>
+  </section>
+
+  <section class="sheet" id="land-sheet" aria-labelledby="land-title" hidden>
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <div class="sheet-heading"><div><h2 id="land-title">South Field</h2><p>Open a new row of three growing plots.</p></div><button class="close-button" type="button" data-close aria-label="Close">×</button></div>
+    <div class="land-panel">
+      <div class="land-costs" aria-label="South Field cost">
+        <span id="land-coin-cost"><i class="coin-icon" aria-hidden="true">●</i><strong>90 coins</strong></span>
+        <span id="land-supply-cost"><i class="crate-icon" aria-hidden="true"></i><strong>1 Supply Crate</strong></span>
+      </div>
+      <p id="land-message">Earn the coins and Supply Crate needed to open the field.</p>
+      <button class="land-action" id="land-action-button" type="button">Purchase South Field</button>
+    </div>
   </section>
 
   <section class="sheet" id="coop-sheet" aria-labelledby="coop-title" hidden>
