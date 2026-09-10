@@ -139,6 +139,11 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
 .plant.pumpkin { width: 30px; }.plant.pumpkin .produce { position: absolute; left: 2px; bottom: 0; width: 27px; height: 20px; border: 2px solid #b95a24; border-radius: 48%; background: repeating-linear-gradient(90deg,#ec7a2f 0 6px,#d66327 6px 8px); }
 .plot.ready { box-shadow: inset 0 0 0 5px #b27d4c, 0 0 0 4px #f7d35e, 0 5px 0 #61943e; }
 .plot.blocked { animation: shake .32s ease; }
+.land-expansion { position: relative; z-index: 2; width: min(100%, 500px); min-height: 66px; margin: 14px auto 0; padding: 9px 12px; display: grid; grid-template-columns: 38px 1fr auto; gap: 10px; align-items: center; border: 3px dashed #597b3d; border-radius: 17px; background: #aad06f; box-shadow: inset 0 -5px #8db85a, 0 4px 0 #61943e; text-align: left; cursor: pointer; }
+.land-expansion:active { transform: translateY(2px); }
+.land-lock { width: 34px; height: 34px; display: grid; place-items: center; border: 3px solid #6d4a29; border-radius: 50%; background: #fff0c8; color: #5d421f; font-size: 1.35rem; font-weight: 900; }
+.land-label strong, .land-label small { display: block; }.land-label strong { color: #31562e; font-size: .9rem; }.land-label small { margin-top: 2px; color: #49663f; font-size: .72rem; font-weight: 800; }
+.land-price { padding: 5px 8px; border-radius: 10px; background: #fff4cf; color: #624820; font-size: .7rem; font-weight: 900; white-space: nowrap; }
 
 .animal-row { position: relative; z-index: 2; height: 132px; max-width: 500px; margin: 10px auto 0; display: flex; gap: 10px; justify-content: center; align-items: center; }
 .coop-site { position: relative; width: min(185px, calc(50% - 5px)); height: 116px; padding: 0; border: 0; background: transparent; cursor: pointer; filter: drop-shadow(0 4px 2px #35562945); }
@@ -237,6 +242,15 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
 .market-stock-title { margin: 0 0 8px !important; color: #58634f; font-size: .84rem; letter-spacing: .06em; text-transform: uppercase; }
 .order-card.order-complete { animation: orderSuccess .48s ease-out; }
 
+.land-panel { padding: 14px; border: 2px solid #b9ca8a; border-radius: 16px; background: #f6f6da; }
+.land-costs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+.land-costs > span { min-height: 52px; padding: 9px; display: flex; gap: 8px; align-items: center; justify-content: center; border: 2px solid #d1c8aa; border-radius: 13px; background: #eee7cf; color: #777263; }
+.land-costs > span.met { border-color: #79a951; background: #e8f3cf; color: #386641; }
+.land-costs .coin-icon { font-style: normal; }
+.land-panel p { margin: 13px 0 !important; color: #58634f; font-size: .88rem; font-weight: 700; text-align: center; }
+.land-action { width: 100%; min-height: 48px; padding: 0 14px; border: 0; border-radius: 11px; background: var(--green-dark); color: #fff; font-weight: 900; cursor: pointer; }
+.land-action:disabled { background: #c9c2aa; color: #716e63; cursor: not-allowed; }
+
 .coop-panel { padding: 13px; display: grid; grid-template-columns: 96px 1fr; gap: 14px; align-items: center; border: 2px solid #d7c898; border-radius: 16px; background: #fffdf1; }
 .coop-copy p { margin-top: 5px; color: #68705e; font-size: .86rem; line-height: 1.35; }
 .coop-portrait { position: relative; width: 92px; height: 78px; overflow: hidden; border-radius: 14px; background: linear-gradient(#bde0ec 0 38%, #8fc554 38%); box-shadow: inset 0 -5px #74a747; }
@@ -279,7 +293,7 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
 @keyframes smokeRise { from { opacity: .85; transform: translateY(4px) scale(.75); } to { opacity: 0; transform: translateY(-13px) scale(1.2); } }
 
 @media (max-width: 390px) {
-  .topbar { padding-inline: 10px; gap: 6px; }.topbar h1 { font-size: 1.18rem; }.resources { gap: 4px; }.resource { min-width: 53px; padding-inline: 5px; }.supply-resource { min-width: 55px; }.farm { padding-inline: 11px; }.plot-grid { gap: 12px 9px; }.plot { min-height: 83px; }.crop-choice { padding-inline: 3px; }.upgrade-card { grid-template-columns: 42px 1fr; }.upgrade-card button { grid-column: 1/-1; }.order-heading { grid-template-columns: 44px 1fr; }.order-rewards { grid-column: 2; justify-items: start; grid-template-columns: repeat(2, auto); }.order-requirements { grid-template-columns: 1fr; }.coop-panel, .bakery-panel { grid-template-columns: 80px 1fr; gap: 10px; }.coop-portrait, .bakery-portrait { width: 78px; }.coop-sign, .bakery-sign { min-width: 92px; padding-inline: 6px; font-size: .7rem; }
+  .topbar { padding-inline: 10px; gap: 6px; }.topbar h1 { font-size: 1.18rem; }.resources { gap: 4px; }.resource { min-width: 53px; padding-inline: 5px; }.supply-resource { min-width: 55px; }.farm { padding-inline: 11px; }.plot-grid { gap: 12px 9px; }.plot { min-height: 83px; }.land-expansion { grid-template-columns: 36px 1fr; }.land-price { grid-column: 2; justify-self: start; }.crop-choice { padding-inline: 3px; }.upgrade-card { grid-template-columns: 42px 1fr; }.upgrade-card button { grid-column: 1/-1; }.order-heading { grid-template-columns: 44px 1fr; }.order-rewards { grid-column: 2; justify-items: start; grid-template-columns: repeat(2, auto); }.order-requirements { grid-template-columns: 1fr; }.coop-panel, .bakery-panel { grid-template-columns: 80px 1fr; gap: 10px; }.coop-portrait, .bakery-portrait { width: 78px; }.coop-sign, .bakery-sign { min-width: 92px; padding-inline: 6px; font-size: .7rem; }
 }
 
 @media (min-width: 621px) {
