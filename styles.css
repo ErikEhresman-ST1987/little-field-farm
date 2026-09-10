@@ -128,8 +128,8 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
 .plot.ready { box-shadow: inset 0 0 0 5px #b27d4c, 0 0 0 4px #f7d35e, 0 5px 0 #61943e; }
 .plot.blocked { animation: shake .32s ease; }
 
-.animal-row { position: relative; z-index: 2; height: 132px; max-width: 500px; margin: 10px auto 0; display: flex; justify-content: center; align-items: center; }
-.coop-site { position: relative; width: 185px; height: 116px; padding: 0; border: 0; background: transparent; cursor: pointer; filter: drop-shadow(0 4px 2px #35562945); }
+.animal-row { position: relative; z-index: 2; height: 132px; max-width: 500px; margin: 10px auto 0; display: flex; gap: 10px; justify-content: center; align-items: center; }
+.coop-site { position: relative; width: min(185px, calc(50% - 5px)); height: 116px; padding: 0; border: 0; background: transparent; cursor: pointer; filter: drop-shadow(0 4px 2px #35562945); }
 .coop-site:active { transform: translateY(2px); }
 .coop-fence { position: absolute; left: 0; right: 0; bottom: 17px; height: 40px; border: 4px solid #c49a5d; border-top-width: 7px; border-radius: 10px; background: #7fb64d; box-shadow: inset 0 -8px #6ca143; }
 .coop-fence::after { content: ""; position: absolute; inset: -9px 12px -4px; background: repeating-linear-gradient(90deg, #9b713d 0 6px, transparent 6px 38px); }
@@ -148,6 +148,24 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
 .coop-site.working .chicken { animation: chickenPeck 1.2s ease-in-out infinite; }
 .coop-site.ready { filter: drop-shadow(0 0 5px #f6d25e) drop-shadow(0 4px 2px #35562945); }
 .egg-ready-badge { position: absolute; z-index: 6; right: 2px; top: 5px; padding: 5px 8px; border: 2px solid #956822; border-radius: 13px; background: var(--gold); color: #563c11; font-size: .72rem; font-weight: 900; animation: readyPulse 1.6s ease-in-out infinite; }
+
+.bakery-site { position: relative; width: min(185px, calc(50% - 5px)); height: 116px; padding: 0; border: 0; background: transparent; cursor: pointer; filter: drop-shadow(0 4px 2px #35562945); }
+.bakery-site:active { transform: translateY(2px); }
+.bakery-ground { position: absolute; left: 3px; right: 3px; bottom: 17px; height: 39px; border: 4px solid #b18b52; border-radius: 50%; background: #82b84f; }
+.bakery-house { display: none; position: absolute; z-index: 2; left: 50%; bottom: 29px; width: 83px; height: 58px; transform: translateX(-50%); border: 3px solid #684427; border-radius: 5px; background: #e5a854; }
+.bakery-roof { position: absolute; left: -10px; right: -10px; top: -24px; height: 29px; clip-path: polygon(50% 0,100% 80%,94% 100%,6% 100%,0 80%); background: #9f4633; }
+.bakery-door { position: absolute; left: 29px; bottom: -1px; width: 25px; height: 38px; border: 3px solid #684427; border-radius: 11px 11px 2px 2px; background: #7c4c2d; }
+.bakery-window { position: absolute; left: 7px; top: 15px; width: 19px; height: 18px; border: 3px solid #fff0c8; background: #f4cc69; box-shadow: inset 0 0 7px #e07b32; }
+.bakery-chimney { position: absolute; right: 7px; top: -29px; width: 14px; height: 25px; border: 3px solid #684427; background: #b7623f; }
+.bakery-smoke { display: none; position: absolute; z-index: 4; right: 35px; border-radius: 50%; background: #fff9; }
+.smoke-one { top: 3px; width: 12px; height: 12px; }.smoke-two { top: -7px; right: 26px; width: 17px; height: 17px; }
+.bakery-sign { position: absolute; z-index: 5; left: 50%; bottom: 0; transform: translateX(-50%); min-width: 104px; padding: 4px 10px; border: 2px solid #684427; border-radius: 6px; background: #fff0c8; font-size: .76rem; font-weight: 900; white-space: nowrap; }
+.bakery-site.locked .bakery-ground { opacity: .72; filter: saturate(.55); }
+.bakery-site.locked::before { content: "+"; position: absolute; z-index: 4; left: 50%; top: 26px; width: 35px; height: 35px; transform: translateX(-50%); display: grid; place-items: center; border: 3px dashed #fff0c8; border-radius: 50%; color: #fff0c8; font-size: 1.45rem; font-weight: 900; }
+.bakery-site.built .bakery-house { display: block; animation: pop .35s ease-out; }
+.bakery-site.working .bakery-smoke { display: block; animation: smokeRise 1.8s ease-out infinite; }
+.bakery-site.ready { filter: drop-shadow(0 0 5px #f6d25e) drop-shadow(0 4px 2px #35562945); }
+.bread-ready-badge { position: absolute; z-index: 6; right: 0; top: 5px; padding: 5px 8px; border: 2px solid #956822; border-radius: 13px; background: var(--gold); color: #563c11; font-size: .72rem; font-weight: 900; animation: readyPulse 1.6s ease-in-out infinite; }
 
 .farm-edge { position: absolute; z-index: 1; inset: auto 0 0; height: 92px; background: #78b749; }
 .fence { position: absolute; left: 0; right: 0; bottom: 38px; height: 8px; background: #e5c586; box-shadow: 0 16px #d3ae69; }
@@ -208,6 +226,21 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
 .coop-action { width: 100%; min-height: 48px; padding: 0 14px; border: 0; border-radius: 11px; background: var(--green-dark); color: white; font-weight: 900; cursor: pointer; }
 .coop-action:disabled { background: #c9c2aa; color: #716e63; cursor: not-allowed; }
 
+.bakery-panel { padding: 13px; display: grid; grid-template-columns: 96px 1fr; gap: 14px; align-items: center; border: 2px solid #d7c898; border-radius: 16px; background: #fffdf1; }
+.bakery-copy p { margin-top: 5px; color: #68705e; font-size: .86rem; line-height: 1.35; }
+.bakery-portrait { position: relative; width: 92px; height: 78px; overflow: hidden; border-radius: 14px; background: #efd8a1; box-shadow: inset 0 -7px #c89859; }
+.portrait-oven { position: absolute; left: 14px; bottom: 9px; width: 48px; height: 57px; border: 3px solid #684427; border-radius: 13px 13px 4px 4px; background: #b95b3e; }
+.portrait-oven::before { content: ""; position: absolute; left: 8px; right: 8px; bottom: 9px; height: 23px; border: 3px solid #5a3526; border-radius: 12px 12px 4px 4px; background: #4b3228; box-shadow: inset 0 0 9px #ee8a35; }
+.portrait-oven i { position: absolute; right: -11px; top: -13px; width: 14px; height: 30px; border: 3px solid #684427; background: #9b4a36; }
+.portrait-loaf { position: absolute; right: 8px; bottom: 11px; width: 31px; height: 21px; border: 3px solid #875021; border-radius: 50% 50% 8px 8px; background: #d89242; transform: rotate(-7deg); }
+.portrait-loaf::after { content: ""; position: absolute; left: 7px; top: 2px; width: 3px; height: 10px; border-radius: 3px; background: #f2c16e; box-shadow: 8px 0 #f2c16e; transform: rotate(-26deg); }
+.bakery-progress { height: 12px; margin: 14px 2px 0; overflow: hidden; border: 2px solid #9c633e; border-radius: 8px; background: #e5d0b1; }
+.bakery-progress span { display: block; width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #d47a36, var(--gold)); transition: width .6s linear; }
+.bakery-recipe { margin: 13px 0 8px !important; color: #58634f; font-weight: 900; text-align: center; }
+.bakery-action { width: 100%; min-height: 48px; padding: 0 14px; border: 0; border-radius: 11px; background: #a45136; color: white; font-weight: 900; cursor: pointer; }
+.bakery-action:disabled { background: #c9c2aa; color: #716e63; cursor: not-allowed; }
+.bread-dot { border: 2px solid #875021; border-radius: 55% 55% 30% 30%; }
+
 [hidden] { display: none !important; }
 @keyframes sheetUp { from { transform: translate(-50%, 100%); } }
 @keyframes sprout { from { opacity: 0; transform: scale(.1); } }
@@ -216,9 +249,10 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
 @keyframes pop { from { transform: scale(.2); opacity: 0; } }
 @keyframes orderSuccess { 45% { transform: scale(1.025); background: #e8f4c9; } }
 @keyframes chickenPeck { 50% { transform: translateY(3px) rotate(4deg); } }
+@keyframes smokeRise { from { opacity: .85; transform: translateY(4px) scale(.75); } to { opacity: 0; transform: translateY(-13px) scale(1.2); } }
 
 @media (max-width: 390px) {
-  .topbar { padding-inline: 12px; }.resource { min-width: 60px; }.farm { padding-inline: 11px; }.plot-grid { gap: 12px 9px; }.plot { min-height: 83px; }.crop-choice { padding-inline: 3px; }.upgrade-card { grid-template-columns: 42px 1fr; }.upgrade-card button { grid-column: 1/-1; }.order-heading { grid-template-columns: 38px 1fr; }.order-reward { grid-column: 2; justify-self: start; }.order-requirements { grid-template-columns: 1fr; }.coop-panel { grid-template-columns: 80px 1fr; gap: 10px; }.coop-portrait { width: 78px; }
+  .topbar { padding-inline: 12px; }.resource { min-width: 60px; }.farm { padding-inline: 11px; }.plot-grid { gap: 12px 9px; }.plot { min-height: 83px; }.crop-choice { padding-inline: 3px; }.upgrade-card { grid-template-columns: 42px 1fr; }.upgrade-card button { grid-column: 1/-1; }.order-heading { grid-template-columns: 38px 1fr; }.order-reward { grid-column: 2; justify-self: start; }.order-requirements { grid-template-columns: 1fr; }.coop-panel, .bakery-panel { grid-template-columns: 80px 1fr; gap: 10px; }.coop-portrait, .bakery-portrait { width: 78px; }.coop-sign, .bakery-sign { min-width: 92px; padding-inline: 6px; font-size: .7rem; }
 }
 
 @media (min-width: 621px) {
