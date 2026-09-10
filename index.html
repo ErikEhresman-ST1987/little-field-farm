@@ -73,6 +73,15 @@
         </button>
       </div>
 
+      <button class="cow-site locked" id="cow-button" type="button" aria-label="Cow pasture building site">
+        <span class="cow-pasture" aria-hidden="true"></span>
+        <span class="cow-shelter" aria-hidden="true"></span>
+        <span class="cow cow-one" aria-hidden="true"><i></i></span>
+        <span class="cow cow-two" aria-hidden="true"><i></i></span>
+        <span class="cow-sign" id="cow-board-label">Cow Pasture</span>
+        <span class="milk-ready-badge" id="milk-ready-badge" hidden>2 milk</span>
+      </button>
+
       <div class="farm-edge" aria-hidden="true">
         <span class="fence"></span>
         <span class="tree tree-one"><i></i></span>
@@ -156,6 +165,18 @@
     <div class="bakery-progress" id="bakery-progress" hidden><span id="bakery-progress-bar"></span></div>
     <p class="bakery-recipe" id="bakery-recipe">1 wheat + 1 egg → 1 bread</p>
     <button class="bakery-action" id="bakery-action-button" type="button">Build for 100 coins</button>
+  </section>
+
+  <section class="sheet" id="cow-sheet" aria-labelledby="cow-title" hidden>
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <div class="sheet-heading"><div><h2 id="cow-title">Cow Pasture</h2><p id="cow-subtitle">A grassy home for two gentle cows.</p></div><button class="close-button" type="button" data-close aria-label="Close">×</button></div>
+    <div class="cow-panel">
+      <div class="cow-portrait" aria-hidden="true"><span class="portrait-cow portrait-cow-one"><i></i></span><span class="portrait-cow portrait-cow-two"><i></i></span><span class="portrait-milk"></span></div>
+      <div class="cow-copy"><h3 id="cow-state-title">Build the Cow Pasture</h3><p id="cow-state-message">Open the South Field and prepare a home for two cows.</p></div>
+    </div>
+    <div class="cow-progress" id="cow-progress" hidden><span id="cow-progress-bar"></span></div>
+    <p class="cow-recipe" id="cow-recipe">2 wheat → 2 milk</p>
+    <button class="cow-action" id="cow-action-button" type="button">Build for 140 coins + 2 crates</button>
   </section>
 
   <template id="plot-template">
