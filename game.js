@@ -24,21 +24,26 @@
     bread: { name: "Bread", price: 25, storage: 1, color: "#c9823d" }
   };
   const ORDERS = [
-    { id: "carrot-basket", title: "Carrot Basket", needs: { carrot: 2 }, reward: 12 },
-    { id: "pantry-basics", title: "Pantry Basics", needs: { carrot: 1, wheat: 1 }, reward: 18 },
-    { id: "miller-bundle", title: "Miller’s Bundle", needs: { wheat: 2 }, reward: 24 },
-    { id: "harvest-pair", title: "Harvest Pair", needs: { carrot: 2, wheat: 1 }, reward: 24 },
-    { id: "autumn-basket", title: "Autumn Basket", needs: { carrot: 1, pumpkin: 1 }, reward: 29 },
-    { id: "baker-supply", title: "Baker’s Supply", needs: { wheat: 1, pumpkin: 1 }, reward: 35 },
-    { id: "pumpkin-porch", title: "Pumpkin Porch", needs: { pumpkin: 2 }, reward: 46 },
-    { id: "breakfast-dozen", title: "Breakfast Basket", needs: { egg: 2 }, reward: 20, requiresCoop: true },
-    { id: "country-breakfast", title: "Country Breakfast", needs: { carrot: 1, egg: 2 }, reward: 26, requiresCoop: true },
-    { id: "baker-eggs", title: "Baker’s Eggs", needs: { wheat: 1, egg: 2 }, reward: 32, requiresCoop: true },
-    { id: "autumn-kitchen", title: "Autumn Kitchen", needs: { pumpkin: 1, egg: 2 }, reward: 43, requiresCoop: true },
-    { id: "fresh-loaf", title: "Fresh Loaf", needs: { bread: 1 }, reward: 30, requiresBakery: true },
-    { id: "lunch-basket", title: "Lunch Basket", needs: { carrot: 1, bread: 1 }, reward: 36, requiresBakery: true },
-    { id: "harvest-table", title: "Harvest Table", needs: { pumpkin: 1, bread: 1 }, reward: 53, requiresBakery: true },
-    { id: "two-loaves", title: "Two Loaves", needs: { bread: 2 }, reward: 60, requiresBakery: true }
+    { id: "carrot-basket", title: "Carrot Basket", requester: "Marta Hill", requesterType: "neighbor", reason: "My grandchildren are visiting, and carrot soup is their favorite.", needs: { carrot: 2 }, reward: 12 },
+    { id: "pantry-basics", title: "Pantry Basics", requester: "Nora Finch", requesterType: "neighbor", reason: "I’m restocking the pantry before the family arrives.", needs: { carrot: 1, wheat: 1 }, reward: 18 },
+    { id: "miller-bundle", title: "Miller’s Bundle", requester: "Millbrook Grocer", requesterType: "market", reason: "The grain shelf is nearly bare after a busy morning.", needs: { wheat: 2 }, reward: 24 },
+    { id: "harvest-pair", title: "Harvest Pair", requester: "Saturday Market", requesterType: "market", reason: "Shoppers have been asking for a simple farm-fresh bundle.", needs: { carrot: 2, wheat: 1 }, reward: 24 },
+    { id: "autumn-basket", title: "Autumn Basket", requester: "June Bell", requesterType: "neighbor", reason: "I’m putting together a welcoming basket for new neighbors.", needs: { carrot: 1, pumpkin: 1 }, reward: 29 },
+    { id: "baker-supply", title: "Baker’s Supply", requester: "The Copper Kettle", requesterType: "restaurant", reason: "Tonight’s harvest supper needs a fresh seasonal side.", needs: { wheat: 1, pumpkin: 1 }, reward: 35 },
+    { id: "pumpkin-porch", title: "Pumpkin Porch", requester: "Hollow Creek Market", requesterType: "market", reason: "Our autumn display needs two bright farm pumpkins.", needs: { pumpkin: 2 }, reward: 46 },
+    { id: "breakfast-dozen", title: "Breakfast Basket", requester: "Sunrise Café", requesterType: "restaurant", reason: "The breakfast crowd used our last fresh eggs.", needs: { egg: 2 }, reward: 20, requiresCoop: true },
+    { id: "country-breakfast", title: "Country Breakfast", requester: "Elias Green", requesterType: "neighbor", reason: "I promised the family a proper country breakfast tomorrow.", needs: { carrot: 1, egg: 2 }, reward: 26, requiresCoop: true },
+    { id: "baker-eggs", title: "Baker’s Eggs", requester: "Hearth & Spoon", requesterType: "restaurant", reason: "We need eggs and grain for the afternoon baking.", needs: { wheat: 1, egg: 2 }, reward: 32, requiresCoop: true },
+    { id: "autumn-kitchen", title: "Autumn Kitchen", requester: "The Copper Kettle", requesterType: "restaurant", reason: "Our seasonal menu needs something hearty from the farm.", needs: { pumpkin: 1, egg: 2 }, reward: 43, requiresCoop: true },
+    { id: "fresh-loaf", title: "Fresh Loaf", requester: "Samuel Reed", requesterType: "neighbor", reason: "A warm loaf would make tonight’s supper complete.", needs: { bread: 1 }, reward: 30, requiresBakery: true },
+    { id: "lunch-basket", title: "Lunch Basket", requester: "Marta Hill", requesterType: "neighbor", reason: "I’m packing a farm lunch for a day by the creek.", needs: { carrot: 1, bread: 1 }, reward: 36, requiresBakery: true },
+    { id: "harvest-table", title: "Harvest Table", requester: "Hollow Creek Market", requesterType: "market", reason: "We’re featuring complete farm meals at this week’s stall.", needs: { pumpkin: 1, bread: 1 }, reward: 53, requiresBakery: true },
+    { id: "two-loaves", title: "Two Loaves", requester: "Hearth & Spoon", requesterType: "restaurant", reason: "The dinner tables need two more fresh loaves tonight.", needs: { bread: 2 }, reward: 60, requiresBakery: true },
+    { id: "picnic-preparations", title: "Picnic Preparations", requester: "Little Field Council", requesterType: "market", reason: "The town picnic needs a dependable basket of fresh produce.", needs: { carrot: 2, wheat: 1 }, reward: 26, supplyCrates: 1, special: true },
+    { id: "harvest-window", title: "Harvest Window", requester: "Millbrook Grocer", requesterType: "market", reason: "Help us build a colorful window display for harvest week.", needs: { carrot: 1, wheat: 1, pumpkin: 1 }, reward: 41, supplyCrates: 1, special: true },
+    { id: "breakfast-rush", title: "Breakfast Rush", requester: "Sunrise Café", requesterType: "restaurant", reason: "A visiting walking club has filled every breakfast table.", needs: { wheat: 1, egg: 2 }, reward: 28, supplyCrates: 1, special: true, requiresCoop: true },
+    { id: "community-lunch", title: "Community Lunch", requester: "The Copper Kettle", requesterType: "restaurant", reason: "We’re preparing a thank-you lunch for local volunteers.", needs: { carrot: 1, egg: 1, bread: 1 }, reward: 44, supplyCrates: 1, special: true, requiresBakery: true },
+    { id: "festival-table", title: "Festival Table", requester: "Saturday Market", requesterType: "market", reason: "The fall festival table needs a centerpiece and a fresh loaf.", needs: { pumpkin: 1, bread: 1 }, reward: 49, supplyCrates: 1, special: true, requiresBakery: true }
   ];
 
   const freshState = () => ({
@@ -46,6 +51,8 @@
     capacity: 6,
     upgraded: false,
     shedLevel: 0,
+    supplyCrates: 0,
+    ordersSinceSpecial: 0,
     activeOrder: null,
     inventory: { carrot: 0, wheat: 0, pumpkin: 0, egg: 0, bread: 0 },
     coop: { built: false, readyAt: null, eggsReady: 0 },
@@ -66,6 +73,7 @@
 
   const els = {
     coins: document.querySelector("#coin-count"), storageCount: document.querySelector("#storage-count"),
+    supplyCount: document.querySelector("#supply-count"),
     grid: document.querySelector("#plot-grid"), status: document.querySelector("#status-message"),
     overlay: document.querySelector("#overlay"), plantSheet: document.querySelector("#plant-sheet"),
     storageSheet: document.querySelector("#storage-sheet"), marketSheet: document.querySelector("#market-sheet"),
@@ -87,14 +95,19 @@
     upgradeCard: document.querySelector("#upgrade-card"), shed: document.querySelector("#shed-button"),
     shedExtension: document.querySelector("#shed-extension"), storageSubtitle: document.querySelector("#storage-subtitle"),
     sellAll: document.querySelector("#sell-all-button"), orderTitle: document.querySelector("#order-title"),
-    orderReward: document.querySelector("#order-reward"), orderRequirements: document.querySelector("#order-requirements"),
+    orderCard: document.querySelector(".order-card"), orderAvatar: document.querySelector("#order-avatar"),
+    orderType: document.querySelector("#order-type"), orderRequester: document.querySelector("#order-requester"),
+    orderReason: document.querySelector("#order-reason"), orderReward: document.querySelector("#order-reward"),
+    orderSupplyReward: document.querySelector("#order-supply-reward"), orderRequirements: document.querySelector("#order-requirements"),
     completeOrder: document.querySelector("#complete-order-button")
   };
 
   function findOrder(orderId) { return ORDERS.find(order => order.id === orderId); }
 
   function chooseOrder(excludeId = null) {
-    const choices = ORDERS.filter(order => order.id !== excludeId && (!order.requiresCoop || state.coop.built) && (!order.requiresBakery || state.bakery.built));
+    const eligible = ORDERS.filter(order => order.id !== excludeId && (!order.requiresCoop || state.coop.built) && (!order.requiresBakery || state.bakery.built));
+    const specialDue = state.ordersSinceSpecial >= 3;
+    const choices = eligible.filter(order => specialDue ? order.special : !order.special);
     return choices[Math.floor(Math.random() * choices.length)].id;
   }
 
@@ -115,6 +128,8 @@
       merged.shedLevel = Math.min(SHED_LEVELS.length - 1, Math.max(0, inferredLevel));
       merged.capacity = SHED_LEVELS[merged.shedLevel].capacity;
       merged.upgraded = merged.shedLevel >= 1;
+      merged.supplyCrates = Math.max(0, Number.isFinite(saved.supplyCrates) ? Math.floor(saved.supplyCrates) : 0);
+      merged.ordersSinceSpecial = Math.min(3, Math.max(0, Number.isFinite(saved.ordersSinceSpecial) ? Math.floor(saved.ordersSinceSpecial) : 0));
       return merged;
     } catch (_) { return freshState(); }
   }
@@ -169,6 +184,7 @@
     const breadJustReady = updateBakeryProduction();
     els.coins.textContent = state.coins;
     els.storageCount.textContent = `${usedStorage()}/${state.capacity}`;
+    els.supplyCount.textContent = state.supplyCrates;
     els.shed.classList.toggle("upgraded", state.upgraded);
     els.shed.classList.toggle("storage-loft", state.shedLevel >= 2);
     els.shed.classList.toggle("storehouse", state.shedLevel >= 3);
@@ -362,8 +378,17 @@
   function renderOrder() {
     const order = findOrder(state.activeOrder);
     const ready = canCompleteOrder(order);
+    const typeLabels = { neighbor: "Neighbor request", restaurant: "Restaurant order", market: "Local market order" };
+    els.orderCard.dataset.requesterType = order.requesterType;
+    els.orderCard.classList.toggle("special-order", Boolean(order.special));
+    els.orderAvatar.textContent = order.requester.split(/\s+/).map(word => word[0]).slice(0, 2).join("");
+    els.orderType.textContent = order.special ? `Special request • ${typeLabels[order.requesterType]}` : typeLabels[order.requesterType];
+    els.orderRequester.textContent = order.requester;
+    els.orderReason.textContent = `“${order.reason}”`;
     els.orderTitle.textContent = order.title;
     els.orderReward.textContent = `${order.reward} coins`;
+    els.orderSupplyReward.hidden = !order.supplyCrates;
+    els.orderSupplyReward.textContent = order.supplyCrates ? `+ ${order.supplyCrates} Supply Crate` : "";
     els.orderRequirements.replaceChildren();
     Object.entries(order.needs).forEach(([key, amount]) => {
       const crop = PRODUCTS[key];
@@ -385,14 +410,20 @@
     completingOrder = true;
     Object.entries(order.needs).forEach(([key, amount]) => { state.inventory[key] -= amount; });
     state.coins += order.reward;
+    if (order.supplyCrates) {
+      state.supplyCrates += order.supplyCrates;
+      state.ordersSinceSpecial = 0;
+    } else {
+      state.ordersSinceSpecial += 1;
+    }
     state.activeOrder = chooseOrder(order.id);
     saveState();
-    setStatus(`Order complete! You earned ${order.reward} coins.`);
+    const crateMessage = order.supplyCrates ? ` and ${order.supplyCrates} Supply Crate` : "";
+    setStatus(`Order complete! You earned ${order.reward} coins${crateMessage}.`);
     render();
-    const card = document.querySelector(".order-card");
-    card.classList.remove("order-complete");
-    void card.offsetWidth;
-    card.classList.add("order-complete");
+    els.orderCard.classList.remove("order-complete");
+    void els.orderCard.offsetWidth;
+    els.orderCard.classList.add("order-complete");
     window.setTimeout(() => {
       completingOrder = false;
       if (!els.marketSheet.hidden) renderMarket();
