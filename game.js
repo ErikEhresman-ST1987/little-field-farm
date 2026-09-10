@@ -2,7 +2,12 @@
   "use strict";
 
   const SAVE_KEY = "littleFieldFarm.v1";
-  const UPGRADE_COST = 24;
+  const SHED_LEVELS = [
+    { name: "Original Shed", capacity: 6, cost: 0 },
+    { name: "Roomier Shed", capacity: 10, cost: 24 },
+    { name: "Storage Loft", capacity: 16, cost: 70 },
+    { name: "Farm Storehouse", capacity: 24, cost: 160 }
+  ];
   const COOP_COST = 60;
   const EGG_TIME_MS = 60000;
   const EGGS_PER_BATCH = 2;
@@ -40,6 +45,7 @@
     coins: 18,
     capacity: 6,
     upgraded: false,
+    shedLevel: 0,
     activeOrder: null,
     inventory: { carrot: 0, wheat: 0, pumpkin: 0, egg: 0, bread: 0 },
     coop: { built: false, readyAt: null, eggsReady: 0 },
@@ -56,6 +62,7 @@
   let selectedPlot = null;
   let ticker = null;
   let completingOrder = false;
+  let upgradingShed = false;
 
   const els = {
     coins: document.querySelector("#coin-count"), storageCount: document.querySelector("#storage-count"),
@@ -76,6 +83,7 @@
     bakeryAction: document.querySelector("#bakery-action-button"),
     cropChoices: document.querySelector("#crop-choices"), inventoryList: document.querySelector("#inventory-list"),
     marketList: document.querySelector("#market-list"), upgradeButton: document.querySelector("#upgrade-button"),
+    upgradeTitle: document.querySelector("#upgrade-title"), upgradeDescription: document.querySelector("#upgrade-description"),
     upgradeCard: document.querySelector("#upgrade-card"), shed: document.querySelector("#shed-button"),
     shedExtension: document.querySelector("#shed-extension"), storageSubtitle: document.querySelector("#storage-subtitle"),
     sellAll: document.querySelector("#sell-all-button"), orderTitle: document.querySelector("#order-title"),
@@ -94,13 +102,20 @@
     try {
       const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
       if (!saved || !Array.isArray(saved.plots)) return freshState();
-      return {
+      const merged = {
         ...freshState(), ...saved,
         inventory: { ...freshState().inventory, ...(saved.inventory || {}) },
         coop: { ...freshState().coop, ...(saved.coop || {}) },
         bakery: { ...freshState().bakery, ...(saved.bakery || {}) },
         plots: Array.from({ length: 6 }, (_, i) => saved.plots[i] || null)
       };
+      const inferredLevel = Number.isInteger(saved.shedLevel)
+        ? saved.shedLevel
+        : saved.capacity >= 24 ? 3 : saved.capacity >= 16 ? 2 : (saved.upgraded || saved.capacity >= 10) ? 1 : 0;
+      merged.shedLevel = Math.min(SHED_LEVELS.length - 1, Math.max(0, inferredLevel));
+      merged.capacity = SHED_LEVELS[merged.shedLevel].capacity;
+      merged.upgraded = merged.shedLevel >= 1;
+      return merged;
     } catch (_) { return freshState(); }
   }
 
@@ -155,6 +170,8 @@
     els.coins.textContent = state.coins;
     els.storageCount.textContent = `${usedStorage()}/${state.capacity}`;
     els.shed.classList.toggle("upgraded", state.upgraded);
+    els.shed.classList.toggle("storage-loft", state.shedLevel >= 2);
+    els.shed.classList.toggle("storehouse", state.shedLevel >= 3);
     renderCoopBoard();
     renderBakeryBoard();
     renderPlots();
@@ -287,22 +304,39 @@
       row.innerHTML = `<span class="item-dot${key === "egg" ? " egg-dot" : key === "bread" ? " bread-dot" : ""}" aria-hidden="true"></span><div><strong>${crop.name}</strong><span>${crop.storage} storage space${crop.storage > 1 ? "s" : ""} each</span></div><strong>× ${state.inventory[key]}</strong>`;
       els.inventoryList.appendChild(row);
     });
-    if (state.upgraded) {
-      els.upgradeCard.innerHTML = "<div class=\"upgrade-art\" aria-hidden=\"true\"><span></span></div><div><h3>Roomier Shed</h3><p>Upgrade complete — 10 storage spaces.</p></div>";
-    } else {
-      els.upgradeButton.disabled = state.coins < UPGRADE_COST;
-      els.upgradeButton.textContent = state.coins < UPGRADE_COST ? `${UPGRADE_COST - state.coins} more` : `${UPGRADE_COST} coins`;
+    const nextLevel = SHED_LEVELS[state.shedLevel + 1];
+    els.upgradeCard.classList.toggle("complete", !nextLevel);
+    els.upgradeCard.classList.toggle("level-two", state.shedLevel === 1);
+    els.upgradeCard.classList.toggle("level-three", state.shedLevel === 2);
+    if (!nextLevel) {
+      els.upgradeTitle.textContent = SHED_LEVELS[state.shedLevel].name;
+      els.upgradeDescription.textContent = "Maximum capacity reached — 24 storage spaces.";
+      els.upgradeButton.hidden = true;
+      return;
     }
+    els.upgradeButton.hidden = false;
+    els.upgradeTitle.textContent = nextLevel.name;
+    els.upgradeDescription.textContent = `Expand storage from ${state.capacity} to ${nextLevel.capacity} spaces.`;
+    els.upgradeButton.disabled = upgradingShed || state.coins < nextLevel.cost;
+    if (upgradingShed) els.upgradeButton.textContent = "Upgrade complete!";
+    else els.upgradeButton.textContent = state.coins < nextLevel.cost ? `${nextLevel.cost - state.coins} more` : `${nextLevel.cost} coins`;
   }
 
   function buyUpgrade() {
-    if (state.upgraded || state.coins < UPGRADE_COST) return;
-    state.coins -= UPGRADE_COST;
-    state.capacity = 10;
-    state.upgraded = true;
+    const nextLevel = SHED_LEVELS[state.shedLevel + 1];
+    if (upgradingShed || !nextLevel || state.coins < nextLevel.cost) return;
+    upgradingShed = true;
+    state.coins -= nextLevel.cost;
+    state.shedLevel += 1;
+    state.capacity = nextLevel.capacity;
+    state.upgraded = state.shedLevel >= 1;
     saveState();
-    setStatus("The shed is bigger! You can now store 10 spaces of produce.");
+    setStatus(`${nextLevel.name} complete! You can now store ${nextLevel.capacity} spaces of produce.`);
     render();
+    window.setTimeout(() => {
+      upgradingShed = false;
+      if (!els.storageSheet.hidden) renderStorage();
+    }, 500);
   }
 
   function renderMarket() {
