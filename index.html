@@ -82,6 +82,23 @@
         <span class="milk-ready-badge" id="milk-ready-badge" hidden>2 milk</span>
       </button>
 
+      <div class="advanced-row">
+        <button class="goat-site locked" id="goat-button" type="button" aria-label="Goat meadow building site">
+          <span class="goat-meadow" aria-hidden="true"></span>
+          <span class="goat-shelter" aria-hidden="true"></span>
+          <span class="goat goat-one" aria-hidden="true"><i></i><b></b><em></em><small></small></span>
+          <span class="goat goat-two" aria-hidden="true"><i></i><b></b><em></em><small></small></span>
+          <span class="goat-sign" id="goat-board-label">Goat Meadow</span>
+          <span class="goat-milk-ready-badge" id="goat-milk-ready-badge" hidden>2 goat milk</span>
+        </button>
+        <button class="creamery-site locked" id="creamery-button" type="button" aria-label="Creamery building site">
+          <span class="creamery-ground" aria-hidden="true"></span>
+          <span class="creamery-house" aria-hidden="true"><i class="creamery-roof"></i><i class="creamery-door"></i><i class="creamery-window"></i><i class="creamery-churn"></i></span>
+          <span class="creamery-sign" id="creamery-board-label">Farm Creamery</span>
+          <span class="cheese-ready-badge" id="cheese-ready-badge" hidden>1 cheese</span>
+        </button>
+      </div>
+
       <div class="farm-edge" aria-hidden="true">
         <span class="fence"></span>
         <span class="tree tree-one"><i></i></span>
@@ -177,6 +194,30 @@
     <div class="cow-progress" id="cow-progress" hidden><span id="cow-progress-bar"></span></div>
     <p class="cow-recipe" id="cow-recipe">2 wheat → 2 milk</p>
     <button class="cow-action" id="cow-action-button" type="button">Build for 140 coins + 2 crates</button>
+  </section>
+
+  <section class="sheet" id="goat-sheet" aria-labelledby="goat-title" hidden>
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <div class="sheet-heading"><div><h2 id="goat-title">Goat Meadow</h2><p id="goat-subtitle">A sunny hillside home for two dairy goats.</p></div><button class="close-button" type="button" data-close aria-label="Close">×</button></div>
+    <div class="goat-panel">
+      <div class="goat-portrait" aria-hidden="true"><span class="portrait-goat portrait-goat-one"><i></i><b></b><em></em><small></small></span><span class="portrait-goat portrait-goat-two"><i></i><b></b><em></em><small></small></span><span class="portrait-goat-milk"></span></div>
+      <div class="goat-copy"><h3 id="goat-state-title">Build the Goat Meadow</h3><p id="goat-state-message">Build the cow pasture first, then welcome two playful goats.</p></div>
+    </div>
+    <div class="goat-progress" id="goat-progress" hidden><span id="goat-progress-bar"></span></div>
+    <p class="goat-recipe" id="goat-recipe">1 carrot + 1 wheat → 2 goat milk</p>
+    <button class="goat-action" id="goat-action-button" type="button">Build for 190 coins + 2 crates</button>
+  </section>
+
+  <section class="sheet" id="creamery-sheet" aria-labelledby="creamery-title" hidden>
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <div class="sheet-heading"><div><h2 id="creamery-title">Farm Creamery</h2><p id="creamery-subtitle">Turn fresh goat milk into farmhouse cheese.</p></div><button class="close-button" type="button" data-close aria-label="Close">×</button></div>
+    <div class="creamery-panel">
+      <div class="creamery-portrait" aria-hidden="true"><span class="portrait-churn"><i></i></span><span class="portrait-cheese"></span></div>
+      <div class="creamery-copy"><h3 id="creamery-state-title">Build the Creamery</h3><p id="creamery-state-message">Build the goat meadow first to supply fresh goat milk.</p></div>
+    </div>
+    <div class="creamery-progress" id="creamery-progress" hidden><span id="creamery-progress-bar"></span></div>
+    <p class="creamery-recipe" id="creamery-recipe">2 goat milk → 1 cheese</p>
+    <button class="creamery-action" id="creamery-action-button" type="button">Build for 240 coins + 3 crates</button>
   </section>
 
   <template id="plot-template">
