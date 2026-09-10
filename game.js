@@ -13,6 +13,7 @@
   const EGGS_PER_BATCH = 2;
   const BAKERY_COST = 100;
   const BREAD_TIME_MS = 90000;
+  const LAND_EXPANSION = { name: "South Field", plotCount: 9, coinCost: 90, supplyCost: 1 };
   const CROPS = {
     carrot: { name: "Carrots", cost: 2, price: 5, growMs: 20000, storage: 1, color: "#ef8137" },
     wheat: { name: "Wheat", cost: 4, price: 10, growMs: 45000, storage: 1, color: "#e2b84f" },
@@ -53,6 +54,7 @@
     shedLevel: 0,
     supplyCrates: 0,
     ordersSinceSpecial: 0,
+    plotCount: 6,
     activeOrder: null,
     inventory: { carrot: 0, wheat: 0, pumpkin: 0, egg: 0, bread: 0 },
     coop: { built: false, readyAt: null, eggsReady: 0 },
@@ -70,6 +72,7 @@
   let ticker = null;
   let completingOrder = false;
   let upgradingShed = false;
+  let purchasingLand = false;
 
   const els = {
     coins: document.querySelector("#coin-count"), storageCount: document.querySelector("#storage-count"),
@@ -77,6 +80,9 @@
     grid: document.querySelector("#plot-grid"), status: document.querySelector("#status-message"),
     overlay: document.querySelector("#overlay"), plantSheet: document.querySelector("#plant-sheet"),
     storageSheet: document.querySelector("#storage-sheet"), marketSheet: document.querySelector("#market-sheet"),
+    landSheet: document.querySelector("#land-sheet"), landButton: document.querySelector("#land-button"),
+    landMessage: document.querySelector("#land-message"), landCoinCost: document.querySelector("#land-coin-cost"),
+    landSupplyCost: document.querySelector("#land-supply-cost"), landAction: document.querySelector("#land-action-button"),
     coopSheet: document.querySelector("#coop-sheet"), coopButton: document.querySelector("#coop-button"),
     coopBoardLabel: document.querySelector("#coop-board-label"), eggReadyBadge: document.querySelector("#egg-ready-badge"),
     coopSubtitle: document.querySelector("#coop-subtitle"), coopStateTitle: document.querySelector("#coop-state-title"),
@@ -115,12 +121,16 @@
     try {
       const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
       if (!saved || !Array.isArray(saved.plots)) return freshState();
+      const restoredPlotCount = saved.plotCount >= LAND_EXPANSION.plotCount || saved.plots.length >= LAND_EXPANSION.plotCount
+        ? LAND_EXPANSION.plotCount
+        : 6;
       const merged = {
         ...freshState(), ...saved,
         inventory: { ...freshState().inventory, ...(saved.inventory || {}) },
         coop: { ...freshState().coop, ...(saved.coop || {}) },
         bakery: { ...freshState().bakery, ...(saved.bakery || {}) },
-        plots: Array.from({ length: 6 }, (_, i) => saved.plots[i] || null)
+        plotCount: restoredPlotCount,
+        plots: Array.from({ length: restoredPlotCount }, (_, i) => saved.plots[i] || null)
       };
       const inferredLevel = Number.isInteger(saved.shedLevel)
         ? saved.shedLevel
@@ -188,6 +198,7 @@
     els.shed.classList.toggle("upgraded", state.upgraded);
     els.shed.classList.toggle("storage-loft", state.shedLevel >= 2);
     els.shed.classList.toggle("storehouse", state.shedLevel >= 3);
+    els.landButton.hidden = state.plotCount >= LAND_EXPANSION.plotCount;
     renderCoopBoard();
     renderBakeryBoard();
     renderPlots();
@@ -282,6 +293,35 @@
     saveState();
     setStatus(`${crop.name} harvested and stored in the shed.`);
     render();
+  }
+
+  function renderLand() {
+    const coinShortage = Math.max(0, LAND_EXPANSION.coinCost - state.coins);
+    const supplyShortage = Math.max(0, LAND_EXPANSION.supplyCost - state.supplyCrates);
+    const missing = [];
+    if (coinShortage) missing.push(`${coinShortage} more coin${coinShortage === 1 ? "" : "s"}`);
+    if (supplyShortage) missing.push(`${supplyShortage} Supply Crate`);
+    els.landCoinCost.classList.toggle("met", !coinShortage);
+    els.landSupplyCost.classList.toggle("met", !supplyShortage);
+    els.landMessage.textContent = missing.length
+      ? `Still needed: ${missing.join(" and ")}.`
+      : "Everything is ready to open three new growing plots.";
+    els.landAction.disabled = purchasingLand || missing.length > 0;
+    els.landAction.textContent = purchasingLand ? "Opening the field…" : "Purchase South Field";
+  }
+
+  function buyLand() {
+    if (purchasingLand || state.plotCount >= LAND_EXPANSION.plotCount || state.coins < LAND_EXPANSION.coinCost || state.supplyCrates < LAND_EXPANSION.supplyCost) return;
+    purchasingLand = true;
+    state.coins -= LAND_EXPANSION.coinCost;
+    state.supplyCrates -= LAND_EXPANSION.supplyCost;
+    state.plotCount = LAND_EXPANSION.plotCount;
+    while (state.plots.length < state.plotCount) state.plots.push(null);
+    saveState();
+    closeSheets();
+    setStatus("South Field purchased! Three new plots are ready for planting.");
+    render();
+    window.setTimeout(() => { purchasingLand = false; }, 500);
   }
 
   function renderCropChoices() {
@@ -586,7 +626,7 @@
   }
 
   function openSheet(sheet) {
-    [els.plantSheet, els.storageSheet, els.marketSheet, els.coopSheet, els.bakerySheet].forEach(item => { item.hidden = true; });
+    [els.plantSheet, els.storageSheet, els.marketSheet, els.landSheet, els.coopSheet, els.bakerySheet].forEach(item => { item.hidden = true; });
     els.overlay.hidden = false;
     sheet.hidden = false;
     sheet.querySelector("button")?.focus();
@@ -594,13 +634,14 @@
 
   function closeSheets() {
     els.overlay.hidden = true;
-    [els.plantSheet, els.storageSheet, els.marketSheet, els.coopSheet, els.bakerySheet].forEach(sheet => { sheet.hidden = true; });
+    [els.plantSheet, els.storageSheet, els.marketSheet, els.landSheet, els.coopSheet, els.bakerySheet].forEach(sheet => { sheet.hidden = true; });
     selectedPlot = null;
   }
 
   document.querySelector("#storage-button").addEventListener("click", () => { renderStorage(); openSheet(els.storageSheet); });
   document.querySelector("#shed-button").addEventListener("click", () => { renderStorage(); openSheet(els.storageSheet); });
   document.querySelector("#market-button").addEventListener("click", () => { renderMarket(); openSheet(els.marketSheet); });
+  els.landButton.addEventListener("click", () => { if (state.plotCount < LAND_EXPANSION.plotCount) { renderLand(); openSheet(els.landSheet); } });
   els.coopButton.addEventListener("click", () => { renderCoop(); openSheet(els.coopSheet); });
   els.bakeryButton.addEventListener("click", () => { renderBakery(); openSheet(els.bakerySheet); });
   document.querySelectorAll("[data-close]").forEach(button => button.addEventListener("click", closeSheets));
@@ -610,6 +651,7 @@
   els.completeOrder.addEventListener("click", completeOrder);
   els.coopAction.addEventListener("click", handleCoopAction);
   els.bakeryAction.addEventListener("click", handleBakeryAction);
+  els.landAction.addEventListener("click", buyLand);
   document.addEventListener("keydown", event => { if (event.key === "Escape") closeSheets(); });
   document.addEventListener("visibilitychange", () => { if (!document.hidden) render(); });
 
