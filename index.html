@@ -45,6 +45,10 @@
           <span class="shed-crates" aria-hidden="true"></span>
           <span class="building-label">Shed</span>
         </button>
+        <button class="farm-visitor" id="visitor-button" type="button" hidden>
+          <span class="visitor-bubble" id="visitor-bubble">A neighbor is visiting!</span>
+          <span class="visitor-person" aria-hidden="true"><i class="visitor-hair"></i><i class="visitor-head"></i><i class="visitor-body"></i><i class="visitor-wave"></i></span>
+        </button>
       </div>
 
       <div class="plot-grid" id="plot-grid" aria-label="Crop plots"></div>
@@ -145,6 +149,19 @@
     <h3 class="market-stock-title">Market sales</h3>
     <div class="market-list" id="market-list"></div>
     <button class="sell-all" id="sell-all-button" type="button">Sell everything</button>
+  </section>
+
+  <section class="sheet visitor-sheet" id="visitor-sheet" aria-labelledby="visitor-title" hidden>
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <div class="sheet-heading"><div><p class="visitor-kicker">Farm visitor</p><h2 id="visitor-name">Marta Hill</h2></div><button class="close-button" type="button" data-close aria-label="Close">×</button></div>
+    <div class="visitor-conversation">
+      <div class="visitor-portrait" id="visitor-portrait" aria-hidden="true"><span class="visitor-person"><i class="visitor-hair"></i><i class="visitor-head"></i><i class="visitor-body"></i><i class="visitor-wave"></i></span></div>
+      <div><h3 id="visitor-title">Supper Basket</h3><p id="visitor-message"></p></div>
+    </div>
+    <div class="visitor-requirements" id="visitor-requirements"></div>
+    <p class="visitor-reward" id="visitor-reward"></p>
+    <div class="visitor-actions"><button id="visitor-accept" type="button">Help with this</button><button class="visitor-decline" id="visitor-decline" type="button">Not today</button></div>
+    <p class="visitor-no-pressure">Visitors never expire, and saying no has no penalty.</p>
   </section>
 
   <section class="sheet" id="land-sheet" aria-labelledby="land-title" hidden>
