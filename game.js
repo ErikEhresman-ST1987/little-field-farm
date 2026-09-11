@@ -32,6 +32,14 @@
   const CREAMERY_UPGRADE_COST = 210;
   const CREAMERY_UPGRADE_SUPPLY_COST = 2;
   const BUTTER_TIME_MS = 100000;
+  const VISITOR_EVENTS = [
+    { id: "marta-supper", npc: "marta", name: "Marta Hill", title: "Supper Basket", message: "I’m making supper for the family. Could you spare a carrot and some wheat?", needs: { carrot: 1, wheat: 1 }, rewardCoins: 22 },
+    { id: "marta-thanks", npc: "marta", name: "Marta Hill", title: "A Neighborly Thank-You", message: "You’ve helped so many people lately. I brought a little something for the farm.", needs: {}, rewardCoins: 10 },
+    { id: "elias-fence", npc: "elias", name: "Elias Green", title: "Fence Repairs", message: "I have spare lumber from a fence job. Two bundles of wheat would make a fair trade.", needs: { wheat: 2 }, rewardCoins: 8, rewardCrates: 1 },
+    { id: "elias-tools", npc: "elias", name: "Elias Green", title: "Shared Tool Fund", message: "I’m picking up farm supplies in town. Add 18 coins and I’ll bring you a crate too.", needs: {}, coinCost: 18, rewardCrates: 1 },
+    { id: "june-display", npc: "june", name: "June Bell", title: "Harvest Centerpiece", message: "I’m decorating the community table. A pumpkin and carrot would be just right.", needs: { pumpkin: 1, carrot: 1 }, rewardCoins: 36 },
+    { id: "june-tasting", npc: "june", name: "June Bell", title: "Bakery Tasting", message: "Could I take a fresh loaf to the neighborhood tasting table?", needs: { bread: 1 }, rewardCoins: 34, rewardCrates: 1, requiresBakery: true }
+  ];
   const CROPS = {
     carrot: { name: "Carrots", cost: 2, price: 5, growMs: 20000, storage: 1, color: "#ef8137" },
     wheat: { name: "Wheat", cost: 4, price: 10, growMs: 45000, storage: 1, color: "#e2b84f" },
@@ -91,6 +99,7 @@
     shedLevel: 0,
     supplyCrates: 0,
     ordersSinceSpecial: 0,
+    visitor: { activeEvent: null, progress: 0, goal: 4, lastEvent: null },
     plotCount: 6,
     activeOrder: null,
     inventory: { carrot: 0, wheat: 0, pumpkin: 0, egg: 0, bread: 0, milk: 0, goatMilk: 0, cheese: 0, pie: 0, butter: 0 },
@@ -167,7 +176,13 @@
     orderType: document.querySelector("#order-type"), orderRequester: document.querySelector("#order-requester"),
     orderReason: document.querySelector("#order-reason"), orderReward: document.querySelector("#order-reward"),
     orderSupplyReward: document.querySelector("#order-supply-reward"), orderRequirements: document.querySelector("#order-requirements"),
-    completeOrder: document.querySelector("#complete-order-button")
+    completeOrder: document.querySelector("#complete-order-button"),
+    visitorButton: document.querySelector("#visitor-button"), visitorBubble: document.querySelector("#visitor-bubble"),
+    visitorSheet: document.querySelector("#visitor-sheet"), visitorName: document.querySelector("#visitor-name"),
+    visitorTitle: document.querySelector("#visitor-title"), visitorMessage: document.querySelector("#visitor-message"),
+    visitorRequirements: document.querySelector("#visitor-requirements"), visitorReward: document.querySelector("#visitor-reward"),
+    visitorAccept: document.querySelector("#visitor-accept"), visitorDecline: document.querySelector("#visitor-decline"),
+    visitorPortrait: document.querySelector("#visitor-portrait")
   };
 
   function findOrder(orderId) { return ORDERS.find(order => order.id === orderId); }
@@ -177,6 +192,27 @@
       (!order.requiresBakeryUpgrade || state.bakery.upgraded) && (!order.requiresCow || state.cow.built) &&
       (!order.requiresGoat || state.goat.built) && (!order.requiresCreamery || state.creamery.built) &&
       (!order.requiresCreameryUpgrade || state.creamery.upgraded);
+  }
+
+  function findVisitorEvent(eventId) { return VISITOR_EVENTS.find(event => event.id === eventId); }
+
+  function visitorEventIsEligible(event) {
+    return !event.requiresBakery || state.bakery.built;
+  }
+
+  function recordVisitorProgress() {
+    if (state.visitor.activeEvent) return false;
+    state.visitor.progress += 1;
+    if (state.visitor.progress < state.visitor.goal) return false;
+    const choices = VISITOR_EVENTS.filter(event => event.id !== state.visitor.lastEvent && visitorEventIsEligible(event));
+    const event = choices[Math.floor(Math.random() * choices.length)];
+    state.visitor.activeEvent = event.id;
+    state.visitor.progress = 0;
+    return true;
+  }
+
+  function visitorCanAccept(event) {
+    return state.coins >= (event.coinCost || 0) && Object.entries(event.needs).every(([key, amount]) => state.inventory[key] >= amount);
   }
 
   function chooseOrder(excludeId = null) {
@@ -201,6 +237,7 @@
         cow: { ...freshState().cow, ...(saved.cow || {}) },
         goat: { ...freshState().goat, ...(saved.goat || {}) },
         creamery: { ...freshState().creamery, ...(saved.creamery || {}) },
+        visitor: { ...freshState().visitor, ...(saved.visitor || {}) },
         plotCount: restoredPlotCount,
         plots: Array.from({ length: restoredPlotCount }, (_, i) => saved.plots[i] || null)
       };
@@ -330,6 +367,7 @@
     renderCowBoard();
     renderGoatBoard();
     renderCreameryBoard();
+    renderVisitorBoard();
     renderPlots();
     if (!els.storageSheet.hidden) renderStorage();
     if (!els.marketSheet.hidden) renderMarket();
@@ -417,6 +455,15 @@
     els.creameryButton.setAttribute("aria-label", els.creameryBoardLabel.textContent);
   }
 
+  function renderVisitorBoard() {
+    const event = findVisitorEvent(state.visitor.activeEvent);
+    els.visitorButton.hidden = !event;
+    if (!event) return;
+    els.visitorButton.dataset.npc = event.npc;
+    els.visitorBubble.textContent = `${event.name.split(" ")[0]} is visiting!`;
+    els.visitorButton.setAttribute("aria-label", `${event.name} is visiting the farm. Tap to talk.`);
+  }
+
   function renderPlots() {
     els.grid.replaceChildren();
     state.plots.forEach((plot, index) => {
@@ -470,8 +517,9 @@
     }
     state.inventory[plot.crop] += 1;
     state.plots[index] = null;
+    const visitorArrived = recordVisitorProgress();
     saveState();
-    setStatus(`${crop.name} harvested and stored in the shed.`);
+    setStatus(visitorArrived ? `${findVisitorEvent(state.visitor.activeEvent).name} has stopped by the roadside market!` : `${crop.name} harvested and stored in the shed.`);
     render();
   }
 
@@ -644,9 +692,10 @@
       state.ordersSinceSpecial += 1;
     }
     state.activeOrder = chooseOrder(order.id);
+    const visitorArrived = recordVisitorProgress();
     saveState();
     const crateMessage = order.supplyCrates ? ` and ${order.supplyCrates} Supply Crate` : "";
-    setStatus(`Order complete! You earned ${order.reward} coins${crateMessage}.`);
+    setStatus(visitorArrived ? `${findVisitorEvent(state.visitor.activeEvent).name} has stopped by the roadside market!` : `Order complete! You earned ${order.reward} coins${crateMessage}.`);
     render();
     els.orderCard.classList.remove("order-complete");
     void els.orderCard.offsetWidth;
@@ -1113,8 +1162,73 @@
     render();
   }
 
+  function renderVisitor() {
+    const event = findVisitorEvent(state.visitor.activeEvent);
+    if (!event) { closeSheets(); return; }
+    els.visitorPortrait.dataset.npc = event.npc;
+    els.visitorName.textContent = event.name;
+    els.visitorTitle.textContent = event.title;
+    els.visitorMessage.textContent = `“${event.message}”`;
+    els.visitorRequirements.replaceChildren();
+    Object.entries(event.needs).forEach(([key, amount]) => {
+      const met = state.inventory[key] >= amount;
+      const row = document.createElement("div");
+      row.className = `visitor-requirement${met ? " met" : ""}`;
+      row.innerHTML = `<span class="item-dot${itemDotClass(key)}" style="--item-color:${PRODUCTS[key].color}" aria-hidden="true"></span><span>${PRODUCTS[key].name}</span><strong>${Math.min(state.inventory[key], amount)} / ${amount}</strong>`;
+      els.visitorRequirements.appendChild(row);
+    });
+    if (event.coinCost) {
+      const row = document.createElement("div");
+      row.className = `visitor-requirement${state.coins >= event.coinCost ? " met" : ""}`;
+      row.innerHTML = `<span class="visitor-coin" aria-hidden="true">●</span><span>Coins</span><strong>${Math.min(state.coins, event.coinCost)} / ${event.coinCost}</strong>`;
+      els.visitorRequirements.appendChild(row);
+    }
+    if (!Object.keys(event.needs).length && !event.coinCost) {
+      const note = document.createElement("p");
+      note.className = "visitor-gift-note";
+      note.textContent = "No goods needed—this one is a gift.";
+      els.visitorRequirements.appendChild(note);
+    }
+    const rewards = [];
+    if (event.rewardCoins) rewards.push(`${event.rewardCoins} coins`);
+    if (event.rewardCrates) rewards.push(`${event.rewardCrates} Supply Crate${event.rewardCrates > 1 ? "s" : ""}`);
+    els.visitorReward.textContent = `You’ll receive: ${rewards.join(" + ")}`;
+    els.visitorAccept.disabled = !visitorCanAccept(event);
+    els.visitorAccept.textContent = visitorCanAccept(event) ? (Object.keys(event.needs).length || event.coinCost ? "Help with this" : "Accept the gift") : "Still gathering what’s needed";
+  }
+
+  function acceptVisitor() {
+    const event = findVisitorEvent(state.visitor.activeEvent);
+    if (!event || !visitorCanAccept(event)) return;
+    Object.entries(event.needs).forEach(([key, amount]) => { state.inventory[key] -= amount; });
+    state.coins -= event.coinCost || 0;
+    state.coins += event.rewardCoins || 0;
+    state.supplyCrates += event.rewardCrates || 0;
+    state.visitor.lastEvent = event.id;
+    state.visitor.activeEvent = null;
+    state.visitor.progress = 0;
+    state.visitor.goal = 4 + Math.floor(Math.random() * 3);
+    saveState();
+    closeSheets();
+    setStatus(`${event.name} thanks you. ${event.title} is complete!`);
+    render();
+  }
+
+  function declineVisitor() {
+    const event = findVisitorEvent(state.visitor.activeEvent);
+    if (!event) return;
+    state.visitor.lastEvent = event.id;
+    state.visitor.activeEvent = null;
+    state.visitor.progress = 0;
+    state.visitor.goal = 4 + Math.floor(Math.random() * 3);
+    saveState();
+    closeSheets();
+    setStatus(`${event.name} waves goodbye. There’s no penalty—they’ll visit again another day.`);
+    render();
+  }
+
   function openSheet(sheet) {
-    [els.plantSheet, els.storageSheet, els.marketSheet, els.landSheet, els.coopSheet, els.bakerySheet, els.cowSheet, els.goatSheet, els.creamerySheet].forEach(item => { item.hidden = true; });
+    [els.plantSheet, els.storageSheet, els.marketSheet, els.landSheet, els.coopSheet, els.bakerySheet, els.cowSheet, els.goatSheet, els.creamerySheet, els.visitorSheet].forEach(item => { item.hidden = true; });
     els.overlay.hidden = false;
     sheet.hidden = false;
     sheet.querySelector("button")?.focus();
@@ -1122,7 +1236,7 @@
 
   function closeSheets() {
     els.overlay.hidden = true;
-    [els.plantSheet, els.storageSheet, els.marketSheet, els.landSheet, els.coopSheet, els.bakerySheet, els.cowSheet, els.goatSheet, els.creamerySheet].forEach(sheet => { sheet.hidden = true; });
+    [els.plantSheet, els.storageSheet, els.marketSheet, els.landSheet, els.coopSheet, els.bakerySheet, els.cowSheet, els.goatSheet, els.creamerySheet, els.visitorSheet].forEach(sheet => { sheet.hidden = true; });
     selectedPlot = null;
   }
 
@@ -1135,6 +1249,7 @@
   els.cowButton.addEventListener("click", () => { renderCow(); openSheet(els.cowSheet); });
   els.goatButton.addEventListener("click", () => { renderGoat(); openSheet(els.goatSheet); });
   els.creameryButton.addEventListener("click", () => { renderCreamery(); openSheet(els.creamerySheet); });
+  els.visitorButton.addEventListener("click", () => { renderVisitor(); openSheet(els.visitorSheet); });
   document.querySelectorAll("[data-close]").forEach(button => button.addEventListener("click", closeSheets));
   els.overlay.addEventListener("click", closeSheets);
   els.upgradeButton.addEventListener("click", buyUpgrade);
@@ -1152,6 +1267,8 @@
   els.goatAction.addEventListener("click", handleGoatAction);
   els.creameryAction.addEventListener("click", handleCreameryAction);
   els.creameryUpgradeButton.addEventListener("click", upgradeCreamery);
+  els.visitorAccept.addEventListener("click", acceptVisitor);
+  els.visitorDecline.addEventListener("click", declineVisitor);
   document.querySelectorAll("[data-creamery-recipe]").forEach(button => button.addEventListener("click", () => {
     if (button.dataset.creameryRecipe === "butter" && !state.creamery.upgraded) return;
     state.creamery.selectedRecipe = button.dataset.creameryRecipe; saveState(); renderCreamery();
