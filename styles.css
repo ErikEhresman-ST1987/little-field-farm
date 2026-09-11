@@ -279,6 +279,7 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
 .upgrade-card { margin-top: 16px; padding: 12px; display: grid; grid-template-columns: 48px 1fr auto; gap: 10px; align-items: center; border: 2px solid #d7c898; border-radius: 15px; background: #fffdf1; }.upgrade-card p { margin-top: 3px; color: #68705e; font-size: .78rem; }.upgrade-card button, .sell-all { min-height: 44px; padding: 0 14px; border: 0; border-radius: 11px; background: var(--gold); color: #563c11; font-weight: 900; cursor: pointer; }.upgrade-card button:disabled { background: #ded8c2; color: #8c897c; }.upgrade-art { position: relative; width: 44px; height: 42px; background: #c95745; border: 3px solid #684427; }.upgrade-art span { display: block; width: 52px; height: 14px; margin: -9px 0 0 -7px; background: #78372d; transform: skew(-22deg); }
 .upgrade-card.level-two .upgrade-art::after { content: ""; position: absolute; left: 13px; top: 5px; width: 12px; height: 11px; border: 2px solid #fff0c8; border-radius: 6px 6px 1px 1px; background: #9bd3dc; }
 .upgrade-card.level-three .upgrade-art { width: 52px; box-shadow: -8px 8px 0 -2px #d66d55, -8px 8px 0 1px #684427; }
+.upgrade-card.level-four .upgrade-art { width: 58px; box-shadow: -8px 8px 0 -2px #d66d55, -8px 8px 0 1px #684427, 8px 8px 0 -2px #bd5948, 8px 8px 0 1px #684427; }
 .upgrade-card.complete { background: #edf6d9; border-color: #8fb464; }
 .upgrade-card.complete .upgrade-art { width: 52px; box-shadow: -8px 8px 0 -2px #d66d55, -8px 8px 0 1px #684427; }
 .sell-all { width: 100%; margin-top: 14px; background: var(--green-dark); color: white; }.sell-all:disabled { background: #a7ad9e; }
@@ -353,6 +354,20 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
 .bakery-recipe { margin: 13px 0 8px !important; color: #58634f; font-weight: 900; text-align: center; }
 .bakery-action { width: 100%; min-height: 48px; padding: 0 14px; border: 0; border-radius: 11px; background: #a45136; color: white; font-weight: 900; cursor: pointer; }
 .bakery-action:disabled { background: #c9c2aa; color: #716e63; cursor: not-allowed; }
+.recipe-picker { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 13px 0 8px; }
+.recipe-picker[hidden] { display: none; }
+.recipe-picker button { min-height: 58px; padding: 8px; border: 2px solid #d1c49b; border-radius: 12px; background: #fffdf1; color: #58634f; cursor: pointer; }
+.recipe-picker button strong, .recipe-picker button span { display: block; }
+.recipe-picker button span { margin-top: 3px; font-size: .7rem; line-height: 1.2; }
+.recipe-picker button.selected { border-color: #b66a38; background: #fff0cf; box-shadow: inset 0 0 0 1px #e0a15e; }
+.recipe-picker button.locked { opacity: .58; cursor: not-allowed; }
+.processor-upgrade { margin: 9px 0; padding: 9px; display: grid; grid-template-columns: 1fr auto; gap: 9px; align-items: center; border: 2px dashed #c59454; border-radius: 12px; background: #fff7dc; }
+.processor-upgrade[hidden] { display: none; }
+.processor-upgrade span { display: block; margin-top: 2px; color: #6d705d; font-size: .72rem; }
+.processor-upgrade button { min-height: 42px; padding: 0 10px; border: 0; border-radius: 9px; background: #d49a3d; color: #553d18; font-weight: 900; }
+.processor-upgrade button:disabled { background: #d8d2bd; color: #77746a; }
+.bakery-site.expanded .bakery-house { box-shadow: 10px 5px 0 -2px #dc9b4d, 10px 5px 0 1px #684427; }
+.creamery-site.expanded .creamery-house { box-shadow: 9px 5px 0 -2px #d8c17d, 9px 5px 0 1px #684427; }
 .bread-dot { border: 2px solid #875021; border-radius: 55% 55% 30% 30%; }
 .milk-dot { border: 2px solid #66829b; box-shadow: inset -4px -4px #cbd8df; }
 
@@ -406,6 +421,10 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
 .goat-action, .creamery-action { width: 100%; min-height: 48px; padding: 0 14px; border: 0; border-radius: 11px; background: #657d4e; color: white; font-weight: 900; cursor: pointer; }
 .creamery-action { background: #697f89; }.goat-action:disabled, .creamery-action:disabled { background: #c9c2aa; color: #716e63; cursor: not-allowed; }
 .goat-milk-dot { border: 2px solid #7c7154; box-shadow: inset -4px -4px #ddd2bb; }.cheese-dot { border: 2px solid #9c792f; border-radius: 50% 50% 25% 25%; background: #f2d56b !important; }
+.pie-dot { border: 2px solid #8a4d28; border-radius: 50%; background: repeating-conic-gradient(#e2a255 0 12deg,#c87433 12deg 24deg) !important; }
+.butter-dot { border: 2px solid #b28c37; border-radius: 4px; background: #f3d96b !important; }
+.shed.grand-storehouse .shed-roof { filter: saturate(1.12); }
+.shed.grand-storehouse .shed-crates { box-shadow: -10px 3px 0 #b8783e, 10px 3px 0 #b8783e; }
 
 [hidden] { display: none !important; }
 @keyframes sheetUp { from { transform: translate(-50%, 100%); } }
