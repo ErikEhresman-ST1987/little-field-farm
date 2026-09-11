@@ -2,8 +2,15 @@
 
 ## `cow.svg`
 
-- Title: Grass-eating cow
-- Creator: Onsemeliot
-- Original source: https://openclipart.org/detail/171518/grass-eating-cow-by-onsemeliot-171518
+- Title: Color cartoon cow vector drawing
+- Original source: https://freesvg.org/color-cartoon-cow-vector-drawing
 - License: Public domain / CC0
-- Changes for Little Field Farm: Inkscape editor metadata removed; presentation softened with CSS color, contrast, opacity, and shadow adjustments.
+- Changes for Little Field Farm: Presentation softened with CSS color, contrast, opacity, and shadow adjustments.
+
+## `goat.svg`
+
+- Title: Domestic goat
+- Creator: Stipo
+- Original source: https://freesvg.org/domestic-goat
+- License: Public domain / CC0
+- Changes for Little Field Farm: Presentation softened with CSS color, contrast, opacity, and shadow adjustments.
