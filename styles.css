@@ -237,6 +237,7 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
 
 .advanced-row { position: relative; z-index: 2; max-width: 500px; margin: 5px auto 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .goat-site, .creamery-site { position: relative; height: 120px; padding: 0; border: 0; background: transparent; cursor: pointer; filter: drop-shadow(0 4px 2px #35562945); }
+.goat-site { overflow: hidden; contain: paint; }
 .goat-site:active, .creamery-site:active { transform: translateY(2px); }
 .goat-meadow { position: absolute; inset: 15px 2px 18px; border: 4px solid #aa8350; border-radius: 20px; background: #8fc35b; box-shadow: inset 0 -10px #75a94b; }
 .goat-meadow::after { content: ""; position: absolute; left: 16px; bottom: 12px; width: 24px; height: 16px; border-radius: 50% 50% 35% 35%; background: #9c8b70; box-shadow: 38px -28px 0 -3px #b2a087; }
@@ -255,11 +256,16 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
 .goat-one { left: 18px; }.goat-two { right: 19px; bottom: 27px; transform: scale(.86); background: #f5efe0; }
 .goat-two::before { background: radial-gradient(circle at 72% 38%, #29231e 0 1.5px, transparent 2px), #f5efe0; }
 .goat-two i { left: 12px; width: 11px; transform: rotate(14deg); }
+.goat-art { display: none; position: absolute; z-index: 4; bottom: 22px; width: 68px; height: 73px; object-fit: contain; object-position: center bottom; overflow: hidden; opacity: .95; filter: sepia(.06) saturate(.82) contrast(.94) brightness(1.05) drop-shadow(0 4px 2px #35562950); transform-origin: bottom center; }
+.goat-art-one { left: 2px; }
+.goat-art-two { right: 3px; bottom: 24px; width: 61px; height: 67px; transform: scaleX(-1); }
 .goat-sign, .creamery-sign { position: absolute; z-index: 6; left: 50%; bottom: 0; transform: translateX(-50%); min-width: 105px; padding: 4px 7px; border: 2px solid #684427; border-radius: 6px; background: #fff0c8; font-size: .7rem; font-weight: 900; white-space: nowrap; }
 .goat-site.locked .goat-meadow, .creamery-site.locked .creamery-ground { opacity: .72; filter: saturate(.55); }
 .goat-site.locked::before, .creamery-site.locked::before { content: "+"; position: absolute; z-index: 5; left: 50%; top: 38px; width: 31px; height: 31px; transform: translateX(-50%); display: grid; place-items: center; border: 3px dashed #fff0c8; border-radius: 50%; color: #fff0c8; font-size: 1.25rem; font-weight: 900; }
-.goat-site.built .goat-shelter, .goat-site.built .goat { display: block; animation: pop .35s ease-out; }
+.goat-site.built .goat-shelter, .goat-site.built .goat, .goat-site.built .goat-art { display: block; animation: pop .35s ease-out; }
 .goat-site.working .goat { animation: goatNibble 1.5s ease-in-out infinite; }.goat-site.working .goat-two { animation-name: goatNibbleSmall; animation-delay: -.7s; }
+.goat-site.built .goat-art { animation: goatSvgNibble 2.1s ease-in-out infinite; }
+.goat-site.built .goat-art-two { animation-name: goatSvgNibbleFlipped; animation-delay: -1s; }
 .goat-site.ready, .creamery-site.ready { filter: drop-shadow(0 0 5px #f4e8a1) drop-shadow(0 4px 2px #35562945); }
 .goat-milk-ready-badge, .cheese-ready-badge { position: absolute; z-index: 7; right: 2px; top: 3px; padding: 5px 7px; border: 2px solid #7c7154; border-radius: 13px; background: #f7f0df; color: #51472f; font-size: .66rem; font-weight: 900; animation: readyPulse 1.6s ease-in-out infinite; }
 .creamery-ground { position: absolute; inset: auto 3px 18px; height: 43px; border: 4px solid #b18b52; border-radius: 50%; background: #82b84f; }
@@ -446,6 +452,9 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
 .portrait-goat strong { position: absolute; z-index: 2; right: -4px; top: -8px; width: 4px; height: 9px; border-top: 2px solid #715d45; border-left: 2px solid #715d45; border-radius: 70% 0 0; box-shadow: -7px 1px 0 -1px #eee3c9, -8px 0 0 -1px #715d45; transform: rotate(7deg); }
 .portrait-goat-one { left: 6px; }.portrait-goat-two { right: 6px; bottom: 14px; transform: scale(.84); background: #f5efe0; }
 .portrait-goat-two::before { background: radial-gradient(circle at 72% 38%, #29231e 0 1px, transparent 1.5px), #f5efe0; }
+.portrait-goat-art { position: absolute; bottom: 7px; width: 57px; height: 65px; object-fit: contain; object-position: center bottom; opacity: .95; filter: sepia(.06) saturate(.82) contrast(.94) brightness(1.05) drop-shadow(0 3px 1px #35562945); }
+.portrait-goat-art-one { left: -2px; }
+.portrait-goat-art-two { right: -1px; bottom: 5px; width: 51px; height: 58px; transform: scaleX(-1); }
 .portrait-goat-milk { position: absolute; z-index: 4; left: 39px; bottom: 5px; width: 15px; height: 21px; border: 2px solid #7c7154; border-radius: 3px 3px 6px 6px; background: #f7f0df; }
 .creamery-portrait { background: #ead9a6; box-shadow: inset 0 -6px #c99b58; }
 .portrait-churn { position: absolute; left: 13px; bottom: 8px; width: 34px; height: 53px; border: 3px solid #685742; border-radius: 8px 8px 12px 12px; background: #b9c4b7; }
@@ -485,6 +494,8 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
 @keyframes animalBlink { 0%, 45%, 48%, 100% { transform: scaleY(1); } 46%, 47% { transform: scaleY(.12); } }
 @keyframes goatNibble { 50% { transform: translateY(3px) rotate(2deg); } }
 @keyframes goatNibbleSmall { 50% { transform: scale(.86) translateY(3px) rotate(-2deg); } }
+@keyframes goatSvgNibble { 50% { transform: translateY(2px) rotate(.8deg); } }
+@keyframes goatSvgNibbleFlipped { 0%,100% { transform: scaleX(-1); } 50% { transform: scaleX(-1) translateY(2px) rotate(.8deg); } }
 @keyframes churn { 50% { transform: translateY(2px) rotate(2deg); } }
 
 @media (max-width: 390px) {
