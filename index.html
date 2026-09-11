@@ -180,6 +180,11 @@
       <div class="bakery-copy"><h3 id="bakery-state-title">Build the Bakery</h3><p id="bakery-state-message">Combine wheat and eggs into a valuable farm-baked loaf.</p></div>
     </div>
     <div class="bakery-progress" id="bakery-progress" hidden><span id="bakery-progress-bar"></span></div>
+    <div class="recipe-picker" id="bakery-recipe-picker" hidden>
+      <button type="button" data-bakery-recipe="bread"><strong>Bread</strong><span>1 wheat + 1 egg</span></button>
+      <button type="button" data-bakery-recipe="pie"><strong>Pumpkin Pie</strong><span>1 wheat + 1 egg + 1 pumpkin</span></button>
+    </div>
+    <div class="processor-upgrade" id="bakery-upgrade" hidden><div><strong>Pie Kitchen</strong><span>Unlock pumpkin pie</span></div><button id="bakery-upgrade-button" type="button">160 coins + 2 crates</button></div>
     <p class="bakery-recipe" id="bakery-recipe">1 wheat + 1 egg → 1 bread</p>
     <button class="bakery-action" id="bakery-action-button" type="button">Build for 100 coins</button>
   </section>
@@ -216,6 +221,11 @@
       <div class="creamery-copy"><h3 id="creamery-state-title">Build the Creamery</h3><p id="creamery-state-message">Build the goat meadow first to supply fresh goat milk.</p></div>
     </div>
     <div class="creamery-progress" id="creamery-progress" hidden><span id="creamery-progress-bar"></span></div>
+    <div class="recipe-picker" id="creamery-recipe-picker" hidden>
+      <button type="button" data-creamery-recipe="cheese"><strong>Goat Cheese</strong><span>2 goat milk</span></button>
+      <button type="button" data-creamery-recipe="butter"><strong>Butter</strong><span>2 cow milk</span></button>
+    </div>
+    <div class="processor-upgrade" id="creamery-upgrade" hidden><div><strong>Dairy Room</strong><span>Unlock fresh butter</span></div><button id="creamery-upgrade-button" type="button">210 coins + 2 crates</button></div>
     <p class="creamery-recipe" id="creamery-recipe">2 goat milk → 1 cheese</p>
     <button class="creamery-action" id="creamery-action-button" type="button">Build for 240 coins + 3 crates</button>
   </section>
