@@ -226,7 +226,7 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
 .cow-site.locked::before { content: "+"; position: absolute; z-index: 5; left: 50%; top: 39px; width: 35px; height: 35px; transform: translateX(-50%); display: grid; place-items: center; border: 3px dashed #fff0c8; border-radius: 50%; color: #fff0c8; font-size: 1.45rem; font-weight: 900; }
 .cow-site.built .cow-shelter, .cow-site.built .cow { display: block; animation: pop .35s ease-out; }
 .cow-site.working .cow { animation: cowGraze 1.8s ease-in-out infinite; }
-.cow-art { display: none; position: absolute; z-index: 4; bottom: 23px; width: 100px; height: 77px; overflow: hidden; background: url("cow.svg") center/contain no-repeat; opacity: .92; filter: sepia(.08) saturate(.72) contrast(.92) brightness(1.06) drop-shadow(0 5px 2px #35562955); transform-origin: bottom center; }
+.cow-art { display: none; position: absolute; z-index: 4; bottom: 23px; width: 100px; height: 77px; object-fit: contain; object-position: center; overflow: hidden; opacity: .92; filter: sepia(.08) saturate(.72) contrast(.92) brightness(1.06) drop-shadow(0 5px 2px #35562955); transform-origin: bottom center; }
 .cow-art-one { left: 22px; }
 .cow-art-two { right: 27px; width: 89px; transform: scaleX(-1); }
 .cow-site.built .cow-art { display: block; animation: cowSvgGraze 2.3s ease-in-out infinite; }
@@ -422,7 +422,7 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
 .portrait-cow em::after { content: ""; position: absolute; left: -3px; top: -2px; width: 5px; height: 6px; border-radius: 50%; background: #765b45; }
 .portrait-cow-one { left: 7px; }.portrait-cow-two { right: 6px; bottom: 13px; transform: scale(.8); }
 .portrait-cow-two i { left: 11px; width: 12px; height: 14px; transform: rotate(10deg); }
-.portrait-cow-art { position: absolute; bottom: 9px; width: 67px; height: 55px; overflow: hidden; background: url("cow.svg") center/contain no-repeat; opacity: .94; filter: sepia(.07) saturate(.76) contrast(.93) brightness(1.06) drop-shadow(0 3px 1px #35562945); }
+.portrait-cow-art { position: absolute; bottom: 9px; width: 67px; height: 55px; object-fit: contain; object-position: center; overflow: hidden; opacity: .94; filter: sepia(.07) saturate(.76) contrast(.93) brightness(1.06) drop-shadow(0 3px 1px #35562945); }
 .portrait-cow-art-one { left: 0; }
 .portrait-cow-art-two { right: -2px; bottom: 5px; width: 58px; transform: scaleX(-1); }
 .portrait-milk { position: absolute; z-index: 4; left: 40px; bottom: 5px; width: 16px; height: 22px; border: 2px solid #66829b; border-radius: 3px 3px 6px 6px; background: #f5f4e9; }
