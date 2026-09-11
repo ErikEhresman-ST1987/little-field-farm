@@ -226,6 +226,11 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
 .cow-site.locked::before { content: "+"; position: absolute; z-index: 5; left: 50%; top: 39px; width: 35px; height: 35px; transform: translateX(-50%); display: grid; place-items: center; border: 3px dashed #fff0c8; border-radius: 50%; color: #fff0c8; font-size: 1.45rem; font-weight: 900; }
 .cow-site.built .cow-shelter, .cow-site.built .cow { display: block; animation: pop .35s ease-out; }
 .cow-site.working .cow { animation: cowGraze 1.8s ease-in-out infinite; }
+.cow-art { display: none; position: absolute; z-index: 4; bottom: 23px; width: 100px; height: 77px; object-fit: contain; opacity: .92; filter: sepia(.08) saturate(.72) contrast(.92) brightness(1.06) drop-shadow(0 5px 2px #35562955); transform-origin: bottom center; }
+.cow-art-one { left: 22px; }
+.cow-art-two { right: 27px; width: 89px; transform: scaleX(-1); }
+.cow-site.built .cow-art { display: block; animation: cowSvgGraze 2.3s ease-in-out infinite; }
+.cow-site.built .cow-art-two { animation-name: cowSvgGrazeFlipped; animation-delay: -1.1s; }
 .cow-site.working .cow-two { animation-name: cowGrazeSmall; animation-delay: -.8s; }
 .cow-site.ready { filter: drop-shadow(0 0 5px #eaf3ff) drop-shadow(0 4px 2px #35562945); }
 .milk-ready-badge { position: absolute; z-index: 7; right: 12px; top: 4px; padding: 5px 8px; border: 2px solid #66829b; border-radius: 13px; background: #f5f4e9; color: #3f596f; font-size: .72rem; font-weight: 900; animation: readyPulse 1.6s ease-in-out infinite; }
@@ -417,6 +422,9 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
 .portrait-cow em::after { content: ""; position: absolute; left: -3px; top: -2px; width: 5px; height: 6px; border-radius: 50%; background: #765b45; }
 .portrait-cow-one { left: 7px; }.portrait-cow-two { right: 6px; bottom: 13px; transform: scale(.8); }
 .portrait-cow-two i { left: 11px; width: 12px; height: 14px; transform: rotate(10deg); }
+.portrait-cow-art { position: absolute; bottom: 9px; width: 67px; height: 55px; object-fit: contain; opacity: .94; filter: sepia(.07) saturate(.76) contrast(.93) brightness(1.06) drop-shadow(0 3px 1px #35562945); }
+.portrait-cow-art-one { left: 0; }
+.portrait-cow-art-two { right: -2px; bottom: 5px; width: 58px; transform: scaleX(-1); }
 .portrait-milk { position: absolute; z-index: 4; left: 40px; bottom: 5px; width: 16px; height: 22px; border: 2px solid #66829b; border-radius: 3px 3px 6px 6px; background: #f5f4e9; }
 .cow-progress { height: 12px; margin: 14px 2px 0; overflow: hidden; border: 2px solid #66829b; border-radius: 8px; background: #d9e0dc; }
 .cow-progress span { display: block; width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #8dbb69, #d8e7c5); transition: width .6s linear; }
@@ -471,6 +479,8 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
 @keyframes visitorBubble { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
 @keyframes cowGraze { 50% { transform: translateY(3px) rotate(1deg); } }
 @keyframes cowGrazeSmall { 50% { transform: scale(.9) translateY(3px) rotate(-1deg); } }
+@keyframes cowSvgGraze { 50% { transform: translateY(2px) rotate(.8deg); } }
+@keyframes cowSvgGrazeFlipped { 0%,100% { transform: scaleX(-1); } 50% { transform: scaleX(-1) translateY(2px) rotate(.8deg); } }
 @keyframes tailSwish { 50% { transform: rotate(-24deg); } }
 @keyframes animalBlink { 0%, 45%, 48%, 100% { transform: scaleY(1); } 46%, 47% { transform: scaleY(.12); } }
 @keyframes goatNibble { 50% { transform: translateY(3px) rotate(2deg); } }
