@@ -93,6 +93,19 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
 .market .building-face { height: 61px; background: #f7d78b; }
 .market-boxes { position: absolute; left: 16px; right: 16px; bottom: 8px; height: 25px; background: linear-gradient(90deg, #a96632 0 47%, transparent 47% 53%, #a96632 53%); border-bottom: 4px solid #72411f; }
 .market-boxes::after { content: ""; position: absolute; inset: 3px 6px 9px; background: radial-gradient(circle, #d94b3b 0 4px, transparent 5px) 0 0/16px 13px; }
+.farm-visitor { position: absolute; z-index: 8; left: 2px; bottom: 2px; width: 54px; height: 78px; padding: 0; border: 0; background: transparent; cursor: pointer; filter: drop-shadow(0 3px 1px #35562945); }
+.farm-visitor[hidden] { display: none; }
+.visitor-bubble { position: absolute; left: 4px; bottom: 69px; width: 132px; padding: 6px 7px; border: 2px solid #684427; border-radius: 12px 12px 12px 3px; background: #fff8df; color: #3d4b36; font-size: .68rem; font-weight: 900; line-height: 1.15; text-align: left; animation: visitorBubble 2s ease-in-out infinite; }
+.visitor-person { position: absolute; left: 6px; bottom: 0; width: 42px; height: 66px; }
+.visitor-head { position: absolute; z-index: 2; left: 10px; top: 8px; width: 25px; height: 27px; border: 2px solid #684427; border-radius: 48%; background: #e9b987; }
+.visitor-head::after { content: ""; position: absolute; left: 6px; top: 11px; width: 3px; height: 3px; border-radius: 50%; background: #3a2d24; box-shadow: 9px 0 #3a2d24; }
+.visitor-hair { position: absolute; z-index: 3; left: 8px; top: 4px; width: 29px; height: 15px; border: 2px solid #684427; border-radius: 60% 60% 28% 32%; background: #70452d; }
+.visitor-body { position: absolute; left: 5px; bottom: 0; width: 34px; height: 35px; border: 2px solid #684427; border-radius: 12px 12px 5px 5px; background: #d97055; }
+.visitor-wave { position: absolute; z-index: 1; right: -1px; top: 34px; width: 10px; height: 27px; border: 2px solid #684427; border-radius: 8px; background: #e9b987; transform-origin: bottom; animation: visitorWave 1.4s ease-in-out infinite; }
+.farm-visitor[data-npc="elias"] .visitor-body, .visitor-portrait[data-npc="elias"] .visitor-body { background: #628465; }
+.farm-visitor[data-npc="elias"] .visitor-hair, .visitor-portrait[data-npc="elias"] .visitor-hair { background: #584536; }
+.farm-visitor[data-npc="june"] .visitor-body, .visitor-portrait[data-npc="june"] .visitor-body { background: #7c72a4; }
+.farm-visitor[data-npc="june"] .visitor-hair, .visitor-portrait[data-npc="june"] .visitor-hair { height: 25px; background: #b56d43; }
 .shed-roof { position: absolute; z-index: 2; left: 3px; right: 3px; top: 10px; height: 45px; clip-path: polygon(50% 0,100% 75%,92% 100%,8% 100%,0 75%); background: #7a382e; border-bottom: 4px solid #54261f; }
 .shed .building-face { background: #c95745; }
 .shed-door { position: absolute; left: 34px; bottom: 0; width: 33px; height: 50px; border: 3px solid #69372b; background: #fff0c8; }
@@ -283,6 +296,23 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
 .upgrade-card.complete { background: #edf6d9; border-color: #8fb464; }
 .upgrade-card.complete .upgrade-art { width: 52px; box-shadow: -8px 8px 0 -2px #d66d55, -8px 8px 0 1px #684427; }
 .sell-all { width: 100%; margin-top: 14px; background: var(--green-dark); color: white; }.sell-all:disabled { background: #a7ad9e; }
+.visitor-kicker { margin: 0 0 2px; color: #7a765f; font-size: .72rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+.visitor-conversation { display: grid; grid-template-columns: 92px 1fr; gap: 13px; align-items: center; padding: 12px; border: 2px solid #d7c898; border-radius: 16px; background: #fffdf1; }
+.visitor-conversation h3 { margin: 0 0 5px; color: #49613f; }
+.visitor-conversation p { margin: 0; color: #5f6859; font-size: .9rem; line-height: 1.38; }
+.visitor-portrait { position: relative; width: 88px; height: 90px; overflow: hidden; border-radius: 15px; background: linear-gradient(#c6e6ed 0 55%,#8fc55b 55%); box-shadow: inset 0 -6px #75aa49; }
+.visitor-portrait .visitor-person { left: 22px; bottom: 5px; transform: scale(1.35); transform-origin: bottom; }
+.visitor-requirements { display: grid; gap: 7px; margin: 13px 0 9px; }
+.visitor-requirement { min-height: 44px; padding: 7px 10px; display: grid; grid-template-columns: 28px 1fr auto; gap: 8px; align-items: center; border: 2px solid #ded2ad; border-radius: 11px; background: #f7efd5; }
+.visitor-requirement.met { border-color: #91b86e; background: #edf6dc; }
+.visitor-coin { color: var(--gold); font-size: 1.25rem; -webkit-text-stroke: 1px #b98727; }
+.visitor-gift-note { margin: 0; padding: 10px; border-radius: 11px; background: #edf6dc; color: #506447; font-weight: 800; text-align: center; }
+.visitor-reward { margin: 9px 0; padding: 9px; border-radius: 11px; background: #e4efd2; color: #3f5d38; font-weight: 900; text-align: center; }
+.visitor-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.visitor-actions button { min-height: 48px; border: 0; border-radius: 11px; background: #5f873f; color: white; font-weight: 900; cursor: pointer; }
+.visitor-actions button:disabled { background: #c9c2aa; color: #716e63; cursor: not-allowed; }
+.visitor-actions .visitor-decline { background: #e5dbc0; color: #5f5b50; }
+.visitor-no-pressure { margin: 9px 0 0; color: #777568; font-size: .72rem; text-align: center; }
 
 .order-card { margin-bottom: 17px; padding: 13px; border: 3px solid #b98727; border-radius: 17px; background: #fff4c9; box-shadow: inset 0 -3px #e8d28c; transition: border-color .2s, background .2s; }
 .order-card[data-requester-type="neighbor"] { border-color: #b98727; }
@@ -437,6 +467,8 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
 @keyframes chickenPeck { 50% { transform: translateY(3px) rotate(4deg); } }
 @keyframes chickenPeckSmall { 50% { transform: scale(.88) translateY(3px) rotate(-4deg); } }
 @keyframes smokeRise { from { opacity: .85; transform: translateY(4px) scale(.75); } to { opacity: 0; transform: translateY(-13px) scale(1.2); } }
+@keyframes visitorWave { 0%,100% { transform: rotate(8deg); } 50% { transform: rotate(-24deg); } }
+@keyframes visitorBubble { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
 @keyframes cowGraze { 50% { transform: translateY(3px) rotate(1deg); } }
 @keyframes cowGrazeSmall { 50% { transform: scale(.9) translateY(3px) rotate(-1deg); } }
 @keyframes tailSwish { 50% { transform: rotate(-24deg); } }
