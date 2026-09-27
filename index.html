@@ -31,12 +31,14 @@
 
       <div class="building-row">
         <button class="building market" id="market-button" type="button" aria-label="Open roadside market">
+          <img class="visual-building-art market-art" src="assets/roadside-produce-stand.webp" alt="" aria-hidden="true" draggable="false">
           <span class="awning" aria-hidden="true"></span>
           <span class="building-face"><span class="market-boxes" aria-hidden="true"></span></span>
           <span class="building-label">Market</span>
         </button>
 
         <button class="building shed" id="shed-button" type="button" aria-label="Open storage shed">
+          <img class="visual-building-art shed-art" src="assets/storage-shed.webp" alt="" aria-hidden="true" draggable="false">
           <span class="shed-roof" aria-hidden="true"></span>
           <span class="building-face"><span class="shed-door" aria-hidden="true"></span><span class="shed-window" aria-hidden="true"></span></span>
           <span class="shed-extension" id="shed-extension" aria-hidden="true"></span>
@@ -63,12 +65,13 @@
         <button class="coop-site locked" id="coop-button" type="button" aria-label="Chicken coop building site">
           <span class="coop-fence" aria-hidden="true"></span>
           <span class="coop-house" aria-hidden="true"><i class="coop-roof"></i><i class="coop-door"></i></span>
-          <span class="chicken chicken-one" aria-hidden="true"><i></i><b></b></span>
-          <span class="chicken chicken-two" aria-hidden="true"><i></i><b></b></span>
+          <img class="visual-animal-art chicken-art chicken-art-one" src="assets/chicken-hen.webp" alt="" aria-hidden="true" draggable="false">
+          <img class="visual-animal-art chicken-art chicken-art-two" src="assets/chicken-hen.webp" alt="" aria-hidden="true" draggable="false">
           <span class="coop-sign" id="coop-board-label">Build Coop</span>
           <span class="egg-ready-badge" id="egg-ready-badge" hidden>2 eggs</span>
         </button>
         <button class="bakery-site locked" id="bakery-button" type="button" aria-label="Bakery building site">
+          <img class="visual-building-art bakery-art" src="assets/farm-bakery.webp" alt="" aria-hidden="true" draggable="false">
           <span class="bakery-ground" aria-hidden="true"></span>
           <span class="bakery-house" aria-hidden="true"><i class="bakery-roof"></i><i class="bakery-door"></i><i class="bakery-window"></i><i class="bakery-chimney"></i></span>
           <span class="bakery-smoke smoke-one" aria-hidden="true"></span><span class="bakery-smoke smoke-two" aria-hidden="true"></span>
@@ -80,8 +83,8 @@
       <button class="cow-site locked" id="cow-button" type="button" aria-label="Cow pasture building site">
         <span class="cow-pasture" aria-hidden="true"></span>
         <span class="cow-shelter" aria-hidden="true"></span>
-        <img class="cow-art cow-art-one" src="cow.svg" alt="" aria-hidden="true" draggable="false">
-        <img class="cow-art cow-art-two" src="cow.svg" alt="" aria-hidden="true" draggable="false">
+        <img class="cow-art cow-art-one" src="assets/cow-jersey-optimized.webp" alt="" aria-hidden="true" draggable="false">
+        <img class="cow-art cow-art-two" src="assets/cow-jersey-optimized.webp" alt="" aria-hidden="true" draggable="false">
         <span class="cow-sign" id="cow-board-label">Cow Pasture</span>
         <span class="milk-ready-badge" id="milk-ready-badge" hidden>2 milk</span>
       </button>
@@ -90,12 +93,13 @@
         <button class="goat-site locked" id="goat-button" type="button" aria-label="Goat meadow building site">
           <span class="goat-meadow" aria-hidden="true"></span>
           <span class="goat-shelter" aria-hidden="true"></span>
-          <img class="goat-art goat-art-one" src="goat.svg" alt="" aria-hidden="true" draggable="false">
-          <img class="goat-art goat-art-two" src="goat.svg" alt="" aria-hidden="true" draggable="false">
+          <img class="goat-art goat-art-one" src="assets/goat-nubian.webp" alt="" aria-hidden="true" draggable="false">
+          <img class="goat-art goat-art-two" src="assets/goat-nubian.webp" alt="" aria-hidden="true" draggable="false">
           <span class="goat-sign" id="goat-board-label">Goat Meadow</span>
           <span class="goat-milk-ready-badge" id="goat-milk-ready-badge" hidden>2 goat milk</span>
         </button>
         <button class="creamery-site locked" id="creamery-button" type="button" aria-label="Creamery building site">
+          <img class="visual-building-art creamery-art" src="assets/farm-creamery.webp" alt="" aria-hidden="true" draggable="false">
           <span class="creamery-ground" aria-hidden="true"></span>
           <span class="creamery-house" aria-hidden="true"><i class="creamery-roof"></i><i class="creamery-door"></i><i class="creamery-window"></i><i class="creamery-churn"></i></span>
           <span class="creamery-sign" id="creamery-board-label">Farm Creamery</span>
@@ -210,7 +214,7 @@
     <div class="sheet-handle" aria-hidden="true"></div>
     <div class="sheet-heading"><div><h2 id="cow-title">Cow Pasture</h2><p id="cow-subtitle">A grassy home for two gentle cows.</p></div><button class="close-button" type="button" data-close aria-label="Close">×</button></div>
     <div class="cow-panel">
-      <div class="cow-portrait" aria-hidden="true"><img class="portrait-cow-art portrait-cow-art-one" src="cow.svg" alt="" draggable="false"><img class="portrait-cow-art portrait-cow-art-two" src="cow.svg" alt="" draggable="false"><span class="portrait-milk"></span></div>
+      <div class="cow-portrait" aria-hidden="true"><img class="portrait-cow-art portrait-cow-art-one" src="assets/cow-jersey-optimized.webp" alt="" draggable="false"><img class="portrait-cow-art portrait-cow-art-two" src="assets/cow-jersey-optimized.webp" alt="" draggable="false"><span class="portrait-milk"></span></div>
       <div class="cow-copy"><h3 id="cow-state-title">Build the Cow Pasture</h3><p id="cow-state-message">Open the South Field and prepare a home for two cows.</p></div>
     </div>
     <div class="cow-progress" id="cow-progress" hidden><span id="cow-progress-bar"></span></div>
@@ -222,7 +226,7 @@
     <div class="sheet-handle" aria-hidden="true"></div>
     <div class="sheet-heading"><div><h2 id="goat-title">Goat Meadow</h2><p id="goat-subtitle">A sunny hillside home for two dairy goats.</p></div><button class="close-button" type="button" data-close aria-label="Close">×</button></div>
     <div class="goat-panel">
-      <div class="goat-portrait" aria-hidden="true"><img class="portrait-goat-art portrait-goat-art-one" src="goat.svg" alt="" draggable="false"><img class="portrait-goat-art portrait-goat-art-two" src="goat.svg" alt="" draggable="false"><span class="portrait-goat-milk"></span></div>
+      <div class="goat-portrait" aria-hidden="true"><img class="portrait-goat-art portrait-goat-art-one" src="assets/goat-nubian.webp" alt="" draggable="false"><img class="portrait-goat-art portrait-goat-art-two" src="assets/goat-nubian.webp" alt="" draggable="false"><span class="portrait-goat-milk"></span></div>
       <div class="goat-copy"><h3 id="goat-state-title">Build the Goat Meadow</h3><p id="goat-state-message">Build the cow pasture first, then welcome two playful goats.</p></div>
     </div>
     <div class="goat-progress" id="goat-progress" hidden><span id="goat-progress-bar"></span></div>

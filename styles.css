@@ -507,3 +507,136 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
 }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; } }
+
+
+/* WebP visual integration — visual-only pass */
+.visual-building-art,
+.visual-animal-art,
+.crop-art {
+  display: block;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.market .market-art,
+.shed .shed-art {
+  position: absolute;
+  z-index: 2;
+  width: 88%;
+  height: 82%;
+  left: 6%;
+  top: 2%;
+  object-fit: contain;
+}
+.market > .awning,
+.market > .building-face,
+.shed > .shed-roof,
+.shed > .building-face,
+.shed > .shed-extension,
+.shed > .shed-left-extension,
+.shed > .shed-loft-window,
+.shed > .shed-crates { opacity: 0; }
+
+.coop-site .chicken-art {
+  position: absolute;
+  z-index: 3;
+  width: 31%;
+  height: 48%;
+  object-fit: contain;
+  bottom: 25%;
+  transition: filter .2s ease, opacity .2s ease;
+}
+.coop-site .chicken-art-one { left: 19%; }
+.coop-site .chicken-art-two { right: 18%; transform: scaleX(-1); }
+.coop-site.locked .chicken-art { opacity: .34; filter: grayscale(.65); }
+.coop-site.built .chicken-art-one { animation: farmAnimalBob 3.4s ease-in-out infinite; }
+.coop-site.built .chicken-art-two { animation: farmAnimalBob 3.8s ease-in-out .35s infinite; }
+
+.bakery-site .bakery-art,
+.creamery-site .creamery-art {
+  position: absolute;
+  z-index: 2;
+  width: 84%;
+  height: 82%;
+  left: 8%;
+  top: 1%;
+  object-fit: contain;
+  transition: filter .2s ease, opacity .2s ease;
+}
+.bakery-site.locked .bakery-art,
+.creamery-site.locked .creamery-art { opacity: .38; filter: grayscale(.65); }
+.bakery-site > .bakery-ground,
+.bakery-site > .bakery-house,
+.bakery-site > .bakery-smoke,
+.creamery-site > .creamery-ground,
+.creamery-site > .creamery-house { opacity: 0; }
+
+.cow-art,
+.goat-art,
+.portrait-cow-art,
+.portrait-goat-art {
+  object-fit: contain;
+}
+
+.crop-art.wheat-art {
+  position: absolute;
+  z-index: 2;
+  width: 92%;
+  height: 78%;
+  left: 4%;
+  bottom: 18%;
+  object-fit: contain;
+  transform-origin: 50% 100%;
+  animation: wheatBreathe 3.6s ease-in-out infinite;
+}
+.plot.ready .crop-art.wheat-art { filter: saturate(1.06) brightness(1.03); }
+
+@keyframes farmAnimalBob {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -2px; }
+}
+@keyframes wheatBreathe {
+  0%, 100% { transform: rotate(-.35deg); }
+  50% { transform: rotate(.35deg); }
+}
+
+@media (max-width: 620px) {
+  .market .market-art, .shed .shed-art { width: 92%; left: 4%; }
+  .bakery-site .bakery-art, .creamery-site .creamery-art { width: 90%; left: 5%; }
+  .crop-art.wheat-art { width: 96%; left: 2%; height: 76%; }
+}
+
+
+/* Visual repair: render primary utility buildings as reliable CSS backgrounds.
+   Keeps the buttons, labels and all existing behavior unchanged. */
+.building.market {
+  background: url("assets/roadside-produce-stand.webp") center 2px / contain no-repeat;
+}
+.building.shed {
+  background: url("assets/storage-shed.webp") center 2px / contain no-repeat;
+}
+.market .market-art,
+.shed .shed-art {
+  opacity: 0;
+}
+
+
+/* iPad/Safari sheet visibility repair: keep action sheets in the visible viewport. */
+@supports (height: 100dvh) {
+  .sheet {
+    position: fixed;
+    top: max(12px, env(safe-area-inset-top));
+    bottom: auto;
+    max-height: calc(100dvh - max(24px, env(safe-area-inset-top)) - max(12px, env(safe-area-inset-bottom)));
+    transform: translateX(-50%);
+  }
+
+  #plant-sheet {
+    top: 50%;
+    bottom: auto;
+    transform: translate(-50%, -50%);
+    max-height: calc(100dvh - 24px);
+    border-radius: 24px;
+  }
+}
