@@ -613,6 +613,25 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
   bottom: 19%;
 }
 
+/* Let transparent crop sprites use the full soil bed; the plot itself remains
+   the clipping boundary and the label stays above the artwork. */
+.plot.planted .plot-content {
+  inset: 2px 2px 22px;
+  overflow: visible;
+}
+.plot.planted .crop-art.carrot-art {
+  width: 72%;
+  height: 72%;
+  left: 14%;
+  bottom: 10%;
+}
+.plot.planted .crop-art.pumpkin-art {
+  width: 78%;
+  height: 72%;
+  left: 11%;
+  bottom: 10%;
+}
+
 @keyframes farmAnimalBob {
   0%, 100% { translate: 0 0; }
   50% { translate: 0 -2px; }
