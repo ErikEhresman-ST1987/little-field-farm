@@ -620,3 +620,23 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
 .shed .shed-art {
   opacity: 0;
 }
+
+
+/* iPad/Safari sheet visibility repair: keep action sheets in the visible viewport. */
+@supports (height: 100dvh) {
+  .sheet {
+    position: fixed;
+    top: max(12px, env(safe-area-inset-top));
+    bottom: auto;
+    max-height: calc(100dvh - max(24px, env(safe-area-inset-top)) - max(12px, env(safe-area-inset-bottom)));
+    transform: translateX(-50%);
+  }
+
+  #plant-sheet {
+    top: 50%;
+    bottom: auto;
+    transform: translate(-50%, -50%);
+    max-height: calc(100dvh - 24px);
+    border-radius: 24px;
+  }
+}
