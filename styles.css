@@ -611,7 +611,7 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
 /* Visual repair: render primary utility buildings as reliable CSS backgrounds.
    Keeps the buttons, labels and all existing behavior unchanged. */
 .building.market {
-  background: url("assets/roadside-produce-stand.webp") center 2px / contain no-repeat;
+  background: url("assets/roadside-produce-stand.webp?v=2") center 2px / contain no-repeat;
 }
 .building.shed {
   background: url("assets/storage-shed.webp") center 2px / contain no-repeat;
