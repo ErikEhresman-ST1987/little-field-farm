@@ -479,13 +479,24 @@
         const crop = CROPS[plot.crop];
         const stage = cropStage(plot);
         button.className = `plot planted${stage === 3 ? " ready" : ""}`;
-        const count = plot.crop === "pumpkin" ? 2 : 3;
-        for (let i = 0; i < count; i += 1) {
-          const plant = document.createElement("span");
-          plant.className = `plant ${plot.crop} stage-${stage}`;
-          plant.style.animationDelay = `${i * 55}ms`;
-          plant.innerHTML = '<i class="produce"></i>';
-          content.appendChild(plant);
+        if (plot.crop === "wheat") {
+          const wheat = document.createElement("img");
+          const wheatStage = stage === 1 ? "early-growth" : stage === 2 ? "mid-growth" : "mature";
+          wheat.className = `crop-art wheat-art stage-${stage}`;
+          wheat.src = `assets/wheat-${wheatStage}.webp`;
+          wheat.alt = "";
+          wheat.setAttribute("aria-hidden", "true");
+          wheat.draggable = false;
+          content.appendChild(wheat);
+        } else {
+          const count = plot.crop === "pumpkin" ? 2 : 3;
+          for (let i = 0; i < count; i += 1) {
+            const plant = document.createElement("span");
+            plant.className = `plant ${plot.crop} stage-${stage}`;
+            plant.style.animationDelay = `${i * 55}ms`;
+            plant.innerHTML = '<i class="produce"></i>';
+            content.appendChild(plant);
+          }
         }
         label.textContent = stage === 3 ? `${crop.name} • Ready!` : `${crop.name} • ${remainingText(plot)}`;
         button.setAttribute("aria-label", stage === 3 ? `${crop.name} ready to harvest` : `${crop.name} growing, ${remainingText(plot)} remaining`);
