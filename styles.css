@@ -592,6 +592,46 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
 }
 .plot.ready .crop-art.wheat-art { filter: saturate(1.06) brightness(1.03); }
 
+/* Crop artwork fit — keep each transparent sprite comfortably inside its soil plot. */
+.crop-art.carrot-art,
+.crop-art.pumpkin-art {
+  position: absolute;
+  z-index: 2;
+  object-fit: contain;
+  transform-origin: 50% 100%;
+}
+.crop-art.carrot-art {
+  width: 76%;
+  height: 66%;
+  left: 12%;
+  bottom: 20%;
+}
+.crop-art.pumpkin-art {
+  width: 82%;
+  height: 66%;
+  left: 9%;
+  bottom: 19%;
+}
+
+/* Let transparent crop sprites use the full soil bed; the plot itself remains
+   the clipping boundary and the label stays above the artwork. */
+.plot.planted .plot-content {
+  inset: 2px 2px 22px;
+  overflow: visible;
+}
+.plot.planted .crop-art.carrot-art {
+  width: 72%;
+  height: 72%;
+  left: 14%;
+  bottom: 10%;
+}
+.plot.planted .crop-art.pumpkin-art {
+  width: 78%;
+  height: 72%;
+  left: 11%;
+  bottom: 10%;
+}
+
 @keyframes farmAnimalBob {
   0%, 100% { translate: 0 0; }
   50% { translate: 0 -2px; }
@@ -605,6 +645,8 @@ h1 { margin: 0; color: var(--green-dark); font-size: clamp(1.35rem, 5vw, 1.8rem)
   .market .market-art, .shed .shed-art { width: 92%; left: 4%; }
   .bakery-site .bakery-art, .creamery-site .creamery-art { width: 90%; left: 5%; }
   .crop-art.wheat-art { width: 96%; left: 2%; height: 76%; }
+  .crop-art.carrot-art { width: 72%; height: 62%; left: 14%; bottom: 21%; }
+  .crop-art.pumpkin-art { width: 78%; height: 62%; left: 11%; bottom: 20%; }
 }
 
 
