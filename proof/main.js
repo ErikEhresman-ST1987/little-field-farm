@@ -7,8 +7,8 @@ const world=new PIXI.Container();app.stage.addChild(world);
 const names=['empty','growing','mature'];
 let textures;
 try{
-  const background=await PIXI.Assets.load('proof/assets/landscape.webp');
-  textures=await Promise.all(names.map(n=>PIXI.Assets.load('proof/assets/kohlrabi-'+n+'.webp')));
+  const background=await PIXI.Assets.load('assets/landscape.webp');
+  textures=await Promise.all(names.map(n=>PIXI.Assets.load('assets/kohlrabi-'+n+'.webp')));
   const scene=new PIXI.Sprite(background);scene.width=1536;scene.height=1024;world.addChild(scene);
 }catch(err){status.textContent='Essential artwork is missing. Download the complete test package to run this proof.';throw err;}
 const points=[[565,510],[765,580],[945,485]],plots=[];
