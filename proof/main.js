@@ -12,7 +12,8 @@ app.stage.addChild(world);
 const cropFiles = {
   kohlrabi: ['kohlrabi-planted.webp', 'Kohlrabi-stage1.webp', 'Kohlrabi-stage2.webp', 'Kohlrabi-stage3.webp', 'kohlrabi-mature-v2.webp'],
   pineapple: ['pineapple-planted.webp', 'pineapple-stage1.webp', 'pineapple-stage2.webp', 'pineapple-stage3.webp', 'pineapple-mature.webp'],
-  chard: ['chard-planted.webp', 'chard-stage1.webp', 'chard-stage2.webp', 'chard-stage3.webp', 'chard-mature.webp']
+  chard: ['chard-planted.webp', 'chard-stage1.webp', 'chard-stage2.webp', 'chard-stage3.webp', 'chard-mature.webp'],
+  dragonfruit: ['dragonfruit-planted.webp', 'dragonfruit-stage1.webp', 'dragonfruit-stage2.webp', 'dragonfruit-stage3.webp', 'dragonfruit-mature.webp']
 };
 let cropTextures;
 try {
@@ -53,9 +54,10 @@ label('Bakery   •   Creamery', 1092, 857, 24);
 
 const plots = [];
 const rows = [
-  { crop: 'kohlrabi', y: 550 },
-  { crop: 'pineapple', y: 665 },
-  { crop: 'chard', y: 780 }
+  { crop: 'kohlrabi', y: 510 },
+  { crop: 'pineapple', y: 615 },
+  { crop: 'chard', y: 720 },
+  { crop: 'dragonfruit', y: 825 }
 ];
 rows.forEach(({ crop, y }) => {
   for (let i = 0; i < 5; i++) {
@@ -131,4 +133,4 @@ document.getElementById('reset').onclick = fit;
 document.getElementById('cycle').onclick = () => plots.forEach(p => { p.state = (p.state + 1) % cropTextures[p.crop].length; p.sprite.texture = cropTextures[p.crop][p.state]; });
 window.addEventListener('resize', fit);
 fit();
-status.textContent = 'Rows: purple kohlrabi, pineapple, rainbow chard. Tap any plot to advance its five-stage growth cycle.';
+status.textContent = 'Rows: purple kohlrabi, pineapple, rainbow chard, dragon fruit. Tap any plot to advance its five-stage growth cycle.';
