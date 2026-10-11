@@ -18,7 +18,7 @@ const cropFiles = {
 };
 let cropTextures;
 try {
-  const background = await PIXI.Assets.load('assets/landscape.webp');
+  const background = await PIXI.Assets.load('assets/landscape-new.webp');
   cropTextures = Object.fromEntries(await Promise.all(Object.entries(cropFiles).map(async ([crop, files]) => [crop, await Promise.all(files.map(name => PIXI.Assets.load('assets/' + name)))])));
   const scene = new PIXI.Sprite(background);
   scene.width = WORLD_W;
