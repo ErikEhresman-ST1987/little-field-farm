@@ -9,11 +9,11 @@ stageEl.appendChild(app.canvas);
 const WORLD_W = 1536, WORLD_H = 1024;
 const world = new PIXI.Container();
 app.stage.addChild(world);
-const cropNames = ['empty', 'growing', 'mature'];
+const cropFiles = ['kohlrabi-planted.webp', 'Kohlrabi-stage1.webp', 'Kohlrabi-stage2.webp', 'Kohlrabi-stage3.webp', 'kohlrabi-mature-v2.webp'];
 let cropTextures;
 try {
   const background = await PIXI.Assets.load('assets/landscape.webp');
-  cropTextures = await Promise.all(cropNames.map(name => PIXI.Assets.load('assets/kohlrabi-' + name + '.webp')));
+  cropTextures = await Promise.all(cropFiles.map(name => PIXI.Assets.load('assets/' + name)));
   const scene = new PIXI.Sprite(background);
   scene.width = WORLD_W;
   scene.height = WORLD_H;
@@ -48,19 +48,19 @@ label('🐄   🐐   🐓', 1090, 615, 48);
 label('Bakery   •   Creamery', 1092, 857, 24);
 
 const plots = [];
-const positions = [[475, 665], [625, 665], [775, 665]];
+const positions = [[430, 650], [545, 650], [660, 650], [775, 650], [600, 765]];
 positions.forEach((point, i) => {
   const sprite = new PIXI.Sprite(cropTextures[i]);
   sprite.anchor.set(.5, .79);
   sprite.position.set(...point);
-  sprite.width = 145;
-  sprite.height = 145;
+  sprite.width = 115;
+  sprite.height = 115;
   sprite.eventMode = 'static';
   sprite.cursor = 'pointer';
   sprite.on('pointertap', () => {
     if (moved) return;
     const plot = plots[i];
-    plot.state = (plot.state + 1) % 3;
+    plot.state = (plot.state + 1) % cropTextures.length;
     plot.sprite.texture = cropTextures[plot.state];
   });
   layout.addChild(sprite);
@@ -117,7 +117,7 @@ stageEl.addEventListener('pointerup', endPointer);
 stageEl.addEventListener('pointercancel', endPointer);
 stageEl.addEventListener('wheel', e => { e.preventDefault(); const p = position(e); zoom(e.deltaY < 0 ? 1.08 : .92, p.x, p.y); }, { passive: false });
 document.getElementById('reset').onclick = fit;
-document.getElementById('cycle').onclick = () => plots.forEach(p => { p.state = (p.state + 1) % 3; p.sprite.texture = cropTextures[p.state]; });
+document.getElementById('cycle').onclick = () => plots.forEach(p => { p.state = (p.state + 1) % cropTextures.length; p.sprite.texture = cropTextures[p.state]; });
 window.addEventListener('resize', fit);
 fit();
-status.textContent = 'Layout study: fields left, animals right, production below. Tap crops; drag and pinch to inspect.';
+status.textContent = 'Five purple kohlrabi growth stages. Tap a plot to advance it; Change crop stages advances all five.';
