@@ -9,17 +9,20 @@ stageEl.appendChild(app.canvas);
 const WORLD_W = 1536, WORLD_H = 1024;
 const world = new PIXI.Container();
 app.stage.addChild(world);
-const cropFiles = ['kohlrabi-planted.webp', 'Kohlrabi-stage1.webp', 'Kohlrabi-stage2.webp', 'Kohlrabi-stage3.webp', 'kohlrabi-mature-v2.webp'];
+const cropFiles = {
+  kohlrabi: ['kohlrabi-planted.webp', 'Kohlrabi-stage1.webp', 'Kohlrabi-stage2.webp', 'Kohlrabi-stage3.webp', 'kohlrabi-mature-v2.webp'],
+  pineapple: ['pineapple-planted.webp', 'pineapple-stage1.webp', 'pineapple-stage2.webp', 'pineapple-stage3.webp', 'pineapple-mature.webp']
+};
 let cropTextures;
 try {
   const background = await PIXI.Assets.load('assets/landscape.webp');
-  cropTextures = await Promise.all(cropFiles.map(name => PIXI.Assets.load('assets/' + name)));
+  cropTextures = Object.fromEntries(await Promise.all(Object.entries(cropFiles).map(async ([crop, files]) => [crop, await Promise.all(files.map(name => PIXI.Assets.load('assets/' + name)))])));
   const scene = new PIXI.Sprite(background);
   scene.width = WORLD_W;
   scene.height = WORLD_H;
   world.addChild(scene);
 } catch (error) {
-  status.textContent = 'Could not load the landscape or kohlrabi artwork.';
+  status.textContent = 'Could not load the landscape or crop artwork.';
   throw error;
 }
 
@@ -48,23 +51,29 @@ label('🐄   🐐   🐓', 1090, 615, 48);
 label('Bakery   •   Creamery', 1092, 857, 24);
 
 const plots = [];
-const positions = [[430, 650], [545, 650], [660, 650], [775, 650], [600, 765]];
-positions.forEach((point, i) => {
-  const sprite = new PIXI.Sprite(cropTextures[i]);
-  sprite.anchor.set(.5, .79);
-  sprite.position.set(...point);
-  sprite.width = 115;
-  sprite.height = 115;
-  sprite.eventMode = 'static';
-  sprite.cursor = 'pointer';
-  sprite.on('pointertap', () => {
-    if (moved) return;
-    const plot = plots[i];
-    plot.state = (plot.state + 1) % cropTextures.length;
-    plot.sprite.texture = cropTextures[plot.state];
-  });
-  layout.addChild(sprite);
-  plots.push({ sprite, state: i });
+const rows = [
+  { crop: 'kohlrabi', y: 610 },
+  { crop: 'pineapple', y: 730 }
+];
+rows.forEach(({ crop, y }) => {
+  for (let i = 0; i < 5; i++) {
+    const textures = cropTextures[crop];
+    const sprite = new PIXI.Sprite(textures[i]);
+    sprite.anchor.set(.5, .79);
+    sprite.position.set(395 + i * 106, y);
+    sprite.width = 104;
+    sprite.height = 104;
+    sprite.eventMode = 'static';
+    sprite.cursor = 'pointer';
+    const plot = { sprite, crop, state: i };
+    sprite.on('pointertap', () => {
+      if (moved) return;
+      plot.state = (plot.state + 1) % textures.length;
+      plot.sprite.texture = textures[plot.state];
+    });
+    layout.addChild(sprite);
+    plots.push(plot);
+  }
 });
 
 let scale = 1, moved = false;
@@ -117,7 +126,7 @@ stageEl.addEventListener('pointerup', endPointer);
 stageEl.addEventListener('pointercancel', endPointer);
 stageEl.addEventListener('wheel', e => { e.preventDefault(); const p = position(e); zoom(e.deltaY < 0 ? 1.08 : .92, p.x, p.y); }, { passive: false });
 document.getElementById('reset').onclick = fit;
-document.getElementById('cycle').onclick = () => plots.forEach(p => { p.state = (p.state + 1) % cropTextures.length; p.sprite.texture = cropTextures[p.state]; });
+document.getElementById('cycle').onclick = () => plots.forEach(p => { p.state = (p.state + 1) % cropTextures[p.crop].length; p.sprite.texture = cropTextures[p.crop][p.state]; });
 window.addEventListener('resize', fit);
 fit();
-status.textContent = 'Five purple kohlrabi growth stages. Tap a plot to advance it; Change crop stages advances all five.';
+status.textContent = 'Top row: purple kohlrabi. Bottom row: pineapple. Tap any plot to advance its five-stage growth cycle.';
