@@ -11,7 +11,8 @@ const world = new PIXI.Container();
 app.stage.addChild(world);
 const cropFiles = {
   kohlrabi: ['kohlrabi-planted.webp', 'Kohlrabi-stage1.webp', 'Kohlrabi-stage2.webp', 'Kohlrabi-stage3.webp', 'kohlrabi-mature-v2.webp'],
-  pineapple: ['pineapple-planted.webp', 'pineapple-stage1.webp', 'pineapple-stage2.webp', 'pineapple-stage3.webp', 'pineapple-mature.webp']
+  pineapple: ['pineapple-planted.webp', 'pineapple-stage1.webp', 'pineapple-stage2.webp', 'pineapple-stage3.webp', 'pineapple-mature.webp'],
+  chard: ['chard-planted.webp', 'chard-stage1.webp', 'chard-stage2.webp', 'chard-stage3.webp', 'chard-mature.webp']
 };
 let cropTextures;
 try {
@@ -52,8 +53,9 @@ label('Bakery   •   Creamery', 1092, 857, 24);
 
 const plots = [];
 const rows = [
-  { crop: 'kohlrabi', y: 610 },
-  { crop: 'pineapple', y: 730 }
+  { crop: 'kohlrabi', y: 550 },
+  { crop: 'pineapple', y: 665 },
+  { crop: 'chard', y: 780 }
 ];
 rows.forEach(({ crop, y }) => {
   for (let i = 0; i < 5; i++) {
@@ -129,4 +131,4 @@ document.getElementById('reset').onclick = fit;
 document.getElementById('cycle').onclick = () => plots.forEach(p => { p.state = (p.state + 1) % cropTextures[p.crop].length; p.sprite.texture = cropTextures[p.crop][p.state]; });
 window.addEventListener('resize', fit);
 fit();
-status.textContent = 'Top row: purple kohlrabi. Bottom row: pineapple. Tap any plot to advance its five-stage growth cycle.';
+status.textContent = 'Rows: purple kohlrabi, pineapple, rainbow chard. Tap any plot to advance its five-stage growth cycle.';
