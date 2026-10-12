@@ -40,7 +40,7 @@ const cropOrder = [
   'cauliflower', 'kohlrabi', 'pineapple', 'chard',
   'dragonfruit', 'cauliflower', 'kohlrabi', 'pineapple'
 ];
-const FIELD = { startX: 395, startY: 560, columns: 4, gapX: 112, gapY: 118, spriteSize: 106 };
+const FIELD = { startX: 170, startY: 190, columns: 4, gapX: 112, gapY: 118, spriteSize: 106 };
 cropOrder.forEach((crop, index) => {
   const textures = cropTextures[crop];
   const sprite = new PIXI.Sprite(textures[0]);
