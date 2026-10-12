@@ -179,9 +179,10 @@ stageEl.addEventListener('wheel', e => {
 }, { passive: false });
 document.getElementById('reset').onclick = fit;
 document.getElementById('cycle').onclick = () => plots.forEach(p => { p.state = (p.state + 1) % cropTextures[p.crop].length; p.sprite.texture = cropTextures[p.crop][p.state]; });
+let previousViewport = { width: stageEl.clientWidth, height: stageEl.clientHeight };
 window.addEventListener('resize', () => {
-  const oldW = app.canvas.clientWidth || stageEl.clientWidth;
-  const oldH = app.canvas.clientHeight || stageEl.clientHeight;
+  const oldW = previousViewport.width;
+  const oldH = previousViewport.height;
   const centerX = (oldW / 2 - world.x) / scale;
   const centerY = (oldH / 2 - world.y) / scale;
   scale = Math.max(fitScale(), scale);
@@ -189,6 +190,7 @@ window.addEventListener('resize', () => {
   world.x = stageEl.clientWidth / 2 - centerX * scale;
   world.y = stageEl.clientHeight / 2 - centerY * scale;
   clampCamera();
+  previousViewport = { width: stageEl.clientWidth, height: stageEl.clientHeight };
 });
 fit();
 status.textContent = buildingFailures.length ? 'Some community artwork could not load: ' + buildingFailures.join(', ') : '12 crop beds and community buildings placed. Tap a bed to advance growth; drag to pan; pinch to zoom.';
