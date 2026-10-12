@@ -29,57 +29,36 @@ try {
   throw error;
 }
 
-// Ranch Rush-inspired layout study: organize the WORKING grassland into
-// dedicated functional zones, rather than scattering objects across the view.
-// The colored pads are intentionally temporary placeholders, not approved art.
+// Layout increment: twelve crop beds in the approved grouped field area.
+// These are visual interaction samples, not planted gameplay plots.
+// Keep all five crop families and all five growth textures available.
 const layout = new PIXI.Container();
 world.addChild(layout);
-const zones = [
-  { label: 'FIELDS', x: 340, y: 515, w: 540, h: 270, color: 0x9d6c37 },
-  { label: 'ANIMAL PASTURE', x: 910, y: 495, w: 365, h: 250, color: 0x4e7d49 },
-  { label: 'PRODUCTION', x: 930, y: 785, w: 325, h: 140, color: 0x94714c }
-];
-function label(text, x, y, size = 24) {
-  const t = new PIXI.Text({ text, style: { fontFamily: 'Arial, sans-serif', fontSize: size, fontWeight: 'bold', fill: '#fff9e2', stroke: { color: '#34462c', width: 5 }, align: 'center' } });
-  t.anchor.set(.5);
-  t.position.set(x, y);
-  layout.addChild(t);
-}
-zones.forEach(z => {
-  const pad = new PIXI.Graphics().roundRect(z.x, z.y, z.w, z.h, 24).fill({ color: z.color, alpha: .28 }).roundRect(z.x, z.y, z.w, z.h, 24).stroke({ color: 0xffedb7, width: 4, alpha: .8 });
-  layout.addChild(pad);
-  label(z.label, z.x + z.w / 2, z.y + 26, 22);
-});
-label('🐄   🐐   🐓', 1090, 615, 48);
-label('Bakery   •   Creamery', 1092, 857, 24);
-
 const plots = [];
-const rows = [
-  { crop: 'kohlrabi', y: 465 },
-  { crop: 'pineapple', y: 565 },
-  { crop: 'chard', y: 665 },
-  { crop: 'dragonfruit', y: 765 },
-  { crop: 'cauliflower', y: 865 }
+const cropOrder = [
+  'kohlrabi', 'pineapple', 'chard', 'dragonfruit',
+  'cauliflower', 'kohlrabi', 'pineapple', 'chard',
+  'dragonfruit', 'cauliflower', 'kohlrabi', 'pineapple'
 ];
-rows.forEach(({ crop, y }) => {
-  for (let i = 0; i < 5; i++) {
-    const textures = cropTextures[crop];
-    const sprite = new PIXI.Sprite(textures[i]);
-    sprite.anchor.set(.5, .79);
-    sprite.position.set(395 + i * 106, y);
-    sprite.width = 104;
-    sprite.height = 104;
-    sprite.eventMode = 'static';
-    sprite.cursor = 'pointer';
-    const plot = { sprite, crop, state: i };
-    sprite.on('pointertap', () => {
-      if (moved) return;
-      plot.state = (plot.state + 1) % textures.length;
-      plot.sprite.texture = textures[plot.state];
-    });
-    layout.addChild(sprite);
-    plots.push(plot);
-  }
+const FIELD = { startX: 395, startY: 560, columns: 4, gapX: 112, gapY: 118, spriteSize: 106 };
+cropOrder.forEach((crop, index) => {
+  const textures = cropTextures[crop];
+  const sprite = new PIXI.Sprite(textures[0]);
+  sprite.anchor.set(.5, .79);
+  sprite.position.set(FIELD.startX + (index % FIELD.columns) * FIELD.gapX,
+                      FIELD.startY + Math.floor(index / FIELD.columns) * FIELD.gapY);
+  sprite.width = FIELD.spriteSize;
+  sprite.height = FIELD.spriteSize;
+  sprite.eventMode = 'static';
+  sprite.cursor = 'pointer';
+  const plot = { sprite, crop, state: 0 };
+  sprite.on('pointertap', () => {
+    if (moved) return;
+    plot.state = (plot.state + 1) % textures.length;
+    plot.sprite.texture = textures[plot.state];
+  });
+  layout.addChild(sprite);
+  plots.push(plot);
 });
 
 let scale = 1, moved = false;
@@ -135,4 +114,4 @@ document.getElementById('reset').onclick = fit;
 document.getElementById('cycle').onclick = () => plots.forEach(p => { p.state = (p.state + 1) % cropTextures[p.crop].length; p.sprite.texture = cropTextures[p.crop][p.state]; });
 window.addEventListener('resize', fit);
 fit();
-status.textContent = 'Rows: purple kohlrabi, pineapple, rainbow chard, dragon fruit, purple cauliflower. Tap a plot to advance its five-stage growth cycle.';
+status.textContent = '12 crop beds · 5 crop varieties. Tap a bed to advance its growth stage. Drag to pan; pinch to zoom.';
