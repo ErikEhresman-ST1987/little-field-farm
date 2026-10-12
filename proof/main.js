@@ -61,6 +61,31 @@ cropOrder.forEach((crop, index) => {
   plots.push(plot);
 });
 
+// Approved visual placement study: community buildings in the lower-right.
+// Load each asset independently so a missing building does not hide the farm.
+const community = new PIXI.Container();
+world.addChild(community);
+const buildings = [
+  { file: 'barn.webp', x: 1080, y: 780, width: 250 },
+  { file: 'market-stall.webp', x: 1300, y: 840, width: 180 },
+  { file: 'order-board.webp', x: 1440, y: 830, width: 105 }
+];
+const buildingFailures = [];
+for (const building of buildings) {
+  try {
+    const texture = await PIXI.Assets.load('assets/' + building.file);
+    const sprite = new PIXI.Sprite(texture);
+    sprite.anchor.set(.5, 1);
+    sprite.width = building.width;
+    sprite.height = building.width * texture.height / texture.width;
+    sprite.position.set(building.x, building.y);
+    community.addChild(sprite);
+  } catch (error) {
+    console.error('Building artwork failed:', building.file, error);
+    buildingFailures.push(building.file);
+  }
+}
+
 let scale = 1, moved = false;
 const pointers = new Map();
 let pinchDistance = null;
@@ -114,4 +139,4 @@ document.getElementById('reset').onclick = fit;
 document.getElementById('cycle').onclick = () => plots.forEach(p => { p.state = (p.state + 1) % cropTextures[p.crop].length; p.sprite.texture = cropTextures[p.crop][p.state]; });
 window.addEventListener('resize', fit);
 fit();
-status.textContent = '12 crop beds · 5 crop varieties. Tap a bed to advance its growth stage. Drag to pan; pinch to zoom.';
+status.textContent = buildingFailures.length ? 'Some community artwork could not load: ' + buildingFailures.join(', ') : '12 crop beds and community buildings placed. Tap a bed to advance growth; drag to pan; pinch to zoom.';
