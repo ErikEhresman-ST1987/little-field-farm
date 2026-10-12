@@ -15,7 +15,7 @@ export function saveFarm(storage, farm) { storage.setItem(SAVE_KEY, JSON.stringi
 export function stageAt(bed, now) {
   if (!bed) return -1;
   const elapsed = Math.max(0, now - bed.plantedAt);
-  return Math.min(4, Math.floor(elapsed / GROW_MS * 5));
+  return Math.min(4, Math.floor(elapsed / GROW_MS * 4));
 }
 export function plant(farm, crop, now) {
   if (farm.bed || !CROPS.includes(crop) || !Number.isFinite(now)) return false;
