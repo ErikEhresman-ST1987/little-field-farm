@@ -50,9 +50,7 @@ await Promise.all(cropEntries.map(async ([crop, files]) => {
   cropTextures[crop] = stages.map(texture => texture || fallback);
 }));
 
-// Layout increment: twelve crop beds in the approved grouped field area.
-// These are visual interaction samples, not planted gameplay plots.
-// Keep all five crop families and all five growth textures available.
+// All twelve beds use the same gameplay rules and approved shared empty-bed artwork.
 const layout = new PIXI.Container();
 world.addChild(layout);
 const plots = [];
@@ -61,45 +59,51 @@ const inventoryEl = document.getElementById('inventory');
 const cropPicker = document.getElementById('crop-picker');
 const cropButtons = document.getElementById('crop-buttons');
 const bedMessage = document.getElementById('bed-message');
-let gameplayPlot;
+let selectedBed = null;
 function updateInventory() {
   inventoryEl.textContent = CROPS.map(c => c + ': ' + farm.inventory[c]).join(' · ');
 }
-function closePicker() { cropPicker.hidden = true; }
+function closePicker() { cropPicker.hidden = true; selectedBed = null; }
 function saveProgress() {
   try { saveFarm(localStorage, farm); }
   catch (error) { bedMessage.textContent = 'Save failed: storage unavailable. Keep this tab open.'; console.error(error); }
 }
-function refreshFirstBed() {
-  if (!gameplayPlot) return;
-  const bed = farm.bed;
-  gameplayPlot.sprite.visible = !!bed;
-  gameplayPlot.empty.visible = !bed;
-  if (bed) gameplayPlot.sprite.texture = cropTextures[bed.crop][stageAt(bed, Date.now())];
+function refreshBeds() {
+  for (let i = 0; i < plots.length; i++) {
+    const bed = farm.beds[i];
+    const plot = plots[i];
+    plot.cropSprite.visible = !!bed;
+    plot.emptySprite.visible = !bed;
+    if (bed) plot.cropSprite.texture = cropTextures[bed.crop][stageAt(bed, Date.now())];
+  }
   updateInventory();
 }
-function activateFirstBed() {
-  if (farm.bed) {
-    if (harvest(farm, Date.now())) {
+function activateBed(index) {
+  const bed = farm.beds[index];
+  if (bed) {
+    if (harvest(farm, index, Date.now())) {
       saveProgress();
-      bedMessage.textContent = 'Harvest collected! Choose another crop.';
-      refreshFirstBed();
+      bedMessage.textContent = 'Bed ' + (index + 1) + ': harvest collected!';
+      refreshBeds();
     } else {
-      const seconds = Math.ceil(Math.max(0, GROW_MS - (Date.now() - farm.bed.plantedAt)) / 1000);
-      bedMessage.textContent = farm.bed.crop + ' growing — about ' + seconds + ' seconds remaining.';
+      const seconds = Math.ceil(Math.max(0, GROW_MS - (Date.now() - bed.plantedAt)) / 1000);
+      bedMessage.textContent = 'Bed ' + (index + 1) + ': ' + bed.crop + ' growing — about ' + seconds + ' seconds remaining.';
     }
   } else {
+    selectedBed = index;
     cropPicker.hidden = false;
-    bedMessage.textContent = 'Choose a crop for the empty bed.';
+    bedMessage.textContent = 'Choose a crop for bed ' + (index + 1) + '.';
   }
 }
 for (const crop of CROPS) {
   const button = document.createElement('button');
   button.textContent = crop.charAt(0).toUpperCase() + crop.slice(1);
   button.onclick = () => {
-    if (plant(farm, crop, Date.now())) {
-      saveProgress(); refreshFirstBed();
-      bedMessage.textContent = 'Planted ' + crop + '. Ready in about 30 seconds.';
+    if (selectedBed !== null && plant(farm, selectedBed, crop, Date.now())) {
+      const bedNumber = selectedBed + 1;
+      saveProgress();
+      refreshBeds();
+      bedMessage.textContent = 'Bed ' + bedNumber + ': planted ' + crop + '. Ready in about 30 seconds.';
     }
     closePicker();
   };
@@ -107,44 +111,26 @@ for (const crop of CROPS) {
 }
 document.getElementById('close-picker').onclick = closePicker;
 
-const cropOrder = [
-  'kohlrabi', 'pineapple', 'chard', 'dragonfruit',
-  'cauliflower', 'kohlrabi', 'pineapple', 'chard',
-  'dragonfruit', 'cauliflower', 'kohlrabi', 'pineapple'
-];
 const FIELD = { startX: 170, startY: 190, columns: 4, gapX: 112, gapY: 118, spriteSize: 106 };
-cropOrder.forEach((crop, index) => {
-  const textures = cropTextures[crop];
-  const sprite = new PIXI.Sprite(textures[0]);
-  sprite.anchor.set(.5, .79);
-  sprite.position.set(FIELD.startX + (index % FIELD.columns) * FIELD.gapX,
-                      FIELD.startY + Math.floor(index / FIELD.columns) * FIELD.gapY);
-  sprite.width = FIELD.spriteSize;
-  sprite.height = FIELD.spriteSize;
-  sprite.eventMode = 'static';
-  sprite.cursor = 'pointer';
-  const plot = { sprite, crop, state: 0 };
-  if (index === 0) {
-    // Temporary soil graphic until the approved empty-bed artwork is ready.
-    const empty = new PIXI.Graphics().ellipse(0, 0, 47, 26).fill({ color: 0x805331 }).stroke({ color: 0xb88a55, width: 6 });
-    empty.position.set(sprite.x, sprite.y - 19);
-    empty.eventMode = 'static';
-    empty.cursor = 'pointer';
-    empty.on('pointertap', () => { if (!moved) activateFirstBed(); });
-    sprite.on('pointertap', () => { if (!moved) activateFirstBed(); });
-    layout.addChild(empty);
-    plot.empty = empty;
-    gameplayPlot = plot;
-  } else {
-    sprite.on('pointertap', () => {
-      if (moved) return;
-      plot.state = (plot.state + 1) % textures.length;
-      plot.sprite.texture = textures[plot.state];
-    });
+const emptyTexture = await PIXI.Assets.load('assets/crop-bed-empty.webp');
+for (let index = 0; index < 12; index++) {
+  const x = FIELD.startX + (index % FIELD.columns) * FIELD.gapX;
+  const y = FIELD.startY + Math.floor(index / FIELD.columns) * FIELD.gapY;
+  const emptySprite = new PIXI.Sprite(emptyTexture);
+  const cropSprite = new PIXI.Sprite(cropTextures.kohlrabi[0]);
+  for (const sprite of [emptySprite, cropSprite]) {
+    sprite.anchor.set(.5, .79);
+    sprite.position.set(x, y);
+    sprite.width = FIELD.spriteSize;
+    sprite.height = FIELD.spriteSize;
+    sprite.eventMode = 'static';
+    sprite.cursor = 'pointer';
+    sprite.on('pointertap', () => { if (!moved) activateBed(index); });
+    layout.addChild(sprite);
   }
-  layout.addChild(sprite);
-  plots.push(plot);
-});
+  plots.push({ emptySprite, cropSprite });
+}
+refreshBeds();
 
 // Approved visual placement study: community buildings in the lower-right.
 // Load each asset independently so a missing building does not hide the farm.
@@ -263,9 +249,7 @@ stageEl.addEventListener('wheel', e => {
   zoom(e.deltaY < 0 ? 1.08 : .92, p.x, p.y);
 }, { passive: false });
 document.getElementById('reset').onclick = fit;
-document.getElementById('cycle').onclick = () => plots.slice(1).forEach(p => { p.state = (p.state + 1) % cropTextures[p.crop].length; p.sprite.texture = cropTextures[p.crop][p.state]; });
-refreshFirstBed();
-setInterval(() => { if (farm.bed) refreshFirstBed(); }, 1000);
+setInterval(() => { if (farm.beds.some(Boolean)) refreshBeds(); }, 1000);
 let previousViewport = { width: stageEl.clientWidth, height: stageEl.clientHeight };
 window.addEventListener('resize', () => {
   const oldW = previousViewport.width;
@@ -286,4 +270,4 @@ const assetWarnings = [
 ];
 status.textContent = assetWarnings.length
   ? 'Farm loaded with missing artwork: ' + assetWarnings.join('; ') + '.'
-  : 'First bed: plant, grow, and harvest. Other beds: artwork preview. Drag to pan; pinch to zoom.';
+  : 'All 12 beds: tap to plant, grow, and harvest. Drag to pan; pinch to zoom.';
