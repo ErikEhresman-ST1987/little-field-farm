@@ -1,4 +1,5 @@
 import * as PIXI from 'https://cdn.jsdelivr.net/npm/pixi.js@8.14.3/dist/pixi.min.mjs';
+import { CROPS, GROW_MS, loadFarm, saveFarm, stageAt, plant, harvest } from './first-harvest.js';
 
 const stageEl = document.getElementById('stage');
 const status = document.getElementById('status');
@@ -55,6 +56,57 @@ await Promise.all(cropEntries.map(async ([crop, files]) => {
 const layout = new PIXI.Container();
 world.addChild(layout);
 const plots = [];
+const farm = loadFarm(localStorage);
+const inventoryEl = document.getElementById('inventory');
+const cropPicker = document.getElementById('crop-picker');
+const cropButtons = document.getElementById('crop-buttons');
+const bedMessage = document.getElementById('bed-message');
+let gameplayPlot;
+function updateInventory() {
+  inventoryEl.textContent = CROPS.map(c => c + ': ' + farm.inventory[c]).join(' · ');
+}
+function closePicker() { cropPicker.hidden = true; }
+function saveProgress() {
+  try { saveFarm(localStorage, farm); }
+  catch (error) { bedMessage.textContent = 'Save failed: storage unavailable. Keep this tab open.'; console.error(error); }
+}
+function refreshFirstBed() {
+  if (!gameplayPlot) return;
+  const bed = farm.bed;
+  gameplayPlot.sprite.visible = !!bed;
+  gameplayPlot.empty.visible = !bed;
+  if (bed) gameplayPlot.sprite.texture = cropTextures[bed.crop][stageAt(bed, Date.now())];
+  updateInventory();
+}
+function activateFirstBed() {
+  if (farm.bed) {
+    if (harvest(farm, Date.now())) {
+      saveProgress();
+      bedMessage.textContent = 'Harvest collected! Choose another crop.';
+      refreshFirstBed();
+    } else {
+      const seconds = Math.ceil(Math.max(0, GROW_MS - (Date.now() - farm.bed.plantedAt)) / 1000);
+      bedMessage.textContent = farm.bed.crop + ' growing — about ' + seconds + ' seconds remaining.';
+    }
+  } else {
+    cropPicker.hidden = false;
+    bedMessage.textContent = 'Choose a crop for the empty bed.';
+  }
+}
+for (const crop of CROPS) {
+  const button = document.createElement('button');
+  button.textContent = crop.charAt(0).toUpperCase() + crop.slice(1);
+  button.onclick = () => {
+    if (plant(farm, crop, Date.now())) {
+      saveProgress(); refreshFirstBed();
+      bedMessage.textContent = 'Planted ' + crop + '. Ready in about 30 seconds.';
+    }
+    closePicker();
+  };
+  cropButtons.appendChild(button);
+}
+document.getElementById('close-picker').onclick = closePicker;
+
 const cropOrder = [
   'kohlrabi', 'pineapple', 'chard', 'dragonfruit',
   'cauliflower', 'kohlrabi', 'pineapple', 'chard',
@@ -72,11 +124,24 @@ cropOrder.forEach((crop, index) => {
   sprite.eventMode = 'static';
   sprite.cursor = 'pointer';
   const plot = { sprite, crop, state: 0 };
-  sprite.on('pointertap', () => {
-    if (moved) return;
-    plot.state = (plot.state + 1) % textures.length;
-    plot.sprite.texture = textures[plot.state];
-  });
+  if (index === 0) {
+    // Temporary soil graphic until the approved empty-bed artwork is ready.
+    const empty = new PIXI.Graphics().ellipse(0, 0, 47, 26).fill({ color: 0x805331 }).stroke({ color: 0xb88a55, width: 6 });
+    empty.position.set(sprite.x, sprite.y - 19);
+    empty.eventMode = 'static';
+    empty.cursor = 'pointer';
+    empty.on('pointertap', () => { if (!moved) activateFirstBed(); });
+    sprite.on('pointertap', () => { if (!moved) activateFirstBed(); });
+    layout.addChild(empty);
+    plot.empty = empty;
+    gameplayPlot = plot;
+  } else {
+    sprite.on('pointertap', () => {
+      if (moved) return;
+      plot.state = (plot.state + 1) % textures.length;
+      plot.sprite.texture = textures[plot.state];
+    });
+  }
   layout.addChild(sprite);
   plots.push(plot);
 });
@@ -198,7 +263,9 @@ stageEl.addEventListener('wheel', e => {
   zoom(e.deltaY < 0 ? 1.08 : .92, p.x, p.y);
 }, { passive: false });
 document.getElementById('reset').onclick = fit;
-document.getElementById('cycle').onclick = () => plots.forEach(p => { p.state = (p.state + 1) % cropTextures[p.crop].length; p.sprite.texture = cropTextures[p.crop][p.state]; });
+document.getElementById('cycle').onclick = () => plots.slice(1).forEach(p => { p.state = (p.state + 1) % cropTextures[p.crop].length; p.sprite.texture = cropTextures[p.crop][p.state]; });
+refreshFirstBed();
+setInterval(() => { if (farm.bed) refreshFirstBed(); }, 1000);
 let previousViewport = { width: stageEl.clientWidth, height: stageEl.clientHeight };
 window.addEventListener('resize', () => {
   const oldW = previousViewport.width;
