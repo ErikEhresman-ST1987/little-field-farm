@@ -86,57 +86,109 @@ for (const building of buildings) {
   }
 }
 
-let scale = 1, moved = false;
+// Camera and gesture handling: thresholded taps, bounded panning, and pinch zoom.
+let scale = 1;
+let moved = false; // Sticky until the next gesture, including Pixi's pointertap dispatch.
+const DRAG_THRESHOLD = 8;
 const pointers = new Map();
 let pinchDistance = null;
+let gestureStart = null;
+let dragging = false;
 const position = e => { const r = app.canvas.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
-function fit() {
+const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+const fitScale = () => Math.min(stageEl.clientWidth / WORLD_W, stageEl.clientHeight / WORLD_H);
+function clampCamera() {
   const w = stageEl.clientWidth, h = stageEl.clientHeight;
-  scale = Math.min(w / WORLD_W, h / WORLD_H);
+  const scaledW = WORLD_W * scale, scaledH = WORLD_H * scale;
+  world.x = scaledW <= w ? (w - scaledW) / 2 : Math.max(w - scaledW, Math.min(0, world.x));
+  world.y = scaledH <= h ? (h - scaledH) / 2 : Math.max(h - scaledH, Math.min(0, world.y));
+}
+function fit() {
+  scale = fitScale();
   world.scale.set(scale);
-  world.position.set((w - WORLD_W * scale) / 2, (h - WORLD_H * scale) / 2);
+  world.position.set((stageEl.clientWidth - WORLD_W * scale) / 2, (stageEl.clientHeight - WORLD_H * scale) / 2);
+  clampCamera();
 }
 function zoom(factor, x, y) {
   const old = scale;
-  scale = Math.max(.25, Math.min(3, scale * factor));
+  scale = Math.max(fitScale(), Math.min(3, scale * factor));
   world.x = x - (x - world.x) * scale / old;
   world.y = y - (y - world.y) * scale / old;
   world.scale.set(scale);
+  clampCamera();
 }
-function distance(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
 stageEl.addEventListener('pointerdown', e => {
-  stageEl.setPointerCapture(e.pointerId);
-  pointers.set(e.pointerId, position(e));
-  if (pointers.size === 1) moved = false;
-  if (pointers.size === 2) pinchDistance = distance(...pointers.values());
+  const p = position(e);
+  if (!pointers.size) {
+    moved = false;
+    dragging = false;
+    gestureStart = p;
+  } else {
+    moved = true; // A multi-touch gesture must never activate a crop.
+  }
+  try { stageEl.setPointerCapture(e.pointerId); } catch (_) { /* Capture is optional. */ }
+  pointers.set(e.pointerId, p);
+  if (pointers.size === 2) {
+    pinchDistance = distance(...pointers.values());
+  }
 });
 stageEl.addEventListener('pointermove', e => {
   if (!pointers.has(e.pointerId)) return;
   const previous = pointers.get(e.pointerId), current = position(e);
   pointers.set(e.pointerId, current);
-  if (pointers.size === 2) {
-    const [a, b] = [...pointers.values()];
-    const next = distance(a, b);
-    if (pinchDistance) zoom(next / pinchDistance, (a.x + b.x) / 2, (a.y + b.y) / 2);
-    pinchDistance = next;
+  if (pointers.size >= 2) {
     moved = true;
-  } else if (pointers.size === 1) {
-    const dx = current.x - previous.x, dy = current.y - previous.y;
-    if (Math.hypot(dx, dy) > 1) moved = true;
-    world.x += dx;
-    world.y += dy;
+    if (pointers.size === 2) {
+      const [a, b] = [...pointers.values()];
+      const next = distance(a, b);
+      if (pinchDistance && next > 0) zoom(next / pinchDistance, (a.x + b.x) / 2, (a.y + b.y) / 2);
+      pinchDistance = next;
+    }
+  } else {
+    if (!dragging && gestureStart && distance(current, gestureStart) >= DRAG_THRESHOLD) {
+      dragging = true;
+      moved = true;
+    }
+    if (dragging) {
+      world.x += current.x - previous.x;
+      world.y += current.y - previous.y;
+      clampCamera();
+    }
   }
 });
 function endPointer(e) {
   pointers.delete(e.pointerId);
   pinchDistance = null;
-  if (!pointers.size) setTimeout(() => { moved = false; }, 100);
+  if (pointers.size) {
+    moved = true;
+    gestureStart = null;
+    dragging = false;
+  } else {
+    gestureStart = null;
+    dragging = false;
+  }
+  // Do not reset moved here: Pixi pointertap may fire after pointerup.
 }
 stageEl.addEventListener('pointerup', endPointer);
-stageEl.addEventListener('pointercancel', endPointer);
-stageEl.addEventListener('wheel', e => { e.preventDefault(); const p = position(e); zoom(e.deltaY < 0 ? 1.08 : .92, p.x, p.y); }, { passive: false });
+stageEl.addEventListener('pointercancel', e => { moved = true; endPointer(e); });
+stageEl.addEventListener('lostpointercapture', e => { if (pointers.has(e.pointerId)) { moved = true; endPointer(e); } });
+stageEl.addEventListener('wheel', e => {
+  e.preventDefault();
+  const p = position(e);
+  zoom(e.deltaY < 0 ? 1.08 : .92, p.x, p.y);
+}, { passive: false });
 document.getElementById('reset').onclick = fit;
 document.getElementById('cycle').onclick = () => plots.forEach(p => { p.state = (p.state + 1) % cropTextures[p.crop].length; p.sprite.texture = cropTextures[p.crop][p.state]; });
-window.addEventListener('resize', fit);
+window.addEventListener('resize', () => {
+  const oldW = app.canvas.clientWidth || stageEl.clientWidth;
+  const oldH = app.canvas.clientHeight || stageEl.clientHeight;
+  const centerX = (oldW / 2 - world.x) / scale;
+  const centerY = (oldH / 2 - world.y) / scale;
+  scale = Math.max(fitScale(), scale);
+  world.scale.set(scale);
+  world.x = stageEl.clientWidth / 2 - centerX * scale;
+  world.y = stageEl.clientHeight / 2 - centerY * scale;
+  clampCamera();
+});
 fit();
 status.textContent = buildingFailures.length ? 'Some community artwork could not load: ' + buildingFailures.join(', ') : '12 crop beds and community buildings placed. Tap a bed to advance growth; drag to pan; pinch to zoom.';
