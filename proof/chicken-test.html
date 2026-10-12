@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Little Field Farm — Chicken PixiJS Test</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#192d23;color:#f6efd8;font:16px system-ui,-apple-system,sans-serif}
+main{max-width:860px;margin:auto;padding:18px}h1{font-size:1.3rem;margin:4px 0 8px}
+p{line-height:1.4}.stage{height:min(52vh,410px);min-height:250px;border-radius:14px;overflow:hidden;background:#6eaa52;display:flex;align-items:center;justify-content:center}
+canvas{display:block;width:100%;height:100%} .controls{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:15px 0}
+button{background:#f3e0a5;border:0;border-radius:9px;padding:12px 16px;font:inherit;color:#302b1c}
+input{width:160px;accent-color:#f3e0a5}.status{padding:12px;background:#263c30;border-radius:9px;overflow-wrap:anywhere}
+small{color:#c2d2c5}
+</style></head><body><main>
+<h1>Chicken idle — PixiJS proof</h1><p>Four 256 × 256 frames from <code>assets/chicken-idle-sheet.webp</code>.</p>
+<div class="stage" id="stage" aria-label="Animated chicken preview"></div>
+<div class="controls"><label>Frames per second: <strong id="fpsLabel">3</strong> <input id="fps" type="range" min="1" max="8" step="1" value="3"></label>
+<button id="toggle">Pause</button><button id="step">Step one frame</button><span>Frame: <strong id="frame">1 / 4</strong></span></div>
+<div class="status" id="status" role="status">Starting test…</div>
+<p><small>Isolated test only. Does not modify the farm proof or gameplay. PixiJS requires internet access.</small></p>
+</main>
+<script type="module">
+const status=document.getElementById('status'),stage=document.getElementById('stage'),frameEl=document.getElementById('frame');
+const fpsInput=document.getElementById('fps'),fpsLabel=document.getElementById('fpsLabel'),toggle=document.getElementById('toggle'),step=document.getElementById('step');
+let playing=true,index=0,elapsed=0,animated=null;
+fpsInput.addEventListener('input',()=>{fpsLabel.textContent=fpsInput.value;});
+toggle.addEventListener('click',()=>{playing=!playing;toggle.textContent=playing?'Pause':'Play';});
+step.addEventListener('click',()=>{playing=false;toggle.textContent='Play';if(animated){index=(index+1)%4;animated.gotoAndStop(index);frameEl.textContent=(index+1)+' / 4';}});
+window.addEventListener('error',e=>{status.textContent='Error: '+e.message;});
+window.addEventListener('unhandledrejection',e=>{status.textContent='Error: '+String(e.reason);});
+(async()=>{
+ try{
+  status.textContent='Loading PixiJS…';
+  const PIXI=await import('https://cdn.jsdelivr.net/npm/pixi.js@8.14.3/dist/pixi.min.mjs');
+  const app=new PIXI.Application();
+  await app.init({resizeTo:stage,background:'#6eaa52',antialias:true,resolution:Math.min(devicePixelRatio||1,2),autoDensity:true});
+  stage.appendChild(app.canvas);
+  status.textContent='PixiJS loaded. Loading chicken sprite sheet…';
+  const sheet=await PIXI.Assets.load('assets/chicken-idle-sheet.webp');
+  if(sheet.width!==1024||sheet.height!==256)throw Error('Unexpected sheet size: '+sheet.width+' × '+sheet.height+' (expected 1024 × 256)');
+  const frames=Array.from({length:4},(_,i)=>new PIXI.Texture({source:sheet.source,frame:new PIXI.Rectangle(i*256,0,256,256)}));
+  animated=new PIXI.AnimatedSprite(frames);
+  animated.anchor.set(.5);animated.animationSpeed=0;animated.position.set(app.screen.width/2,app.screen.height/2);
+  const scale=Math.min(app.screen.width/350,app.screen.height/310,1.3);animated.scale.set(scale);
+  app.stage.addChild(animated);animated.gotoAndStop(0);
+  app.renderer.on('resize',(w,h)=>{animated.position.set(w/2,h/2);animated.scale.set(Math.min(w/350,h/310,1.3));});
+  app.ticker.add(t=>{if(!playing)return;elapsed+=t.deltaMS;const ms=1000/Number(fpsInput.value);while(elapsed>=ms){elapsed-=ms;index=(index+1)%4;animated.gotoAndStop(index);frameEl.textContent=(index+1)+' / 4';}});
+  status.textContent='PixiJS ready. Animation running. Watch frame counter and use Step one frame to inspect poses.';
+ }catch(e){status.textContent='Test failed: '+(e?.message||String(e));}
+})();
+</script></body></html>
