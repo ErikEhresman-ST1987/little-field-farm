@@ -16,18 +16,38 @@ const cropFiles = {
   dragonfruit: ['dragonfruit-planted.webp', 'dragonfruit-stage1.webp', 'dragonfruit-stage2.webp', 'dragonfruit-stage3.webp', 'dragonfruit-mature.webp'],
   cauliflower: ['cauliflower-planted.webp', 'cauliflower-stage1.webp', 'cauliflower-stage2.webp', 'cauliflower-stage3.webp', 'cauliflower-mature.webp']
 };
-let cropTextures;
+// The landscape is essential; individual crop stages are optional to scene startup.
+let background;
 try {
-  const background = await PIXI.Assets.load('assets/landscape-new.webp');
-  cropTextures = Object.fromEntries(await Promise.all(Object.entries(cropFiles).map(async ([crop, files]) => [crop, await Promise.all(files.map(name => PIXI.Assets.load('assets/' + name)))])));
-  const scene = new PIXI.Sprite(background);
-  scene.width = WORLD_W;
-  scene.height = WORLD_H;
-  world.addChild(scene);
+  background = await PIXI.Assets.load('assets/landscape-new.webp');
 } catch (error) {
-  status.textContent = 'Could not load the landscape or crop artwork.';
+  status.textContent = 'Farm landscape could not load. Reload to retry.';
+  console.error('Required landscape failed to load', error);
   throw error;
 }
+const scene = new PIXI.Sprite(background);
+scene.width = WORLD_W;
+scene.height = WORLD_H;
+world.addChild(scene);
+
+const cropTextures = {};
+const missingCropStages = [];
+const cropEntries = Object.entries(cropFiles);
+await Promise.all(cropEntries.map(async ([crop, files]) => {
+  const stages = await Promise.all(files.map(async (name, index) => {
+    try {
+      return await PIXI.Assets.load('assets/' + name);
+    } catch (error) {
+      console.error('Crop asset failed:', crop, index, name, error);
+      missingCropStages.push(name);
+      return null;
+    }
+  }));
+  // A missing stage uses the nearest available stage; a wholly missing
+  // variety uses a shared visible placeholder so the other crops still work.
+  const fallback = stages.find(Boolean) || PIXI.Texture.WHITE;
+  cropTextures[crop] = stages.map(texture => texture || fallback);
+}));
 
 // Layout increment: twelve crop beds in the approved grouped field area.
 // These are visual interaction samples, not planted gameplay plots.
@@ -193,4 +213,10 @@ window.addEventListener('resize', () => {
   previousViewport = { width: stageEl.clientWidth, height: stageEl.clientHeight };
 });
 fit();
-status.textContent = buildingFailures.length ? 'Some community artwork could not load: ' + buildingFailures.join(', ') : '12 crop beds and community buildings placed. Tap a bed to advance growth; drag to pan; pinch to zoom.';
+const assetWarnings = [
+  ...(missingCropStages.length ? [missingCropStages.length + ' crop stage image(s) unavailable'] : []),
+  ...(buildingFailures.length ? ['Building artwork unavailable: ' + buildingFailures.join(', ')] : [])
+];
+status.textContent = assetWarnings.length
+  ? 'Farm loaded with missing artwork: ' + assetWarnings.join('; ') + '.'
+  : '12 crop beds and community buildings placed. Tap a bed to advance growth; drag to pan; pinch to zoom.';
