@@ -286,4 +286,4 @@ const assetWarnings = [
 ];
 status.textContent = assetWarnings.length
   ? 'Farm loaded with missing artwork: ' + assetWarnings.join('; ') + '.'
-  : '12 crop beds and community buildings placed. Tap a bed to advance growth; drag to pan; pinch to zoom.';
+  : 'First bed: plant, grow, and harvest. Other beds: artwork preview. Drag to pan; pinch to zoom.';
