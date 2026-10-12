@@ -20,13 +20,12 @@ test('Pixi v8 app and scene remain connected', () => {
   assert.match(css, /touch-action:none/);
 });
 
-test('approved crop field is 12 beds in upper-left 4 by 3 layout', () => {
-  const order = js.match(/const cropOrder = \[([\s\S]*?)\];/);
-  assert.ok(order, 'crop order declaration');
-  const names = [...order[1].matchAll(/'(kohlrabi|pineapple|chard|dragonfruit|cauliflower)'/g)].map(m => m[1]);
-  assert.equal(names.length, 12);
-  assert.equal(new Set(names).size, 5);
-  assert.match(js, /const FIELD = \{ startX: 170, startY: 190, columns: 4,/);
+test('all twelve beds share the approved layout and empty artwork', () => {
+  assert.match(js, /index < 12/);
+  assert.match(js, /const FIELD = \\{ startX: 170, startY: 190, columns: 4,/);
+  assert.match(js, /crop-bed-empty\\.webp/);
+  assert.ok(existsSync(resolve(root, 'proof/assets/crop-bed-empty.webp')));
+  assert.match(js, /activateBed\\(index\\)/);
 });
 
 test('all 25 growth assets are declared and exist', () => {
