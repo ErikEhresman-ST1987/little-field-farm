@@ -598,6 +598,65 @@ for (const building of buildings) {
   }
 }
 
+
+const chickenArt = new PIXI.Container();
+world.addChild(chickenArt);
+const chickenSprites = [];
+let troughEmpty, troughFull, eggsEmpty, eggsReady;
+async function optionalTexture(file) {
+  try { return await PIXI.Assets.load('assets/' + file); }
+  catch (error) { console.warn('Chicken artwork unavailable:', file, error); return null; }
+}
+function placeChickenSprite(texture, x, y, width, clickable = false) {
+  if (!texture) return null;
+  const sprite = new PIXI.Sprite(texture);
+  sprite.anchor.set(.5, 1);
+  sprite.position.set(x, y);
+  sprite.width = width;
+  sprite.height = width * texture.height / texture.width;
+  if (clickable) {
+    sprite.eventMode = 'static'; sprite.cursor = 'pointer';
+    sprite.on('pointertap', () => { if (!moved) openChicken(); });
+  }
+  chickenArt.addChild(sprite);
+  return sprite;
+}
+const coopTexture = await optionalTexture('chicken-coop.webp');
+placeChickenSprite(coopTexture, 790, 840, 245, true);
+const troughTextures = await Promise.all(['chicken-trough-empty.webp','chicken-trough-full.webp','chicken-eggs-empty.webp','chicken-eggs-ready.webp'].map(optionalTexture));
+troughEmpty = placeChickenSprite(troughTextures[0], 655, 920, 110, true);
+troughFull = placeChickenSprite(troughTextures[1], 655, 920, 110, true);
+eggsEmpty = placeChickenSprite(troughTextures[2], 925, 915, 85, true);
+eggsReady = placeChickenSprite(troughTextures[3], 925, 915, 85, true);
+for (const [index, color] of ['red','white','gold'].entries()) {
+  const texture = await optionalTexture('chicken-' + color + '.webp');
+  if (!texture) continue;
+  // Sprite Factory exports four evenly sized horizontal frames in a single WebP.
+  const frameWidth = Math.floor(texture.width / 4);
+  const frames = [];
+  for (let frame = 0; frame < 4; frame++) {
+    frames.push(new PIXI.Texture({ source: texture.source, frame: new PIXI.Rectangle(frame * frameWidth, 0, frameWidth, texture.height) }));
+  }
+  const sprite = placeChickenSprite(frames[0], 680 + index * 112, 1010 - (index % 2) * 28, 84, true);
+  if (sprite) chickenSprites.push({ sprite, frames, index });
+}
+function updateChickenVisuals() {
+  const state = chickenState(farm, Date.now());
+  if (troughEmpty) troughEmpty.visible = state === 'hungry';
+  if (troughFull) troughFull.visible = state !== 'hungry';
+  if (eggsEmpty) eggsEmpty.visible = state !== 'ready';
+  if (eggsReady) eggsReady.visible = state === 'ready';
+}
+updateChickenVisuals();
+app.ticker.add(() => {
+  const t = Date.now() / 1000;
+  for (const { sprite, frames, index } of chickenSprites) {
+    sprite.texture = frames[Math.floor(t / 1.8 + index * 1.4) % frames.length];
+    sprite.y = 1010 - (index % 2) * 28 + Math.sin(t * 1.2 + index * 2) * 3;
+    sprite.x = 680 + index * 112 + Math.sin(t * .42 + index * 2) * 12;
+  }
+});
+
 // Camera and gesture handling: thresholded taps, bounded panning, and pinch zoom.
 let scale = 1;
 let moved = false; // Sticky until the next gesture, including Pixi's pointertap dispatch.
