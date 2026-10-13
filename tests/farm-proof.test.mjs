@@ -193,3 +193,54 @@ test('bakery queue is sequential, consumes ingredients, persists and pays correc
   assert.equal(game.sellBakeryProduct(saved, 'dream'), false);
   assert.equal(game.validFarm(saved), true);
 });
+
+test('backup round-trip preserves all farm progress including active bakery jobs', async () => {
+  const source = read('proof/first-harvest.js');
+  const game = await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
+  const farm = game.freshFarm();
+  farm.coins = 128;
+  farm.beds[2] = { crop: 'dragonfruit', plantedAt: 1000 };
+  farm.inventory.pineapple = 4;
+  farm.inventory.kohlrabi = 2;
+  farm.order = game.makeOrder(7);
+  assert.equal(game.enqueueBakery(farm, 'sunshine', 5000), true);
+  farm.bakery.products.garden = 3;
+  const backup = game.createFarmBackup(farm, '2026-10-12T20:00:00.000Z');
+  const parsed = JSON.parse(backup);
+  assert.equal(parsed.format, game.BACKUP_FORMAT);
+  assert.equal(parsed.backupVersion, 1);
+  assert.deepEqual(game.parseFarmBackup(backup), farm);
+  let saved;
+  const restored = game.restoreFarmBackup({ setItem: (key, value) => { saved = [key, value]; } }, backup);
+  assert.deepEqual(restored, farm);
+  assert.equal(saved[0], game.SAVE_KEY);
+  assert.deepEqual(JSON.parse(saved[1]), farm);
+  assert.notEqual(restored, farm);
+});
+test('invalid backup cannot overwrite existing save', async () => {
+  const source = read('proof/first-harvest.js');
+  const game = await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
+  let writes = 0;
+  const storage = { setItem: () => { writes++; } };
+  const farm = game.freshFarm();
+  for (const invalid of [
+    'not json', '{}', JSON.stringify(farm),
+    JSON.stringify({ format: game.BACKUP_FORMAT, backupVersion: 1, createdAt: '2026-10-12T20:00:00Z', farm: { ...farm, coins: -1 } }),
+    JSON.stringify({ format: game.BACKUP_FORMAT, backupVersion: 2, createdAt: '2026-10-12T20:00:00Z', farm })
+  ]) {
+    assert.throws(() => game.restoreFarmBackup(storage, invalid));
+  }
+  assert.equal(writes, 0);
+  const backup = game.createFarmBackup(farm);
+  assert.throws(() => game.restoreFarmBackup({ setItem: () => { throw new Error('Storage full'); } }, backup), /Storage full/);
+});
+test('backup controls and cache versions are connected', () => {
+  assert.match(html, /id="farm-data-panel"/);
+  assert.match(html, /id="export-farm"/);
+  assert.match(html, /id="import-farm-file"/);
+  assert.match(html, /id="restore-farm"/);
+  assert.match(html, /main\\.js\\?v=backup-1/);
+  assert.match(js, /first-harvest\\.js\\?v=backup-1/);
+  assert.match(js, /window\\.confirm/);
+  assert.match(css, /#farm-data-panel/);
+});
