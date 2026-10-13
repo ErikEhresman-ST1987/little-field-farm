@@ -1,5 +1,5 @@
 import * as PIXI from 'https://cdn.jsdelivr.net/npm/pixi.js@8.14.3/dist/pixi.min.mjs';
-import { CROPS, growthTime, remainingGrowthMs, loadFarm, saveFarm, stageAt, plant, harvest, SELL_PRICES, sellOne, fulfillOrder } from './first-harvest.js?v=crop-timing-1';
+import { CROPS, growthTime, remainingGrowthMs, loadFarm, saveFarm, stageAt, plant, harvest, SELL_PRICES, sellOne, fulfillOrder, BAKERY_RECIPES, BAKERY_PRODUCTS, BAKERY_CAPACITY, enqueueBakery, bakeryReadyCount, collectBakery, sellBakeryProduct } from './first-harvest.js?v=bakery-1';
 
 const stageEl = document.getElementById('stage');
 const status = document.getElementById('status');
@@ -71,11 +71,16 @@ function renderBarnInventory() {
     const count = document.getElementById('barn-count-' + crop);
     if (count) count.textContent = 'In storage: ' + farm.inventory[crop];
   }
+  for (const id of BAKERY_PRODUCTS) {
+    const count = document.getElementById('barn-count-' + id);
+    if (count) count.textContent = 'In storage: ' + farm.bakery.products[id];
+  }
 }
 function openBarn() {
   closePicker();
   closeMarket();
   closeOrder();
+  closeBakery();
   renderBarnInventory();
   barnPanel.hidden = false;
   document.getElementById('close-barn').focus();
@@ -96,6 +101,14 @@ for (const crop of CROPS) {
   quantity.id = 'barn-count-' + crop;
   item.append(image, name, quantity);
   barnItems.appendChild(item);
+}
+for (const id of BAKERY_PRODUCTS) {
+  const recipe = BAKERY_RECIPES[id];
+  const item = document.createElement('div'); item.className = 'barn-item';
+  const image = document.createElement('img'); image.src = 'assets/' + recipe.image; image.alt = recipe.name;
+  const name = document.createElement('span'); name.className = 'crop-name'; name.textContent = recipe.name;
+  const count = document.createElement('span'); count.className = 'crop-count'; count.id = 'barn-count-' + id;
+  item.append(image, name, count); barnItems.appendChild(item);
 }
 document.getElementById('open-barn').onclick = openBarn;
 document.getElementById('close-barn').onclick = closeBarn;
@@ -134,6 +147,23 @@ for (const crop of CROPS) {
   marketItems.appendChild(item);
   marketRows.set(crop, { quantity, button });
 }
+for (const id of BAKERY_PRODUCTS) {
+  const recipe = BAKERY_RECIPES[id];
+  const item = document.createElement('div'); item.className = 'market-item';
+  const image = document.createElement('img'); image.src = 'assets/' + recipe.image; image.alt = recipe.name;
+  const details = document.createElement('div'); details.className = 'market-details';
+  const name = document.createElement('strong'); name.textContent = recipe.name;
+  const quantity = document.createElement('span');
+  const price = document.createElement('span'); price.textContent = 'Price: ' + recipe.price + ' coins each';
+  details.append(name, quantity, price);
+  const button = document.createElement('button'); button.type = 'button'; button.textContent = 'Sell 1';
+  button.onclick = () => {
+    if (!sellBakeryProduct(farm, id)) { marketMessage.textContent = 'No ' + recipe.name + ' available to sell.'; return; }
+    saveProgress(); refreshBeds(); marketMessage.textContent = 'Sold 1 ' + recipe.name + ' for ' + recipe.price + ' coins.';
+  };
+  item.append(image, details, button); marketItems.appendChild(item);
+  marketRows.set(id, { quantity, button });
+}
 function renderMarket() {
   document.getElementById('market-coins').textContent = 'Coins: ' + farm.coins;
   for (const crop of CROPS) {
@@ -141,12 +171,18 @@ function renderMarket() {
     row.quantity.textContent = 'In barn: ' + farm.inventory[crop];
     row.button.disabled = farm.inventory[crop] < 1;
   }
+  for (const id of BAKERY_PRODUCTS) {
+    const row = marketRows.get(id);
+    row.quantity.textContent = 'In barn: ' + farm.bakery.products[id];
+    row.button.disabled = farm.bakery.products[id] < 1;
+  }
 }
 function closeMarket() { marketPanel.hidden = true; }
 function openMarket() {
   closePicker();
   closeBarn();
   closeOrder();
+  closeBakery();
   renderMarket();
   marketMessage.textContent = 'Sell harvested crops one at a time.';
   marketPanel.hidden = false;
@@ -184,6 +220,7 @@ function openOrder() {
   closePicker();
   closeBarn();
   closeMarket();
+  closeBakery();
   renderOrder();
   orderMessage.textContent = 'Complete this order whenever you have enough crops.';
   orderPanel.hidden = false;
@@ -202,11 +239,81 @@ fulfillButton.onclick = () => {
 document.getElementById('open-order').onclick = openOrder;
 document.getElementById('close-order').onclick = closeOrder;
 document.addEventListener('keydown', event => { if (event.key === 'Escape' && !orderPanel.hidden) closeOrder(); });
+
+const bakeryPanel = document.getElementById('bakery-panel');
+const bakeryRecipesEl = document.getElementById('bakery-recipes');
+const bakeryQueueEl = document.getElementById('bakery-queue');
+const bakeryMessage = document.getElementById('bakery-message');
+const bakeryStatus = document.getElementById('bakery-status');
+const collectBakeryButton = document.getElementById('collect-bakery');
+const bakeryRows = new Map();
+function closeBakery() { bakeryPanel.hidden = true; }
+function formatBakeryTime(ms) {
+  const seconds = Math.max(0, Math.ceil(ms / 1000));
+  return Math.floor(seconds / 60) + ':' + String(seconds % 60).padStart(2, '0');
+}
+for (const id of BAKERY_PRODUCTS) {
+  const recipe = BAKERY_RECIPES[id];
+  const item = document.createElement('div'); item.className = 'market-item';
+  const image = document.createElement('img'); image.src = 'assets/' + recipe.image; image.alt = recipe.name;
+  const details = document.createElement('div'); details.className = 'market-details';
+  const name = document.createElement('strong'); name.textContent = recipe.name;
+  const ingredients = document.createElement('span');
+  ingredients.textContent = Object.entries(recipe.ingredients).map(([crop, amount]) => amount + ' ' + harvestNames[crop]).join(' + ');
+  const duration = document.createElement('span'); duration.textContent = 'Bake: ' + formatBakeryTime(recipe.duration);
+  details.append(name, ingredients, duration);
+  const button = document.createElement('button'); button.type = 'button'; button.textContent = 'Bake';
+  button.onclick = () => {
+    if (!enqueueBakery(farm, id, Date.now())) {
+      bakeryMessage.textContent = 'Not enough ingredients or the oven queue is full.'; return;
+    }
+    saveProgress(); refreshBeds(); bakeryMessage.textContent = recipe.name + ' added to the oven queue.';
+  };
+  item.append(image, details, button); bakeryRecipesEl.appendChild(item);
+  bakeryRows.set(id, button);
+}
+function renderBakery() {
+  const now = Date.now();
+  const ready = bakeryReadyCount(farm, now);
+  bakeryStatus.textContent = 'Oven queue: ' + farm.bakery.queue.length + ' / ' + BAKERY_CAPACITY + ' slots · ' + ready + ' ready to collect';
+  for (const id of BAKERY_PRODUCTS) {
+    const recipe = BAKERY_RECIPES[id];
+    bakeryRows.get(id).disabled = farm.bakery.queue.length >= BAKERY_CAPACITY
+      || Object.entries(recipe.ingredients).some(([crop, amount]) => farm.inventory[crop] < amount);
+  }
+  bakeryQueueEl.replaceChildren();
+  if (!farm.bakery.queue.length) bakeryQueueEl.textContent = 'The oven is empty.';
+  for (const [index, job] of farm.bakery.queue.entries()) {
+    const row = document.createElement('div'); row.className = 'bakery-job';
+    const state = job.endsAt <= now ? 'Ready!' : job.startedAt > now ? 'Waiting · starts in ' + formatBakeryTime(job.startedAt - now)
+      : 'Baking · ' + formatBakeryTime(job.endsAt - now) + ' left';
+    row.textContent = (index + 1) + '. ' + BAKERY_RECIPES[job.recipe].name + ' — ' + state;
+    bakeryQueueEl.appendChild(row);
+  }
+  collectBakeryButton.disabled = ready === 0;
+  collectBakeryButton.textContent = ready ? 'Collect ' + ready + ' finished batch' + (ready === 1 ? '' : 'es') : 'Collect finished baking';
+}
+function openBakery() {
+  closePicker(); closeBarn(); closeMarket(); closeOrder();
+  renderBakery(); bakeryMessage.textContent = 'Choose a recipe to start baking.';
+  bakeryPanel.hidden = false; document.getElementById('close-bakery').focus();
+}
+collectBakeryButton.onclick = () => {
+  const count = collectBakery(farm, Date.now());
+  if (!count) return;
+  saveProgress(); refreshBeds();
+  bakeryMessage.textContent = 'Collected ' + count + ' finished batch' + (count === 1 ? '' : 'es') + ' into the barn.';
+};
+document.getElementById('open-bakery').onclick = openBakery;
+document.getElementById('close-bakery').onclick = closeBakery;
+document.addEventListener('keydown', event => { if (event.key === 'Escape' && !bakeryPanel.hidden) closeBakery(); });
+
 function updateInventory() {
   inventoryEl.textContent = CROPS.map(c => c + ': ' + farm.inventory[c]).join(' · ');
   document.getElementById('coin-balance').textContent = 'Coins: ' + farm.coins;
   if (!marketPanel.hidden) renderMarket();
   if (!orderPanel.hidden) renderOrder();
+  if (!bakeryPanel.hidden) renderBakery();
 }
 function closePicker() { cropPicker.hidden = true; selectedBed = null; }
 function saveProgress() {
@@ -240,6 +347,7 @@ function activateBed(index) {
     closeBarn();
     closeMarket();
     closeOrder();
+    closeBakery();
     cropPicker.hidden = false;
     bedMessage.textContent = 'Choose a crop for bed ' + (index + 1) + '.';
   }
@@ -286,6 +394,7 @@ refreshBeds();
 const community = new PIXI.Container();
 world.addChild(community);
 const buildings = [
+  { file: 'bakery.webp', x: 360, y: 900, width: 270 },
   { file: 'barn.webp', x: 1080, y: 780, width: 250 },
   { file: 'market-stall.webp', x: 1300, y: 840, width: 180 },
   { file: 'order-board.webp', x: 1440, y: 830, width: 105 }
@@ -299,6 +408,29 @@ for (const building of buildings) {
     sprite.width = building.width;
     sprite.height = building.width * texture.height / texture.width;
     sprite.position.set(building.x, building.y);
+    if (building.file === 'bakery.webp') {
+      sprite.eventMode = 'static'; sprite.cursor = 'pointer';
+      sprite.on('pointertap', () => { if (!moved) openBakery(); });
+      const chimneyX = building.x + building.width * .19;
+      const chimneyY = building.y - sprite.height * .83;
+      const smoke = new PIXI.Container(); smoke.position.set(chimneyX, chimneyY); community.addChild(smoke);
+      const puffs = Array.from({ length: 5 }, (_, i) => {
+        const circle = new PIXI.Graphics().circle(0, 0, 10 + i * 2).fill({ color: 0xf2f0e9, alpha: .65 });
+        smoke.addChild(circle); return circle;
+      });
+      app.ticker.add(ticker => {
+        const active = farm.bakery.queue.some(job => job.startedAt <= Date.now() && job.endsAt > Date.now());
+        smoke.visible = active;
+        if (!active) return;
+        const time = Date.now() / 1000;
+        for (let i = 0; i < puffs.length; i++) {
+          const progress = ((time * .19 + i / puffs.length) % 1);
+          puffs[i].position.set(Math.sin(time + i) * 4 + progress * 26, -progress * 95);
+          puffs[i].alpha = (1 - progress) * .55;
+          puffs[i].scale.set(.5 + progress * .8);
+        }
+      });
+    }
     if (building.file === 'order-board.webp') {
       sprite.eventMode = 'static';
       sprite.cursor = 'pointer';
@@ -413,7 +545,7 @@ stageEl.addEventListener('wheel', e => {
   zoom(e.deltaY < 0 ? 1.08 : .92, p.x, p.y);
 }, { passive: false });
 document.getElementById('reset').onclick = fit;
-setInterval(() => { if (farm.beds.some(Boolean)) refreshBeds(); }, 1000);
+setInterval(() => { if (farm.beds.some(Boolean)) refreshBeds(); else if (!bakeryPanel.hidden) renderBakery(); }, 1000);
 let previousViewport = { width: stageEl.clientWidth, height: stageEl.clientHeight };
 window.addEventListener('resize', () => {
   const oldW = previousViewport.width;
