@@ -134,8 +134,8 @@ test('individual crop growth times, offline elapsed time, and unchanged saved be
   assert.deepEqual(loaded.beds[2], bed);
   assert.equal(game.stageAt(loaded.beds[2], 181000), 4);
   assert.ok(js.includes('remainingGrowthMs(bed, Date.now())'));
-  assert.ok(html.includes('main.js?v=crop-timing-1'));
-  assert.ok(js.includes('first-harvest.js?v=crop-timing-1'));
+  assert.ok(html.includes('main.js?v=inventory-1'));
+  assert.ok(js.includes('first-harvest.js?v=inventory-1'));
 });
 
 test('bakery assets and UI remain connected', () => {
