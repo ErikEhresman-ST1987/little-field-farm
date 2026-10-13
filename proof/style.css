@@ -31,3 +31,13 @@
 .order-details .order-text{display:flex;flex-direction:column;gap:6px;font-size:14px}
 #fulfill-order{margin-top:12px}
 #fulfill-order:disabled{opacity:.45;cursor:not-allowed}
+
+/* Bakery: same touch-friendly modal as the market, with a three-slot queue. */
+#bakery-panel{position:absolute;inset:50% auto auto 50%;transform:translate(-50%,-50%);z-index:20;width:min(94vw,510px);max-height:min(82dvh,670px);overflow:auto;background:#233a2d;border:2px solid #e7e5b8;border-radius:16px;padding:16px;box-shadow:0 10px 36px #000a}
+#bakery-panel[hidden]{display:none}
+#bakery-panel h3{font-size:15px;margin:14px 0 8px}
+#bakery-status,#bakery-message{font-size:13px}
+#bakery-queue{display:flex;flex-direction:column;gap:6px}
+.bakery-job{padding:9px 11px;border-radius:9px;background:#314d3b;font-size:13px}
+#bakery-panel button:disabled{opacity:.45;cursor:not-allowed}
+#collect-bakery{margin-top:12px}
