@@ -76,7 +76,7 @@ test('selling preserves inventory accounting and migrates old saves', async () =
   old.beds[3] = { crop: 'chard', plantedAt: 100 };
   const storage = { getItem: () => JSON.stringify(old) };
   const farm = module.loadFarm(storage);
-  assert.equal(farm.version, 6);
+  assert.equal(farm.version, 8);
   assert.equal(farm.coins, 0);
   assert.equal(farm.inventory.pineapple, 2);
   assert.equal(farm.beds[3].crop, 'chard');
@@ -162,7 +162,7 @@ test('bakery queue is sequential, consumes ingredients, persists and pays correc
   old.order = game.makeOrder(3);
   old.beds[0] = { crop: 'chard', plantedAt: 1234 };
   const farm = game.loadFarm({ getItem: () => JSON.stringify(old) });
-  assert.equal(farm.version, 6);
+  assert.equal(farm.version, 8);
   assert.equal(farm.coins, 62);
   assert.deepEqual(farm.order, old.order);
   assert.deepEqual(farm.beds[0], old.beds[0]);
@@ -258,7 +258,7 @@ test('version 5 migration unifies bakery goods without losing coins, crops or ac
   farm.bakery = { queue: [{ recipe: 'sunshine', startedAt: 1000, endsAt: 46000 }], products: { sunshine: 2, dream: 1, garden: 4 } };
   for (const id of game.BAKERY_PRODUCTS) delete farm.inventory[id];
   const migrated = game.loadFarm({ getItem: () => JSON.stringify(farm) });
-  assert.equal(migrated.version, 6);
+  assert.equal(migrated.version, 8);
   assert.equal(migrated.coins, 97);
   assert.equal(migrated.inventory.pineapple, 4);
   assert.equal(migrated.inventory.sunshine, 2);
@@ -284,7 +284,7 @@ test('version 5 backup restores into version 6 and remains portable', async () =
   for (const id of game.BAKERY_PRODUCTS) delete legacy.inventory[id];
   const text = JSON.stringify({ format: game.BACKUP_FORMAT, backupVersion: 1, createdAt: '2026-10-12T20:00:00Z', farm: legacy });
   const restored = game.parseFarmBackup(text);
-  assert.equal(restored.version, 6);
+  assert.equal(restored.version, 8);
   assert.equal(restored.inventory.sunshine, 3);
   assert.equal(restored.inventory.dream, 1);
   assert.equal(game.validFarm(restored), true);
@@ -294,7 +294,7 @@ test('version 5 backup restores into version 6 and remains portable', async () =
 test('chickens consume one chard and yield exactly three eggs after 60 seconds', async () => {
   const game = await import('data:text/javascript;base64,' + Buffer.from(read('proof/first-harvest.js')).toString('base64'));
   const farm = game.freshFarm();
-  assert.equal(farm.version, 7);
+  assert.equal(farm.version, 8);
   assert.equal(game.feedChickens(farm, 1000), false);
   farm.inventory.chard = 2;
   assert.equal(game.feedChickens(farm, 1000), true);
@@ -321,7 +321,7 @@ test('v6 farm and backups migrate to v7 preserving existing production and goods
   farm.bakery.queue.push({ recipe: 'garden', startedAt: 1000, endsAt: 61000 });
   const json = JSON.stringify({format:game.BACKUP_FORMAT,backupVersion:1,createdAt:'2026-10-13T12:00:00Z',farm});
   const restored = game.parseFarmBackup(json);
-  assert.equal(restored.version, 7);
+  assert.equal(restored.version, 8);
   assert.equal(restored.coins, 59);
   assert.equal(restored.inventory.sunshine, 3);
   assert.equal(restored.inventory.chard, 4);
@@ -329,4 +329,53 @@ test('v6 farm and backups migrate to v7 preserving existing production and goods
   assert.equal(restored.chicken.startedAt, null);
   assert.deepEqual(restored.bakery.queue, farm.bakery.queue);
   assert.equal(game.validFarm(restored), true);
+});
+
+test('Golden Sunrise Tartlets: ingredients, 75-second queue, collection and 15-coin sale', async () => {
+  const game = await import('data:text/javascript;base64,' + Buffer.from(read('proof/first-harvest.js')).toString('base64'));
+  const farm = game.freshFarm();
+  const recipe = game.BAKERY_RECIPES.tartlets;
+  assert.equal(recipe.name, 'Golden Sunrise Tartlets');
+  assert.equal(recipe.duration, 75000);
+  assert.equal(recipe.price, 15);
+  assert.deepEqual(recipe.ingredients, { egg: 2, pineapple: 1 });
+  assert.equal(game.enqueueBakery(farm, 'tartlets', 1000), false);
+  farm.inventory.egg = 3;
+  farm.inventory.pineapple = 2;
+  assert.equal(game.enqueueBakery(farm, 'tartlets', 1000), true);
+  assert.equal(farm.inventory.egg, 1);
+  assert.equal(farm.inventory.pineapple, 1);
+  assert.equal(game.bakeryReadyCount(farm, 75999), 0);
+  assert.equal(game.collectBakery(farm, 76000), 1);
+  assert.equal(farm.inventory.tartlets, 1);
+  assert.equal(game.sellBakeryProduct(farm, 'tartlets'), true);
+  assert.equal(farm.inventory.tartlets, 0);
+  assert.equal(farm.coins, 15);
+  assert.equal(game.validFarm(farm), true);
+});
+test('v7 saved farm and backup migrate to v8 preserving all prior inventory and production', async () => {
+  const game = await import('data:text/javascript;base64,' + Buffer.from(read('proof/first-harvest.js')).toString('base64'));
+  const old = game.freshFarm();
+  old.version = 7;
+  delete old.inventory.tartlets;
+  old.coins = 70;
+  old.inventory.egg = 3;
+  old.inventory.sunshine = 2;
+  old.chicken.startedAt = 1000;
+  old.bakery.queue.push({ recipe: 'dream', startedAt: 2000, endsAt: 92000 });
+  const storage = {
+    getItem: () => JSON.stringify(old),
+    setItem: () => { throw new Error('Unexpected write'); }
+  };
+  const loaded = game.loadFarm(storage);
+  assert.equal(loaded.version, 8);
+  assert.equal(loaded.coins, 70);
+  assert.equal(loaded.inventory.egg, 3);
+  assert.equal(loaded.inventory.sunshine, 2);
+  assert.equal(loaded.inventory.tartlets, 0);
+  assert.equal(loaded.chicken.startedAt, 1000);
+  assert.deepEqual(loaded.bakery.queue, old.bakery.queue);
+  const backup = JSON.stringify({ format: game.BACKUP_FORMAT, backupVersion: game.BACKUP_VERSION, createdAt: '2026-10-13T12:00:00Z', farm: old });
+  assert.deepEqual(game.parseFarmBackup(backup), loaded);
+  assert.equal(game.validFarm(loaded), true);
 });
