@@ -1,5 +1,5 @@
 import * as PIXI from 'https://cdn.jsdelivr.net/npm/pixi.js@8.14.3/dist/pixi.min.mjs';
-import { CROPS, growthTime, remainingGrowthMs, loadFarm, saveFarm, stageAt, plant, harvest, SELL_PRICES, sellOne, fulfillOrder, BAKERY_RECIPES, BAKERY_PRODUCTS, BAKERY_CAPACITY, enqueueBakery, bakeryReadyCount, collectBakery, sellBakeryProduct, createFarmBackup, restoreFarmBackup, CHICKEN_DURATION, EGG_PRICE, chickenState, feedChickens, collectEggs, sellEgg } from './first-harvest.js?v=tartlets-1';
+import { CROPS, growthTime, remainingGrowthMs, loadFarm, saveFarm, stageAt, plant, harvest, SELL_PRICES, sellOne, fulfillOrder, BAKERY_RECIPES, BAKERY_PRODUCTS, BAKERY_CAPACITY, enqueueBakery, bakeryReadyCount, collectBakery, sellBakeryProduct, createFarmBackup, restoreFarmBackup, CHICKEN_DURATION, EGG_PRICE, chickenState, feedChickens, collectEggs, sellEgg } from './first-harvest.js?v=save-guard-1';
 
 const stageEl = document.getElementById('stage');
 const status = document.getElementById('status');
@@ -54,7 +54,13 @@ await Promise.all(cropEntries.map(async ([crop, files]) => {
 const layout = new PIXI.Container();
 world.addChild(layout);
 const plots = [];
-const farm = loadFarm(localStorage);
+let farm;
+try { farm = loadFarm(localStorage); }
+catch (error) {
+  status.textContent = 'Farm save could not load. Your existing data has NOT been replaced. Do not clear browser data. Use your saved backup after resolving the issue.';
+  console.error('Farm loading stopped to protect saved progress:', error);
+  throw error;
+}
 const inventoryEl = document.getElementById('inventory');
 const cropPicker = document.getElementById('crop-picker');
 const cropButtons = document.getElementById('crop-buttons');
