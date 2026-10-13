@@ -98,3 +98,19 @@ footer{display:flex;flex:0 0 auto;flex-direction:column;align-items:stretch;gap:
   #status{display:none}
   #barn-inventory,#market-panel,#order-panel,#bakery-panel,#crop-picker{max-height:calc(100dvh - 12px)}
 }
+
+/* Backup and restore: compact, scrollable, touch-friendly and independent of farm gestures. */
+#farm-data-panel{position:fixed;inset:50% auto auto 50%;transform:translate(-50%,-50%);z-index:25;width:min(94vw,480px);max-height:calc(100dvh - 24px);overflow-y:auto;overscroll-behavior:contain;background:#233a2d;border:2px solid #e7e5b8;border-radius:16px;padding:16px;box-shadow:0 10px 36px #000a}
+#farm-data-panel[hidden]{display:none}
+#farm-data-panel p{font-size:14px;line-height:1.5}
+#farm-data-panel hr{border:0;border-top:1px solid #6d8771;margin:18px 0}
+#farm-data-panel label{display:block;font-weight:700;margin:10px 0 7px}
+#farm-data-panel input{display:block;width:100%;max-width:100%;margin:0 0 12px;font:inherit}
+#farm-data-panel button{min-height:44px}
+#farm-data-panel button:disabled{opacity:.5;cursor:not-allowed}
+#farm-data-message{overflow-wrap:anywhere}
+@media(max-width:600px){
+ #farm-data-panel{width:calc(100vw - 20px);padding:12px}
+ #farm-controls:after{display:none}
+ #open-bakery,#open-farm-data{grid-column:span 1}
+}
