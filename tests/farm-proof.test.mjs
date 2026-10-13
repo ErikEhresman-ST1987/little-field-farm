@@ -76,7 +76,7 @@ test('selling preserves inventory accounting and migrates old saves', async () =
   old.beds[3] = { crop: 'chard', plantedAt: 100 };
   const storage = { getItem: () => JSON.stringify(old) };
   const farm = module.loadFarm(storage);
-  assert.equal(farm.version, 4);
+  assert.equal(farm.version, 5);
   assert.equal(farm.coins, 0);
   assert.equal(farm.inventory.pineapple, 2);
   assert.equal(farm.beds[3].crop, 'chard');
@@ -136,4 +136,60 @@ test('individual crop growth times, offline elapsed time, and unchanged saved be
   assert.ok(js.includes('remainingGrowthMs(bed, Date.now())'));
   assert.ok(html.includes('main.js?v=crop-timing-1'));
   assert.ok(js.includes('first-harvest.js?v=crop-timing-1'));
+});
+
+test('bakery assets and UI remain connected', () => {
+  for (const file of ['bakery.webp', 'pineapple-sunshine-cakes.webp', 'dragonfruit-dream-cupcakes.webp', 'purple-garden-pies.webp']) {
+    assert.ok(existsSync(resolve(root, 'proof/assets', file)), file);
+  }
+  assert.match(html, /id="bakery-panel"/);
+  assert.match(html, /main\.js\?v=bakery-1/);
+  assert.match(js, /first-harvest\.js\?v=bakery-1/);
+  assert.match(js, /building\.file === 'bakery\.webp'/);
+  assert.match(js, /app\.ticker\.add/);
+});
+test('bakery queue is sequential, consumes ingredients, persists and pays correctly', async () => {
+  const source = read('proof/first-harvest.js');
+  const game = await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
+  const old = game.freshFarm();
+  old.version = 4;
+  delete old.bakery;
+  old.inventory.pineapple = 6;
+  old.inventory.dragonfruit = 2;
+  old.inventory.cauliflower = 1;
+  old.inventory.kohlrabi = 1;
+  old.coins = 62;
+  old.order = game.makeOrder(3);
+  old.beds[0] = { crop: 'chard', plantedAt: 1234 };
+  const farm = game.loadFarm({ getItem: () => JSON.stringify(old) });
+  assert.equal(farm.version, 5);
+  assert.equal(farm.coins, 62);
+  assert.deepEqual(farm.order, old.order);
+  assert.deepEqual(farm.beds[0], old.beds[0]);
+  assert.equal(game.enqueueBakery(farm, 'sunshine', 10000), true);
+  assert.equal(game.enqueueBakery(farm, 'dream', 10000), true);
+  assert.equal(game.enqueueBakery(farm, 'garden', 10000), true);
+  assert.equal(game.enqueueBakery(farm, 'sunshine', 10000), false);
+  assert.equal(farm.inventory.pineapple, 4);
+  assert.equal(farm.inventory.dragonfruit, 0);
+  assert.equal(farm.inventory.cauliflower, 0);
+  assert.equal(farm.inventory.kohlrabi, 0);
+  assert.deepEqual(farm.bakery.queue.map(j => [j.startedAt, j.endsAt]), [[10000,55000],[55000,145000],[145000,205000]]);
+  assert.equal(game.bakeryReadyCount(farm, 54999), 0);
+  assert.equal(game.collectBakery(farm, 54999), 0);
+  assert.equal(game.collectBakery(farm, 55000), 1);
+  assert.equal(farm.bakery.products.sunshine, 1);
+  assert.equal(game.enqueueBakery(farm, 'sunshine', 60000), true);
+  assert.equal(farm.bakery.queue[2].startedAt, 205000);
+  const saved = game.loadFarm({ getItem: () => JSON.stringify(farm) });
+  assert.deepEqual(saved, farm);
+  assert.equal(game.collectBakery(saved, 300000), 3);
+  assert.equal(saved.bakery.products.sunshine, 2);
+  assert.equal(saved.bakery.products.dream, 1);
+  assert.equal(saved.bakery.products.garden, 1);
+  assert.equal(game.collectBakery(saved, 300000), 0);
+  assert.equal(game.sellBakeryProduct(saved, 'dream'), true);
+  assert.equal(saved.coins, 82);
+  assert.equal(game.sellBakeryProduct(saved, 'dream'), false);
+  assert.equal(game.validFarm(saved), true);
 });
