@@ -1,5 +1,5 @@
 import * as PIXI from 'https://cdn.jsdelivr.net/npm/pixi.js@8.14.3/dist/pixi.min.mjs';
-import { CROPS, growthTime, remainingGrowthMs, loadFarm, saveFarm, stageAt, plant, harvest, SELL_PRICES, sellOne, fulfillOrder, BAKERY_RECIPES, BAKERY_PRODUCTS, BAKERY_CAPACITY, enqueueBakery, bakeryReadyCount, collectBakery, sellBakeryProduct, createFarmBackup, restoreFarmBackup, CHICKEN_DURATION, EGG_PRICE, chickenState, feedChickens, collectEggs, sellEgg } from './first-harvest.js?v=chicken-1';
+import { CROPS, growthTime, remainingGrowthMs, loadFarm, saveFarm, stageAt, plant, harvest, SELL_PRICES, sellOne, fulfillOrder, BAKERY_RECIPES, BAKERY_PRODUCTS, BAKERY_CAPACITY, enqueueBakery, bakeryReadyCount, collectBakery, sellBakeryProduct, createFarmBackup, restoreFarmBackup, CHICKEN_DURATION, EGG_PRICE, chickenState, feedChickens, collectEggs, sellEgg } from './first-harvest.js?v=tartlets-1';
 
 const stageEl = document.getElementById('stage');
 const status = document.getElementById('status');
