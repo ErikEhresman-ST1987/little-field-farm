@@ -137,7 +137,7 @@ function migrateFarm(saved) {
     return migrateFarm(migrated);
   }
   if (saved.version === 4 && validOrder(saved.order) && validInventory(saved.inventory, CROPS)) {
-    return migrateFarm({ ...saved, version: 5, bakery: { queue: [], products: Object.fromEntries(BAKERY_PRODUCTS.map(id => [id, 0])) } });
+    return migrateFarm({ ...saved, version: 5, bakery: { queue: [], products: Object.fromEntries(['sunshine', 'dream', 'garden'].map(id => [id, 0])) } });
   }
   if (saved.version === 3 && validInventory(saved.inventory, CROPS)) return migrateFarm({ ...saved, version: 4, order: makeOrder(0) });
   return null;
@@ -147,20 +147,35 @@ export function validFarm(value) {
     && validBakery(value.bakery) && validInventory(value.inventory);
 }
 export function loadFarm(storage) {
-  try {
-    const saved = JSON.parse(storage.getItem(SAVE_KEY));
-    const migrated = migrateFarm(saved);
-    if (migrated) return migrated;
-    if (saved && saved.version === 1 && validBed(saved.bed) && validInventory(saved.inventory, CROPS)) {
-      const upgraded = freshFarm();
-      upgraded.beds[0] = saved.bed;
-      Object.assign(upgraded.inventory, saved.inventory);
-      return upgraded;
-    }
-  } catch (error) { console.warn('Farm save could not be read:', error); }
-  return freshFarm();
+  // A missing save is a new farm. An unreadable or incompatible save is NOT.
+  // Never replace existing progress with an empty farm after a failed migration.
+  const raw = storage.getItem(SAVE_KEY);
+  if (raw === null) return freshFarm();
+  let saved;
+  try { saved = JSON.parse(raw); }
+  catch { throw new Error('Farm save is unreadable. Original browser data was left untouched.'); }
+  const migrated = migrateFarm(saved);
+  if (migrated) return migrated;
+  if (saved && saved.version === 1 && validBed(saved.bed) && validInventory(saved.inventory, CROPS)) {
+    const upgraded = freshFarm();
+    upgraded.beds[0] = saved.bed;
+    Object.assign(upgraded.inventory, saved.inventory);
+    return upgraded;
+  }
+  throw new Error('Farm save is incompatible. Original browser data was left untouched. Restore a backup only after checking your saved data.');
 }
-export function saveFarm(storage, farm) { storage.setItem(SAVE_KEY, JSON.stringify(farm)); }
+export function saveFarm(storage, farm) {
+  if (!validFarm(farm)) throw new Error('Invalid farm state: save blocked.');
+  const current = storage.getItem(SAVE_KEY);
+  if (current !== null) {
+    let previous;
+    try { previous = JSON.parse(current); }
+    catch { throw new Error('Existing farm save is unreadable: overwrite blocked.'); }
+    if (!migrateFarm(previous) && !(previous && previous.version === 1 && validBed(previous.bed) && validInventory(previous.inventory, CROPS)))
+      throw new Error('Existing farm save is incompatible: overwrite blocked.');
+  }
+  storage.setItem(SAVE_KEY, JSON.stringify(farm));
+}
 
 export const BACKUP_FORMAT = 'little-field-farm-backup';
 export const BACKUP_VERSION = 1;
