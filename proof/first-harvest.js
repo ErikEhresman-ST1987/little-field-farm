@@ -31,14 +31,16 @@ export const BAKERY_RECIPES = Object.freeze({
 });
 export const BAKERY_CAPACITY = 3;
 export const BAKERY_PRODUCTS = Object.freeze(Object.keys(BAKERY_RECIPES));
+export const INVENTORY_ITEMS = Object.freeze([...CROPS, ...BAKERY_PRODUCTS]);
+export function emptyInventory() { return Object.fromEntries(INVENTORY_ITEMS.map(id => [id, 0])); }
 export function emptyBakery() {
-  return { queue: [], products: Object.fromEntries(BAKERY_PRODUCTS.map(id => [id, 0])) };
+  return { queue: [] };
 }
 const validBakery = bakery => !!bakery && Array.isArray(bakery.queue) && bakery.queue.length <= BAKERY_CAPACITY
   && bakery.queue.every(job => !!BAKERY_RECIPES[job.recipe] && Number.isFinite(job.startedAt) && job.startedAt >= 0
     && Number.isFinite(job.endsAt) && job.endsAt >= job.startedAt && job.endsAt - job.startedAt === BAKERY_RECIPES[job.recipe].duration)
   && bakery.queue.every((job, i) => i === 0 || job.startedAt === bakery.queue[i - 1].endsAt)
-  && !!bakery.products && BAKERY_PRODUCTS.every(id => Number.isSafeInteger(bakery.products[id]) && bakery.products[id] >= 0);
+;
 export function enqueueBakery(farm, recipe, now) {
   const details = BAKERY_RECIPES[recipe];
   if (!details || !validBakery(farm.bakery) || farm.bakery.queue.length >= BAKERY_CAPACITY || !Number.isFinite(now) || now < 0) return false;
@@ -62,15 +64,15 @@ export function collectBakery(farm, now) {
   const completed = farm.bakery.queue.slice(0, ready);
   for (const id of BAKERY_PRODUCTS) {
     const count = completed.filter(job => job.recipe === id).length;
-    if (farm.bakery.products[id] > Number.MAX_SAFE_INTEGER - count) return 0;
+    if (farm.inventory[id] > Number.MAX_SAFE_INTEGER - count) return 0;
   }
-  for (const job of completed) farm.bakery.products[job.recipe]++;
+  for (const job of completed) farm.inventory[job.recipe]++;
   farm.bakery.queue.splice(0, ready);
   return ready;
 }
 export function sellBakeryProduct(farm, id) {
   const recipe = BAKERY_RECIPES[id];
-  if (!recipe || !Number.isSafeInteger(farm.bakery.products[id]) || farm.bakery.products[id] < 1
+  if (!recipe || !Number.isSafeInteger(farm.inventory[id]) || farm.bakery.products[id] < 1
       || !Number.isSafeInteger(farm.coins) || farm.coins > Number.MAX_SAFE_INTEGER - recipe.price) return false;
   farm.bakery.products[id]--;
   farm.coins += recipe.price;
@@ -78,34 +80,39 @@ export function sellBakeryProduct(farm, id) {
 }
 
 export const SAVE_KEY = 'littleFieldFarm.firstHarvest.v1'; // Preserve existing saved progress.
-export function freshFarm() { return { version: 5, coins: 0, order: makeOrder(0), bakery: emptyBakery(), beds: Array(PLOT_COUNT).fill(null), inventory: Object.fromEntries(CROPS.map(c => [c, 0])) }; }
+export function freshFarm() { return { version: 6, coins: 0, order: makeOrder(0), bakery: emptyBakery(), beds: Array(PLOT_COUNT).fill(null), inventory: emptyInventory() }; }
 const validBed = bed => bed === null || (!!bed && CROPS.includes(bed.crop) && Number.isFinite(bed.plantedAt) && bed.plantedAt >= 0);
-const validInventory = inventory => !!inventory && CROPS.every(c => Number.isSafeInteger(inventory[c]) && inventory[c] >= 0);
+const validInventory = (inventory, ids = INVENTORY_ITEMS) => !!inventory && ids.every(c => Number.isSafeInteger(inventory[c]) && inventory[c] >= 0);
+const validLegacyBakery = bakery => !!bakery && validBakery(bakery) && !!bakery.products && validInventory(bakery.products, BAKERY_PRODUCTS);
+const validOrder = order => !!order && Number.isSafeInteger(order.number) && order.number >= 0 && JSON.stringify(order) === JSON.stringify(makeOrder(order.number));
+const validCore = value => !!value && Number.isSafeInteger(value.coins) && value.coins >= 0 && Array.isArray(value.beds) && value.beds.length === PLOT_COUNT && value.beds.every(validBed);
+function migrateFarm(saved) {
+  if (validFarm(saved)) return saved;
+  if (!saved || !validCore(saved)) return null;
+  if (saved.version === 5 && validOrder(saved.order) && validLegacyBakery(saved.bakery) && validInventory(saved.inventory, CROPS)) {
+    const migrated = { ...saved, version: 6, bakery: { queue: structuredClone(saved.bakery.queue) }, inventory: { ...saved.inventory, ...saved.bakery.products } };
+    return validFarm(migrated) ? migrated : null;
+  }
+  if (saved.version === 4 && validOrder(saved.order) && validInventory(saved.inventory, CROPS)) {
+    return migrateFarm({ ...saved, version: 5, bakery: { queue: [], products: Object.fromEntries(BAKERY_PRODUCTS.map(id => [id, 0])) } });
+  }
+  if (saved.version === 3 && validInventory(saved.inventory, CROPS)) return migrateFarm({ ...saved, version: 4, order: makeOrder(0) });
+  if (saved.version === 2 && validInventory(saved.inventory, CROPS)) return migrateFarm({ ...saved, version: 3, coins: 0 });
+  return null;
+}
 export function validFarm(value) {
-  return !!value && value.version === 5 && validBakery(value.bakery) && value.order && Number.isSafeInteger(value.order.number) && value.order.number >= 0 && JSON.stringify(value.order) === JSON.stringify(makeOrder(value.order.number)) && Number.isSafeInteger(value.coins) && value.coins >= 0 && Array.isArray(value.beds) && value.beds.length === PLOT_COUNT
-    && value.beds.every(validBed) && validInventory(value.inventory);
+  return !!value && value.version === 6 && validCore(value) && validOrder(value.order)
+    && validBakery(value.bakery) && validInventory(value.inventory);
 }
 export function loadFarm(storage) {
   try {
     const saved = JSON.parse(storage.getItem(SAVE_KEY));
-    if (validFarm(saved)) return saved;
-    if (saved && saved.version === 4 && saved.order && Number.isSafeInteger(saved.order.number) && saved.order.number >= 0
-        && JSON.stringify(saved.order) === JSON.stringify(makeOrder(saved.order.number)) && Number.isSafeInteger(saved.coins) && saved.coins >= 0
-        && Array.isArray(saved.beds) && saved.beds.length === PLOT_COUNT && saved.beds.every(validBed) && validInventory(saved.inventory)) {
-      return { ...saved, version: 5, bakery: emptyBakery() };
-    }
-    if (saved && saved.version === 3 && Number.isSafeInteger(saved.coins) && saved.coins >= 0
-        && Array.isArray(saved.beds) && saved.beds.length === PLOT_COUNT && saved.beds.every(validBed) && validInventory(saved.inventory)) {
-      return { ...saved, version: 5, bakery: emptyBakery(), order: makeOrder(0) };
-    }
-    if (saved && saved.version === 2 && Array.isArray(saved.beds) && saved.beds.length === PLOT_COUNT
-        && saved.beds.every(validBed) && validInventory(saved.inventory)) {
-      return { ...saved, version: 5, bakery: emptyBakery(), coins: 0, order: makeOrder(0) };
-    }
-    if (saved && saved.version === 1 && validBed(saved.bed) && validInventory(saved.inventory)) {
+    const migrated = migrateFarm(saved);
+    if (migrated) return migrated;
+    if (saved && saved.version === 1 && validBed(saved.bed) && validInventory(saved.inventory, CROPS)) {
       const upgraded = freshFarm();
       upgraded.beds[0] = saved.bed;
-      upgraded.inventory = { ...saved.inventory };
+      Object.assign(upgraded.inventory, saved.inventory);
       return upgraded;
     }
   } catch (error) { console.warn('Farm save could not be read:', error); }
@@ -125,8 +132,10 @@ export function parseFarmBackup(text) {
   try { data = JSON.parse(text); } catch { throw new Error('This file is not valid JSON.'); }
   if (!data || data.format !== BACKUP_FORMAT || data.backupVersion !== BACKUP_VERSION
       || typeof data.createdAt !== 'string' || !Number.isFinite(Date.parse(data.createdAt))
-      || !validFarm(data.farm)) throw new Error('This is not a compatible Little Field Farm backup.');
-  return structuredClone(data.farm);
+       ) throw new Error('This is not a compatible Little Field Farm backup.');
+  const migrated = migrateFarm(data.farm);
+  if (!migrated) throw new Error('This is not a compatible Little Field Farm backup.');
+  return structuredClone(migrated);
 }
 export function restoreFarmBackup(storage, text) {
   const restored = parseFarmBackup(text);
