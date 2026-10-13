@@ -290,3 +290,43 @@ test('version 5 backup restores into version 6 and remains portable', async () =
   assert.equal(game.validFarm(restored), true);
   assert.deepEqual(game.parseFarmBackup(game.createFarmBackup(restored)), restored);
 });
+
+test('chickens consume one chard and yield exactly three eggs after 60 seconds', async () => {
+  const game = await import('data:text/javascript;base64,' + Buffer.from(read('proof/first-harvest.js')).toString('base64'));
+  const farm = game.freshFarm();
+  assert.equal(farm.version, 7);
+  assert.equal(game.feedChickens(farm, 1000), false);
+  farm.inventory.chard = 2;
+  assert.equal(game.feedChickens(farm, 1000), true);
+  assert.equal(farm.inventory.chard, 1);
+  assert.equal(game.feedChickens(farm, 1001), false);
+  assert.equal(game.collectEggs(farm, 60999), false);
+  assert.equal(game.collectEggs(farm, 61000), true);
+  assert.equal(farm.inventory.egg, 3);
+  assert.equal(game.collectEggs(farm, 61001), false);
+  assert.equal(game.sellEgg(farm), true);
+  assert.equal(farm.inventory.egg, 2);
+  assert.equal(farm.coins, 2);
+  assert.equal(game.validFarm(farm), true);
+});
+test('v6 farm and backups migrate to v7 preserving existing production and goods', async () => {
+  const game = await import('data:text/javascript;base64,' + Buffer.from(read('proof/first-harvest.js')).toString('base64'));
+  const farm = game.freshFarm();
+  farm.version = 6;
+  delete farm.chicken;
+  delete farm.inventory.egg;
+  farm.coins = 59;
+  farm.inventory.sunshine = 3;
+  farm.inventory.chard = 4;
+  farm.bakery.queue.push({ recipe: 'garden', startedAt: 1000, endsAt: 61000 });
+  const json = JSON.stringify({format:game.BACKUP_FORMAT,backupVersion:1,createdAt:'2026-10-13T12:00:00Z',farm});
+  const restored = game.parseFarmBackup(json);
+  assert.equal(restored.version, 7);
+  assert.equal(restored.coins, 59);
+  assert.equal(restored.inventory.sunshine, 3);
+  assert.equal(restored.inventory.chard, 4);
+  assert.equal(restored.inventory.egg, 0);
+  assert.equal(restored.chicken.startedAt, null);
+  assert.deepEqual(restored.bakery.queue, farm.bakery.queue);
+  assert.equal(game.validFarm(restored), true);
+});
