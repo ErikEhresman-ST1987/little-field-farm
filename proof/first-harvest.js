@@ -113,7 +113,7 @@ export const SAVE_KEY = 'littleFieldFarm.firstHarvest.v1'; // Preserve existing 
 export function freshFarm() { return { version: 8, chicken: emptyChicken(), coins: 0, order: makeOrder(0), bakery: emptyBakery(), beds: Array(PLOT_COUNT).fill(null), inventory: emptyInventory() }; }
 const validBed = bed => bed === null || (!!bed && CROPS.includes(bed.crop) && Number.isFinite(bed.plantedAt) && bed.plantedAt >= 0);
 const validInventory = (inventory, ids = INVENTORY_ITEMS) => !!inventory && ids.every(c => Number.isSafeInteger(inventory[c]) && inventory[c] >= 0);
-const validLegacyBakery = bakery => !!bakery && validBakery(bakery) && !!bakery.products && validInventory(bakery.products, BAKERY_PRODUCTS);
+const validLegacyBakery = bakery => !!bakery && validBakery(bakery) && !!bakery.products && validInventory(bakery.products, ['sunshine', 'dream', 'garden']);
 const validOrder = order => !!order && Number.isSafeInteger(order.number) && order.number >= 0 && JSON.stringify(order) === JSON.stringify(makeOrder(order.number));
 const validCore = value => !!value && Number.isSafeInteger(value.coins) && value.coins >= 0 && Array.isArray(value.beds) && value.beds.length === PLOT_COUNT && value.beds.every(validBed);
 function migrateFarm(saved) {
@@ -128,7 +128,7 @@ function migrateFarm(saved) {
     const upgraded = { ...saved, version: 8, inventory: { ...saved.inventory, tartlets: 0 } };
     return validFarm(upgraded) ? upgraded : null;
   }
-  if (saved.version === 6 && validCore(saved) && validOrder(saved.order) && validBakery(saved.bakery) && validInventory(saved.inventory, [...CROPS, ...BAKERY_PRODUCTS])) {
+  if (saved.version === 6 && validCore(saved) && validOrder(saved.order) && validBakery(saved.bakery) && validInventory(saved.inventory, [...CROPS, 'sunshine', 'dream', 'garden'])) {
     const upgraded = { ...saved, version: 7, chicken: emptyChicken(), inventory: { ...saved.inventory, egg: 0 } };
     return migrateFarm(upgraded);
   }
