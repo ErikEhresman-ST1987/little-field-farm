@@ -23,25 +23,84 @@ export function fulfillOrder(farm) {
   farm.order = makeOrder(order.number + 1);
   return true;
 }
+
+export const BAKERY_RECIPES = Object.freeze({
+  sunshine: Object.freeze({ name: 'Pineapple Sunshine Cakes', ingredients: Object.freeze({ pineapple: 2 }), duration: 45000, price: 14, image: 'pineapple-sunshine-cakes.webp' }),
+  dream: Object.freeze({ name: 'Dragon Fruit Dream Cupcakes', ingredients: Object.freeze({ dragonfruit: 2 }), duration: 90000, price: 20, image: 'dragonfruit-dream-cupcakes.webp' }),
+  garden: Object.freeze({ name: 'Purple Garden Pies', ingredients: Object.freeze({ cauliflower: 1, kohlrabi: 1 }), duration: 60000, price: 14, image: 'purple-garden-pies.webp' })
+});
+export const BAKERY_CAPACITY = 3;
+export const BAKERY_PRODUCTS = Object.freeze(Object.keys(BAKERY_RECIPES));
+export function emptyBakery() {
+  return { queue: [], products: Object.fromEntries(BAKERY_PRODUCTS.map(id => [id, 0])) };
+}
+const validBakery = bakery => !!bakery && Array.isArray(bakery.queue) && bakery.queue.length <= BAKERY_CAPACITY
+  && bakery.queue.every(job => !!BAKERY_RECIPES[job.recipe] && Number.isFinite(job.startedAt) && job.startedAt >= 0
+    && Number.isFinite(job.endsAt) && job.endsAt >= job.startedAt && job.endsAt - job.startedAt === BAKERY_RECIPES[job.recipe].duration)
+  && bakery.queue.every((job, i) => i === 0 || job.startedAt === bakery.queue[i - 1].endsAt)
+  && !!bakery.products && BAKERY_PRODUCTS.every(id => Number.isSafeInteger(bakery.products[id]) && bakery.products[id] >= 0);
+export function enqueueBakery(farm, recipe, now) {
+  const details = BAKERY_RECIPES[recipe];
+  if (!details || !validBakery(farm.bakery) || farm.bakery.queue.length >= BAKERY_CAPACITY || !Number.isFinite(now) || now < 0) return false;
+  if (!Object.entries(details.ingredients).every(([crop, amount]) => Number.isSafeInteger(farm.inventory[crop]) && farm.inventory[crop] >= amount)) return false;
+  const queue = farm.bakery.queue;
+  const startedAt = queue.length ? Math.max(now, queue[queue.length - 1].endsAt) : now;
+  const endsAt = startedAt + details.duration;
+  if (!Number.isSafeInteger(endsAt)) return false;
+  for (const [crop, amount] of Object.entries(details.ingredients)) farm.inventory[crop] -= amount;
+  queue.push({ recipe, startedAt, endsAt });
+  return true;
+}
+export function bakeryReadyCount(farm, now) {
+  if (!validBakery(farm.bakery) || !Number.isFinite(now)) return 0;
+  return farm.bakery.queue.filter(job => job.endsAt <= now).length;
+}
+export function collectBakery(farm, now) {
+  if (!validBakery(farm.bakery) || !Number.isFinite(now)) return 0;
+  const ready = bakeryReadyCount(farm, now);
+  if (!ready) return 0;
+  const completed = farm.bakery.queue.slice(0, ready);
+  for (const id of BAKERY_PRODUCTS) {
+    const count = completed.filter(job => job.recipe === id).length;
+    if (farm.bakery.products[id] > Number.MAX_SAFE_INTEGER - count) return 0;
+  }
+  for (const job of completed) farm.bakery.products[job.recipe]++;
+  farm.bakery.queue.splice(0, ready);
+  return ready;
+}
+export function sellBakeryProduct(farm, id) {
+  const recipe = BAKERY_RECIPES[id];
+  if (!recipe || !Number.isSafeInteger(farm.bakery.products[id]) || farm.bakery.products[id] < 1
+      || !Number.isSafeInteger(farm.coins) || farm.coins > Number.MAX_SAFE_INTEGER - recipe.price) return false;
+  farm.bakery.products[id]--;
+  farm.coins += recipe.price;
+  return true;
+}
+
 export const SAVE_KEY = 'littleFieldFarm.firstHarvest.v1'; // Preserve existing saved progress.
-export function freshFarm() { return { version: 4, coins: 0, order: makeOrder(0), beds: Array(PLOT_COUNT).fill(null), inventory: Object.fromEntries(CROPS.map(c => [c, 0])) }; }
+export function freshFarm() { return { version: 5, coins: 0, order: makeOrder(0), bakery: emptyBakery(), beds: Array(PLOT_COUNT).fill(null), inventory: Object.fromEntries(CROPS.map(c => [c, 0])) }; }
 const validBed = bed => bed === null || (!!bed && CROPS.includes(bed.crop) && Number.isFinite(bed.plantedAt) && bed.plantedAt >= 0);
 const validInventory = inventory => !!inventory && CROPS.every(c => Number.isSafeInteger(inventory[c]) && inventory[c] >= 0);
 export function validFarm(value) {
-  return !!value && value.version === 4 && value.order && Number.isSafeInteger(value.order.number) && value.order.number >= 0 && JSON.stringify(value.order) === JSON.stringify(makeOrder(value.order.number)) && Number.isSafeInteger(value.coins) && value.coins >= 0 && Array.isArray(value.beds) && value.beds.length === PLOT_COUNT
+  return !!value && value.version === 5 && validBakery(value.bakery) && value.order && Number.isSafeInteger(value.order.number) && value.order.number >= 0 && JSON.stringify(value.order) === JSON.stringify(makeOrder(value.order.number)) && Number.isSafeInteger(value.coins) && value.coins >= 0 && Array.isArray(value.beds) && value.beds.length === PLOT_COUNT
     && value.beds.every(validBed) && validInventory(value.inventory);
 }
 export function loadFarm(storage) {
   try {
     const saved = JSON.parse(storage.getItem(SAVE_KEY));
     if (validFarm(saved)) return saved;
+    if (saved && saved.version === 4 && saved.order && Number.isSafeInteger(saved.order.number) && saved.order.number >= 0
+        && JSON.stringify(saved.order) === JSON.stringify(makeOrder(saved.order.number)) && Number.isSafeInteger(saved.coins) && saved.coins >= 0
+        && Array.isArray(saved.beds) && saved.beds.length === PLOT_COUNT && saved.beds.every(validBed) && validInventory(saved.inventory)) {
+      return { ...saved, version: 5, bakery: emptyBakery() };
+    }
     if (saved && saved.version === 3 && Number.isSafeInteger(saved.coins) && saved.coins >= 0
         && Array.isArray(saved.beds) && saved.beds.length === PLOT_COUNT && saved.beds.every(validBed) && validInventory(saved.inventory)) {
-      return { ...saved, version: 4, order: makeOrder(0) };
+      return { ...saved, version: 5, bakery: emptyBakery(), order: makeOrder(0) };
     }
     if (saved && saved.version === 2 && Array.isArray(saved.beds) && saved.beds.length === PLOT_COUNT
         && saved.beds.every(validBed) && validInventory(saved.inventory)) {
-      return { ...saved, version: 4, coins: 0, order: makeOrder(0) };
+      return { ...saved, version: 5, bakery: emptyBakery(), coins: 0, order: makeOrder(0) };
     }
     if (saved && saved.version === 1 && validBed(saved.bed) && validInventory(saved.inventory)) {
       const upgraded = freshFarm();
