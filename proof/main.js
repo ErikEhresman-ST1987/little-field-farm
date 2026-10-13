@@ -1,5 +1,5 @@
 import * as PIXI from 'https://cdn.jsdelivr.net/npm/pixi.js@8.14.3/dist/pixi.min.mjs';
-import { CROPS, growthTime, remainingGrowthMs, loadFarm, saveFarm, stageAt, plant, harvest, SELL_PRICES, sellOne, fulfillOrder, BAKERY_RECIPES, BAKERY_PRODUCTS, BAKERY_CAPACITY, enqueueBakery, bakeryReadyCount, collectBakery, sellBakeryProduct, createFarmBackup, restoreFarmBackup } from './first-harvest.js?v=inventory-1';
+import { CROPS, growthTime, remainingGrowthMs, loadFarm, saveFarm, stageAt, plant, harvest, SELL_PRICES, sellOne, fulfillOrder, BAKERY_RECIPES, BAKERY_PRODUCTS, BAKERY_CAPACITY, enqueueBakery, bakeryReadyCount, collectBakery, sellBakeryProduct, createFarmBackup, restoreFarmBackup, CHICKEN_DURATION, EGG_PRICE, chickenState, feedChickens, collectEggs, sellEgg } from './first-harvest.js?v=chicken-1';
 
 const stageEl = document.getElementById('stage');
 const status = document.getElementById('status');
@@ -71,12 +71,15 @@ function renderBarnInventory() {
     const count = document.getElementById('barn-count-' + crop);
     if (count) count.textContent = 'In storage: ' + farm.inventory[crop];
   }
+  const eggCount = document.getElementById('barn-count-egg');
+  if (eggCount) eggCount.textContent = 'In storage: ' + farm.inventory.egg;
   for (const id of BAKERY_PRODUCTS) {
     const count = document.getElementById('barn-count-' + id);
     if (count) count.textContent = 'In storage: ' + farm.inventory[id];
   }
 }
 function openBarn() {
+  closeChicken();
   closePicker();
   closeMarket();
   closeOrder();
@@ -109,6 +112,13 @@ for (const id of BAKERY_PRODUCTS) {
   const image = document.createElement('img'); image.src = 'assets/' + recipe.image; image.alt = recipe.name;
   const name = document.createElement('span'); name.className = 'crop-name'; name.textContent = recipe.name;
   const count = document.createElement('span'); count.className = 'crop-count'; count.id = 'barn-count-' + id;
+  item.append(image, name, count); barnItems.appendChild(item);
+}
+{
+  const item = document.createElement('div'); item.className = 'barn-item';
+  const image = document.createElement('img'); image.src = 'assets/chicken-eggs-ready.webp'; image.alt = 'Fresh eggs';
+  const name = document.createElement('span'); name.className = 'crop-name'; name.textContent = 'Fresh Eggs';
+  const count = document.createElement('span'); count.className = 'crop-count'; count.id = 'barn-count-egg';
   item.append(image, name, count); barnItems.appendChild(item);
 }
 document.getElementById('open-barn').onclick = openBarn;
@@ -165,7 +175,26 @@ for (const id of BAKERY_PRODUCTS) {
   item.append(image, details, button); marketItems.appendChild(item);
   marketRows.set(id, { quantity, button });
 }
+{
+  const item = document.createElement('div'); item.className = 'market-item';
+  const image = document.createElement('img'); image.src = 'assets/chicken-eggs-ready.webp'; image.alt = 'Fresh eggs';
+  const details = document.createElement('div'); details.className = 'market-details';
+  const name = document.createElement('strong'); name.textContent = 'Fresh Eggs';
+  const quantity = document.createElement('span');
+  const price = document.createElement('span'); price.textContent = 'Price: ' + EGG_PRICE + ' coins each';
+  details.append(name, quantity, price);
+  const button = document.createElement('button'); button.type = 'button'; button.textContent = 'Sell 1';
+  button.onclick = () => {
+    if (!sellEgg(farm)) { marketMessage.textContent = 'No eggs available to sell.'; return; }
+    saveProgress(); refreshBeds(); marketMessage.textContent = 'Sold 1 egg for ' + EGG_PRICE + ' coins.';
+  };
+  item.append(image, details, button); marketItems.appendChild(item);
+  marketRows.set('egg', { quantity, button });
+}
 function renderMarket() {
+  const eggs = marketRows.get('egg');
+  eggs.quantity.textContent = 'In barn: ' + farm.inventory.egg;
+  eggs.button.disabled = farm.inventory.egg < 1;
   document.getElementById('market-coins').textContent = 'Coins: ' + farm.coins;
   for (const crop of CROPS) {
     const row = marketRows.get(crop);
@@ -180,6 +209,7 @@ function renderMarket() {
 }
 function closeMarket() { marketPanel.hidden = true; }
 function openMarket() {
+  closeChicken();
   closePicker();
   closeBarn();
   closeOrder();
@@ -312,12 +342,52 @@ document.getElementById('close-bakery').onclick = closeBakery;
 document.addEventListener('keydown', event => { if (event.key === 'Escape' && !bakeryPanel.hidden) closeBakery(); });
 
 
+const chickenPanel = document.getElementById('chicken-panel');
+const chickenStatus = document.getElementById('chicken-status');
+const chickenSupplies = document.getElementById('chicken-supplies');
+const chickenMessage = document.getElementById('chicken-message');
+const feedChickenButton = document.getElementById('feed-chicken');
+const collectEggsButton = document.getElementById('collect-eggs');
+function closeChicken() { chickenPanel.hidden = true; }
+function renderChicken() {
+  const now = Date.now();
+  const state = chickenState(farm, now);
+  chickenStatus.textContent = state === 'hungry' ? 'Your three chickens are ready for a meal.'
+    : state === 'ready' ? 'Three fresh eggs are ready to collect!'
+    : 'Eggs will be ready in ' + Math.ceil(Math.max(0, farm.chicken.startedAt + CHICKEN_DURATION - now) / 1000) + ' seconds.';
+  chickenSupplies.textContent = 'Rainbow chard in barn: ' + farm.inventory.chard + ' · Eggs in barn: ' + farm.inventory.egg;
+  feedChickenButton.hidden = state !== 'hungry';
+  feedChickenButton.disabled = state !== 'hungry' || farm.inventory.chard < 1;
+  collectEggsButton.hidden = state !== 'ready';
+}
+function openChicken() {
+  closePicker(); closeBarn(); closeMarket(); closeOrder(); closeBakery(); closeFarmData();
+  chickenMessage.textContent = '';
+  renderChicken();
+  chickenPanel.hidden = false;
+  document.getElementById('close-chicken').focus();
+}
+feedChickenButton.onclick = () => {
+  if (feedChickens(farm, Date.now())) { saveProgress(); refreshBeds(); chickenMessage.textContent = 'The chickens are enjoying rainbow chard!'; }
+  else chickenMessage.textContent = 'Harvest rainbow chard before feeding.';
+  renderChicken();
+};
+collectEggsButton.onclick = () => {
+  if (collectEggs(farm, Date.now())) { saveProgress(); refreshBeds(); chickenMessage.textContent = 'Collected 3 fresh eggs!'; }
+  else chickenMessage.textContent = 'Eggs are not ready yet.';
+  renderChicken();
+};
+document.getElementById('open-chicken').onclick = openChicken;
+document.getElementById('close-chicken').onclick = closeChicken;
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !chickenPanel.hidden) closeChicken(); });
+
 const farmDataPanel = document.getElementById('farm-data-panel');
 const farmDataMessage = document.getElementById('farm-data-message');
 const importFarmFile = document.getElementById('import-farm-file');
 const restoreFarmButton = document.getElementById('restore-farm');
 function closeFarmData() { farmDataPanel.hidden = true; }
 function openFarmData() {
+  closeChicken();
   closePicker(); closeBarn(); closeMarket(); closeOrder(); closeBakery();
   importFarmFile.value = '';
   restoreFarmButton.disabled = true;
@@ -393,6 +463,7 @@ function saveProgress() {
   catch (error) { bedMessage.textContent = 'Save failed: storage unavailable. Keep this tab open.'; console.error(error); }
 }
 function refreshBeds() {
+  if (!chickenPanel.hidden) renderChicken();
   for (let i = 0; i < plots.length; i++) {
     const bed = farm.beds[i];
     const plot = plots[i];
@@ -404,6 +475,7 @@ function refreshBeds() {
   if (!barnPanel.hidden) renderBarnInventory();
 }
 function activateBed(index) {
+  closeChicken();
   const bed = farm.beds[index];
   if (bed) {
     if (harvest(farm, index, Date.now())) {
@@ -618,7 +690,7 @@ stageEl.addEventListener('wheel', e => {
   zoom(e.deltaY < 0 ? 1.08 : .92, p.x, p.y);
 }, { passive: false });
 document.getElementById('reset').onclick = fit;
-setInterval(() => { if (farm.beds.some(Boolean)) refreshBeds(); else if (!bakeryPanel.hidden) renderBakery(); }, 1000);
+setInterval(() => { if (farm.beds.some(Boolean)) refreshBeds(); else if (!bakeryPanel.hidden) renderBakery(); if (!chickenPanel.hidden) renderChicken(); updateChickenVisuals(); }, 1000);
 let previousViewport = { width: stageEl.clientWidth, height: stageEl.clientHeight };
 window.addEventListener('resize', () => {
   const oldW = previousViewport.width;
