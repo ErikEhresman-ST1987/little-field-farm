@@ -2,18 +2,24 @@
 export const CROPS = ['kohlrabi', 'pineapple', 'chard', 'dragonfruit', 'cauliflower'];
 export const GROW_MS = 30000; // Provisional 30-second test cycle.
 export const PLOT_COUNT = 12;
+// Temporary prices until the farm economy is balanced.
+export const SELL_PRICES = Object.freeze({ kohlrabi: 3, pineapple: 5, chard: 3, dragonfruit: 7, cauliflower: 5 });
 export const SAVE_KEY = 'littleFieldFarm.firstHarvest.v1'; // Preserve existing saved progress.
-export function freshFarm() { return { version: 2, beds: Array(PLOT_COUNT).fill(null), inventory: Object.fromEntries(CROPS.map(c => [c, 0])) }; }
+export function freshFarm() { return { version: 3, coins: 0, beds: Array(PLOT_COUNT).fill(null), inventory: Object.fromEntries(CROPS.map(c => [c, 0])) }; }
 const validBed = bed => bed === null || (!!bed && CROPS.includes(bed.crop) && Number.isFinite(bed.plantedAt) && bed.plantedAt >= 0);
 const validInventory = inventory => !!inventory && CROPS.every(c => Number.isSafeInteger(inventory[c]) && inventory[c] >= 0);
 export function validFarm(value) {
-  return !!value && value.version === 2 && Array.isArray(value.beds) && value.beds.length === PLOT_COUNT
+  return !!value && value.version === 3 && Number.isSafeInteger(value.coins) && value.coins >= 0 && Array.isArray(value.beds) && value.beds.length === PLOT_COUNT
     && value.beds.every(validBed) && validInventory(value.inventory);
 }
 export function loadFarm(storage) {
   try {
     const saved = JSON.parse(storage.getItem(SAVE_KEY));
     if (validFarm(saved)) return saved;
+    if (saved && saved.version === 2 && Array.isArray(saved.beds) && saved.beds.length === PLOT_COUNT
+        && saved.beds.every(validBed) && validInventory(saved.inventory)) {
+      return { ...saved, version: 3, coins: 0 };
+    }
     if (saved && saved.version === 1 && validBed(saved.bed) && validInventory(saved.inventory)) {
       const upgraded = freshFarm();
       upgraded.beds[0] = saved.bed;
@@ -37,4 +43,13 @@ export function harvest(farm, index, now) {
   if (!Number.isInteger(index) || index < 0 || index >= PLOT_COUNT || !farm.beds[index] || stageAt(farm.beds[index], now) < 4) return false;
   farm.inventory[farm.beds[index].crop] += 1;
   farm.beds[index] = null; return true;
+}
+
+export function sellOne(farm, crop) {
+  const price = SELL_PRICES[crop];
+  if (!Number.isSafeInteger(price) || !Number.isSafeInteger(farm.inventory[crop]) || farm.inventory[crop] < 1
+      || !Number.isSafeInteger(farm.coins) || farm.coins > Number.MAX_SAFE_INTEGER - price) return false;
+  farm.inventory[crop] -= 1;
+  farm.coins += price;
+  return true;
 }
