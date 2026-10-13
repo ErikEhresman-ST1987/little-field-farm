@@ -1,5 +1,5 @@
 import * as PIXI from 'https://cdn.jsdelivr.net/npm/pixi.js@8.14.3/dist/pixi.min.mjs';
-import { CROPS, GROW_MS, loadFarm, saveFarm, stageAt, plant, harvest, SELL_PRICES, sellOne } from './first-harvest.js';
+import { CROPS, GROW_MS, loadFarm, saveFarm, stageAt, plant, harvest, SELL_PRICES, sellOne } from './first-harvest.js?v=market-1';
 
 const stageEl = document.getElementById('stage');
 const status = document.getElementById('status');
