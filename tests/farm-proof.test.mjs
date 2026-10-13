@@ -111,3 +111,29 @@ test('single customer order persists, rejects insufficient stock, and pays once'
   assert.match(js, /building\.file === 'order-board\.webp'/);
   assert.match(html, /id="order-panel"/);
 });
+
+test('individual crop growth times, offline elapsed time, and unchanged saved beds', async () => {
+  const source = read('proof/first-harvest.js');
+  const game = await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
+  assert.deepEqual(game.GROW_TIMES, { kohlrabi: 30000, chard: 45000, pineapple: 90000, cauliflower: 120000, dragonfruit: 180000 });
+  const farm = game.freshFarm();
+  for (const crop of game.CROPS) {
+    assert.equal(game.plant(farm, 0, crop, 1000), true);
+    const duration = game.growthTime(crop);
+    assert.equal(game.stageAt(farm.beds[0], 1000), 0);
+    assert.equal(game.stageAt(farm.beds[0], 1000 + duration - 1), 3);
+    assert.equal(game.remainingGrowthMs(farm.beds[0], 1000 + duration - 1), 1);
+    assert.equal(game.harvest(farm, 0, 1000 + duration - 1), false);
+    assert.equal(game.stageAt(farm.beds[0], 1000 + duration), 4);
+    assert.equal(game.harvest(farm, 0, 1000 + duration), true);
+    assert.equal(farm.inventory[crop], 1);
+  }
+  const bed = { crop: 'dragonfruit', plantedAt: 1000 };
+  farm.beds[2] = bed;
+  const loaded = game.loadFarm({ getItem: () => JSON.stringify(farm) });
+  assert.deepEqual(loaded.beds[2], bed);
+  assert.equal(game.stageAt(loaded.beds[2], 181000), 4);
+  assert.ok(js.includes('remainingGrowthMs(bed, Date.now())'));
+  assert.ok(html.includes('main.js?v=crop-timing-1'));
+  assert.ok(js.includes('first-harvest.js?v=crop-timing-1'));
+});
