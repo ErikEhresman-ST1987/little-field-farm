@@ -22,3 +22,12 @@
 .market-item button{padding:9px 10px;white-space:nowrap}
 .market-item button:disabled{opacity:.45;cursor:not-allowed}
 #market-message{font-size:13px;margin-bottom:0}
+
+/* One active customer order, no timers or penalties. */
+#order-panel{position:absolute;inset:50% auto auto 50%;transform:translate(-50%,-50%);z-index:20;width:min(92vw,420px);max-height:78dvh;overflow:auto;background:#233a2d;border:2px solid #e7e5b8;border-radius:16px;padding:16px;box-shadow:0 10px 36px #000a}
+#order-panel[hidden]{display:none}
+.order-details{display:flex;align-items:center;gap:14px;background:#314d3b;padding:12px;border-radius:12px}
+.order-details img{width:84px;height:84px;object-fit:contain;background:#fff;border-radius:10px}
+.order-details .order-text{display:flex;flex-direction:column;gap:6px;font-size:14px}
+#fulfill-order{margin-top:12px}
+#fulfill-order:disabled{opacity:.45;cursor:not-allowed}
