@@ -27,7 +27,8 @@ export function fulfillOrder(farm) {
 export const BAKERY_RECIPES = Object.freeze({
   sunshine: Object.freeze({ name: 'Pineapple Sunshine Cakes', ingredients: Object.freeze({ pineapple: 2 }), duration: 45000, price: 14, image: 'pineapple-sunshine-cakes.webp' }),
   dream: Object.freeze({ name: 'Dragon Fruit Dream Cupcakes', ingredients: Object.freeze({ dragonfruit: 2 }), duration: 90000, price: 20, image: 'dragonfruit-dream-cupcakes.webp' }),
-  garden: Object.freeze({ name: 'Purple Garden Pies', ingredients: Object.freeze({ cauliflower: 1, kohlrabi: 1 }), duration: 60000, price: 14, image: 'purple-garden-pies.webp' })
+  garden: Object.freeze({ name: 'Purple Garden Pies', ingredients: Object.freeze({ cauliflower: 1, kohlrabi: 1 }), duration: 60000, price: 14, image: 'purple-garden-pies.webp' }),
+  tartlets: Object.freeze({ name: 'Golden Sunrise Tartlets', ingredients: Object.freeze({ egg: 2, pineapple: 1 }), duration: 75000, price: 15, image: 'golden-sunrise-tartlets.webp' })
 });
 export const BAKERY_CAPACITY = 3;
 export const BAKERY_PRODUCTS = Object.freeze(Object.keys(BAKERY_RECIPES));
@@ -109,7 +110,7 @@ export function sellEgg(farm) {
 }
 
 export const SAVE_KEY = 'littleFieldFarm.firstHarvest.v1'; // Preserve existing saved progress.
-export function freshFarm() { return { version: 7, chicken: emptyChicken(), coins: 0, order: makeOrder(0), bakery: emptyBakery(), beds: Array(PLOT_COUNT).fill(null), inventory: emptyInventory() }; }
+export function freshFarm() { return { version: 8, chicken: emptyChicken(), coins: 0, order: makeOrder(0), bakery: emptyBakery(), beds: Array(PLOT_COUNT).fill(null), inventory: emptyInventory() }; }
 const validBed = bed => bed === null || (!!bed && CROPS.includes(bed.crop) && Number.isFinite(bed.plantedAt) && bed.plantedAt >= 0);
 const validInventory = (inventory, ids = INVENTORY_ITEMS) => !!inventory && ids.every(c => Number.isSafeInteger(inventory[c]) && inventory[c] >= 0);
 const validLegacyBakery = bakery => !!bakery && validBakery(bakery) && !!bakery.products && validInventory(bakery.products, BAKERY_PRODUCTS);
@@ -122,9 +123,14 @@ function migrateFarm(saved) {
     return migrateFarm({ ...saved, version: 3, coins: 0 });
   }
   if (!validCore(saved)) return null;
+  if (saved.version === 7 && validCore(saved) && validOrder(saved.order) && validChicken(saved.chicken)
+      && validBakery(saved.bakery) && validInventory(saved.inventory, [...CROPS, 'sunshine', 'dream', 'garden', 'egg'])) {
+    const upgraded = { ...saved, version: 8, inventory: { ...saved.inventory, tartlets: 0 } };
+    return validFarm(upgraded) ? upgraded : null;
+  }
   if (saved.version === 6 && validCore(saved) && validOrder(saved.order) && validBakery(saved.bakery) && validInventory(saved.inventory, [...CROPS, ...BAKERY_PRODUCTS])) {
     const upgraded = { ...saved, version: 7, chicken: emptyChicken(), inventory: { ...saved.inventory, egg: 0 } };
-    return validFarm(upgraded) ? upgraded : null;
+    return migrateFarm(upgraded);
   }
   if (saved.version === 5 && validOrder(saved.order) && validLegacyBakery(saved.bakery) && validInventory(saved.inventory, CROPS)) {
     const migrated = { ...saved, version: 6, bakery: { queue: structuredClone(saved.bakery.queue) }, inventory: { ...saved.inventory, ...saved.bakery.products } };
@@ -137,7 +143,7 @@ function migrateFarm(saved) {
   return null;
 }
 export function validFarm(value) {
-  return !!value && value.version === 7 && validChicken(value.chicken) && validCore(value) && validOrder(value.order)
+  return !!value && value.version === 8 && validChicken(value.chicken) && validCore(value) && validOrder(value.order)
     && validBakery(value.bakery) && validInventory(value.inventory);
 }
 export function loadFarm(storage) {
