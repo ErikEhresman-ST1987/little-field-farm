@@ -1,5 +1,5 @@
 import * as PIXI from 'https://cdn.jsdelivr.net/npm/pixi.js@8.14.3/dist/pixi.min.mjs';
-import { CROPS, growthTime, remainingGrowthMs, loadFarm, saveFarm, stageAt, plant, harvest, SELL_PRICES, sellOne, fulfillOrder, BAKERY_RECIPES, BAKERY_PRODUCTS, BAKERY_CAPACITY, enqueueBakery, bakeryReadyCount, collectBakery, sellBakeryProduct } from './first-harvest.js?v=bakery-1';
+import { CROPS, growthTime, remainingGrowthMs, loadFarm, saveFarm, stageAt, plant, harvest, SELL_PRICES, sellOne, fulfillOrder, BAKERY_RECIPES, BAKERY_PRODUCTS, BAKERY_CAPACITY, enqueueBakery, bakeryReadyCount, collectBakery, sellBakeryProduct, createFarmBackup, restoreFarmBackup } from './first-harvest.js?v=backup-1';
 
 const stageEl = document.getElementById('stage');
 const status = document.getElementById('status');
@@ -81,6 +81,7 @@ function openBarn() {
   closeMarket();
   closeOrder();
   closeBakery();
+  closeFarmData();
   renderBarnInventory();
   barnPanel.hidden = false;
   document.getElementById('close-barn').focus();
@@ -183,6 +184,7 @@ function openMarket() {
   closeBarn();
   closeOrder();
   closeBakery();
+  closeFarmData();
   renderMarket();
   marketMessage.textContent = 'Sell harvested crops one at a time.';
   marketPanel.hidden = false;
@@ -221,6 +223,7 @@ function openOrder() {
   closeBarn();
   closeMarket();
   closeBakery();
+  closeFarmData();
   renderOrder();
   orderMessage.textContent = 'Complete this order whenever you have enough crops.';
   orderPanel.hidden = false;
@@ -294,7 +297,7 @@ function renderBakery() {
   collectBakeryButton.textContent = ready ? 'Collect ' + ready + ' finished batch' + (ready === 1 ? '' : 'es') : 'Collect finished baking';
 }
 function openBakery() {
-  closePicker(); closeBarn(); closeMarket(); closeOrder();
+  closePicker(); closeBarn(); closeMarket(); closeOrder(); closeFarmData();
   renderBakery(); bakeryMessage.textContent = 'Choose a recipe to start baking.';
   bakeryPanel.hidden = false; document.getElementById('close-bakery').focus();
 }
@@ -307,6 +310,75 @@ collectBakeryButton.onclick = () => {
 document.getElementById('open-bakery').onclick = openBakery;
 document.getElementById('close-bakery').onclick = closeBakery;
 document.addEventListener('keydown', event => { if (event.key === 'Escape' && !bakeryPanel.hidden) closeBakery(); });
+
+
+const farmDataPanel = document.getElementById('farm-data-panel');
+const farmDataMessage = document.getElementById('farm-data-message');
+const importFarmFile = document.getElementById('import-farm-file');
+const restoreFarmButton = document.getElementById('restore-farm');
+function closeFarmData() { farmDataPanel.hidden = true; }
+function openFarmData() {
+  closePicker(); closeBarn(); closeMarket(); closeOrder(); closeBakery();
+  importFarmFile.value = '';
+  restoreFarmButton.disabled = true;
+  farmDataMessage.textContent = 'Your existing progress will remain unchanged unless you confirm a restore.';
+  farmDataPanel.hidden = false;
+  document.getElementById('close-farm-data').focus();
+}
+document.getElementById('open-farm-data').onclick = openFarmData;
+document.getElementById('close-farm-data').onclick = closeFarmData;
+document.addEventListener('keydown', event => { if (event.key === 'Escape' && !farmDataPanel.hidden) closeFarmData(); });
+document.getElementById('export-farm').onclick = () => {
+  try {
+    const json = createFarmBackup(farm);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'little-field-farm-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    farmDataMessage.textContent = 'Backup prepared. Save the downloaded JSON file in a safe location.';
+  } catch (error) {
+    farmDataMessage.textContent = 'Backup failed: ' + error.message;
+  }
+};
+importFarmFile.onchange = () => {
+  restoreFarmButton.disabled = !importFarmFile.files?.length;
+  farmDataMessage.textContent = restoreFarmButton.disabled ? 'Choose a JSON backup file.' : 'File selected. Restore will ask for confirmation.';
+};
+restoreFarmButton.onclick = async () => {
+  const file = importFarmFile.files?.[0];
+  if (!file) return;
+  if (file.size > 2_000_000) { farmDataMessage.textContent = 'File is too large for a farm backup.'; return; }
+  restoreFarmButton.disabled = true;
+  try {
+    const text = await file.text();
+    // Confirmation is intentionally after reading, but before any storage or farm mutation.
+    const { parseFarmBackup } = await import('./first-harvest.js?v=backup-1');
+    const preview = parseFarmBackup(text);
+    const prompt = 'Replace this browser\'s current farm with the selected backup?\n\n'
+      + 'Backup contains ' + preview.coins + ' coins and ' + preview.bakery.queue.length + ' bakery jobs.\n\n'
+      + 'This will overwrite your current saved farm. Cancel keeps everything unchanged.';
+    if (!window.confirm(prompt)) {
+      farmDataMessage.textContent = 'Restore cancelled. Your current farm is unchanged.';
+      return;
+    }
+    const restored = restoreFarmBackup(localStorage, text);
+    for (const key of Object.keys(farm)) delete farm[key];
+    Object.assign(farm, restored);
+    closePicker();
+    refreshBeds();
+    farmDataMessage.textContent = 'Farm restored successfully. Beds, orders, coins, inventory, and bakery queue are updated.';
+    bedMessage.textContent = 'Farm backup restored successfully.';
+  } catch (error) {
+    farmDataMessage.textContent = 'Restore failed. Existing farm preserved. ' + error.message;
+  } finally {
+    restoreFarmButton.disabled = !importFarmFile.files?.length;
+  }
+};
 
 function updateInventory() {
   inventoryEl.textContent = CROPS.map(c => c + ': ' + farm.inventory[c]).join(' · ');
@@ -348,6 +420,7 @@ function activateBed(index) {
     closeMarket();
     closeOrder();
     closeBakery();
+    closeFarmData();
     cropPicker.hidden = false;
     bedMessage.textContent = 'Choose a crop for bed ' + (index + 1) + '.';
   }
