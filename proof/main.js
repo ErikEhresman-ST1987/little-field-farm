@@ -1,5 +1,5 @@
 import * as PIXI from 'https://cdn.jsdelivr.net/npm/pixi.js@8.14.3/dist/pixi.min.mjs';
-import { CROPS, GROW_MS, loadFarm, saveFarm, stageAt, plant, harvest } from './first-harvest.js';
+import { CROPS, GROW_MS, loadFarm, saveFarm, stageAt, plant, harvest, SELL_PRICES, sellOne } from './first-harvest.js';
 
 const stageEl = document.getElementById('stage');
 const status = document.getElementById('status');
@@ -74,6 +74,7 @@ function renderBarnInventory() {
 }
 function openBarn() {
   closePicker();
+  closeMarket();
   renderBarnInventory();
   barnPanel.hidden = false;
   document.getElementById('close-barn').focus();
@@ -98,8 +99,64 @@ for (const crop of CROPS) {
 document.getElementById('open-barn').onclick = openBarn;
 document.getElementById('close-barn').onclick = closeBarn;
 document.addEventListener('keydown', event => { if (event.key === 'Escape' && !barnPanel.hidden) closeBarn(); });
+const marketPanel = document.getElementById('market-panel');
+const marketItems = document.getElementById('market-items');
+const marketMessage = document.getElementById('market-message');
+const marketRows = new Map();
+for (const crop of CROPS) {
+  const item = document.createElement('div');
+  item.className = 'market-item';
+  const image = document.createElement('img');
+  image.src = 'assets/' + crop + '-harvest.webp';
+  image.alt = harvestNames[crop];
+  const details = document.createElement('div');
+  details.className = 'market-details';
+  const name = document.createElement('strong');
+  name.textContent = harvestNames[crop];
+  const quantity = document.createElement('span');
+  const price = document.createElement('span');
+  price.textContent = 'Price: ' + SELL_PRICES[crop] + ' coins each';
+  details.append(name, quantity, price);
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.textContent = 'Sell 1';
+  button.onclick = () => {
+    if (!sellOne(farm, crop)) {
+      marketMessage.textContent = 'No ' + harvestNames[crop] + ' available to sell.';
+      return;
+    }
+    saveProgress();
+    refreshBeds();
+    marketMessage.textContent = 'Sold 1 ' + harvestNames[crop] + ' for ' + SELL_PRICES[crop] + ' coins.';
+  };
+  item.append(image, details, button);
+  marketItems.appendChild(item);
+  marketRows.set(crop, { quantity, button });
+}
+function renderMarket() {
+  document.getElementById('market-coins').textContent = 'Coins: ' + farm.coins;
+  for (const crop of CROPS) {
+    const row = marketRows.get(crop);
+    row.quantity.textContent = 'In barn: ' + farm.inventory[crop];
+    row.button.disabled = farm.inventory[crop] < 1;
+  }
+}
+function closeMarket() { marketPanel.hidden = true; }
+function openMarket() {
+  closePicker();
+  closeBarn();
+  renderMarket();
+  marketMessage.textContent = 'Sell harvested crops one at a time.';
+  marketPanel.hidden = false;
+  document.getElementById('close-market').focus();
+}
+document.getElementById('open-market').onclick = openMarket;
+document.getElementById('close-market').onclick = closeMarket;
+document.addEventListener('keydown', event => { if (event.key === 'Escape' && !marketPanel.hidden) closeMarket(); });
 function updateInventory() {
   inventoryEl.textContent = CROPS.map(c => c + ': ' + farm.inventory[c]).join(' · ');
+  document.getElementById('coin-balance').textContent = 'Coins: ' + farm.coins;
+  if (!marketPanel.hidden) renderMarket();
 }
 function closePicker() { cropPicker.hidden = true; selectedBed = null; }
 function saveProgress() {
@@ -131,6 +188,7 @@ function activateBed(index) {
   } else {
     selectedBed = index;
     closeBarn();
+    closeMarket();
     cropPicker.hidden = false;
     bedMessage.textContent = 'Choose a crop for bed ' + (index + 1) + '.';
   }
@@ -190,6 +248,11 @@ for (const building of buildings) {
     sprite.width = building.width;
     sprite.height = building.width * texture.height / texture.width;
     sprite.position.set(building.x, building.y);
+    if (building.file === 'market-stall.webp') {
+      sprite.eventMode = 'static';
+      sprite.cursor = 'pointer';
+      sprite.on('pointertap', () => { if (!moved) openMarket(); });
+    }
     if (building.file === 'barn.webp') {
       sprite.eventMode = 'static';
       sprite.cursor = 'pointer';
