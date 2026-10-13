@@ -60,6 +60,44 @@ const cropPicker = document.getElementById('crop-picker');
 const cropButtons = document.getElementById('crop-buttons');
 const bedMessage = document.getElementById('bed-message');
 let selectedBed = null;
+const barnPanel = document.getElementById('barn-inventory');
+const barnItems = document.getElementById('barn-items');
+const harvestNames = {
+  kohlrabi: 'Purple Kohlrabi', pineapple: 'Pineapple', chard: 'Rainbow Chard',
+  dragonfruit: 'Dragon Fruit', cauliflower: 'Purple Cauliflower'
+};
+function renderBarnInventory() {
+  for (const crop of CROPS) {
+    const count = document.getElementById('barn-count-' + crop);
+    if (count) count.textContent = 'In storage: ' + farm.inventory[crop];
+  }
+}
+function openBarn() {
+  closePicker();
+  renderBarnInventory();
+  barnPanel.hidden = false;
+  document.getElementById('close-barn').focus();
+}
+function closeBarn() { barnPanel.hidden = true; }
+for (const crop of CROPS) {
+  const item = document.createElement('div');
+  item.className = 'barn-item';
+  const image = document.createElement('img');
+  image.src = 'assets/' + crop + '-harvest.webp';
+  image.alt = harvestNames[crop];
+  image.loading = 'lazy';
+  const name = document.createElement('span');
+  name.className = 'crop-name';
+  name.textContent = harvestNames[crop];
+  const quantity = document.createElement('span');
+  quantity.className = 'crop-count';
+  quantity.id = 'barn-count-' + crop;
+  item.append(image, name, quantity);
+  barnItems.appendChild(item);
+}
+document.getElementById('open-barn').onclick = openBarn;
+document.getElementById('close-barn').onclick = closeBarn;
+document.addEventListener('keydown', event => { if (event.key === 'Escape' && !barnPanel.hidden) closeBarn(); });
 function updateInventory() {
   inventoryEl.textContent = CROPS.map(c => c + ': ' + farm.inventory[c]).join(' · ');
 }
@@ -77,6 +115,7 @@ function refreshBeds() {
     if (bed) plot.cropSprite.texture = cropTextures[bed.crop][stageAt(bed, Date.now())];
   }
   updateInventory();
+  if (!barnPanel.hidden) renderBarnInventory();
 }
 function activateBed(index) {
   const bed = farm.beds[index];
@@ -91,6 +130,7 @@ function activateBed(index) {
     }
   } else {
     selectedBed = index;
+    closeBarn();
     cropPicker.hidden = false;
     bedMessage.textContent = 'Choose a crop for bed ' + (index + 1) + '.';
   }
@@ -150,6 +190,11 @@ for (const building of buildings) {
     sprite.width = building.width;
     sprite.height = building.width * texture.height / texture.width;
     sprite.position.set(building.x, building.y);
+    if (building.file === 'barn.webp') {
+      sprite.eventMode = 'static';
+      sprite.cursor = 'pointer';
+      sprite.on('pointertap', () => { if (!moved) openBarn(); });
+    }
     community.addChild(sprite);
   } catch (error) {
     console.error('Building artwork failed:', building.file, error);
