@@ -1,5 +1,5 @@
 import * as PIXI from 'https://cdn.jsdelivr.net/npm/pixi.js@8.14.3/dist/pixi.min.mjs';
-import { CROPS, GROW_MS, loadFarm, saveFarm, stageAt, plant, harvest, SELL_PRICES, sellOne } from './first-harvest.js?v=market-1';
+import { CROPS, GROW_MS, loadFarm, saveFarm, stageAt, plant, harvest, SELL_PRICES, sellOne, fulfillOrder } from './first-harvest.js?v=orders-1';
 
 const stageEl = document.getElementById('stage');
 const status = document.getElementById('status');
@@ -75,6 +75,7 @@ function renderBarnInventory() {
 function openBarn() {
   closePicker();
   closeMarket();
+  closeOrder();
   renderBarnInventory();
   barnPanel.hidden = false;
   document.getElementById('close-barn').focus();
@@ -145,6 +146,7 @@ function closeMarket() { marketPanel.hidden = true; }
 function openMarket() {
   closePicker();
   closeBarn();
+  closeOrder();
   renderMarket();
   marketMessage.textContent = 'Sell harvested crops one at a time.';
   marketPanel.hidden = false;
@@ -153,10 +155,58 @@ function openMarket() {
 document.getElementById('open-market').onclick = openMarket;
 document.getElementById('close-market').onclick = closeMarket;
 document.addEventListener('keydown', event => { if (event.key === 'Escape' && !marketPanel.hidden) closeMarket(); });
+const orderPanel = document.getElementById('order-panel');
+const orderDetails = document.getElementById('order-details');
+const orderMessage = document.getElementById('order-message');
+const fulfillButton = document.getElementById('fulfill-order');
+function closeOrder() { orderPanel.hidden = true; }
+function renderOrder() {
+  const order = farm.order;
+  orderDetails.replaceChildren();
+  const image = document.createElement('img');
+  image.src = 'assets/' + order.crop + '-harvest.webp';
+  image.alt = harvestNames[order.crop];
+  const description = document.createElement('div');
+  description.className = 'order-text';
+  const heading = document.createElement('strong');
+  heading.textContent = 'Order #' + (order.number + 1) + ': ' + harvestNames[order.crop];
+  const required = document.createElement('span');
+  required.textContent = 'Requested: ' + order.quantity;
+  const stock = document.createElement('span');
+  stock.textContent = 'In barn: ' + farm.inventory[order.crop] + ' / ' + order.quantity;
+  const reward = document.createElement('strong');
+  reward.textContent = 'Reward: ' + order.reward + ' coins';
+  description.append(heading, required, stock, reward);
+  orderDetails.append(image, description);
+  fulfillButton.disabled = farm.inventory[order.crop] < order.quantity;
+}
+function openOrder() {
+  closePicker();
+  closeBarn();
+  closeMarket();
+  renderOrder();
+  orderMessage.textContent = 'Complete this order whenever you have enough crops.';
+  orderPanel.hidden = false;
+  document.getElementById('close-order').focus();
+}
+fulfillButton.onclick = () => {
+  const completed = farm.order;
+  if (!fulfillOrder(farm)) {
+    orderMessage.textContent = 'Harvest more ' + harvestNames[completed.crop] + ' to finish this order.';
+    return;
+  }
+  saveProgress();
+  refreshBeds();
+  orderMessage.textContent = 'Order completed! Earned ' + completed.reward + ' coins. A new order is ready.';
+};
+document.getElementById('open-order').onclick = openOrder;
+document.getElementById('close-order').onclick = closeOrder;
+document.addEventListener('keydown', event => { if (event.key === 'Escape' && !orderPanel.hidden) closeOrder(); });
 function updateInventory() {
   inventoryEl.textContent = CROPS.map(c => c + ': ' + farm.inventory[c]).join(' · ');
   document.getElementById('coin-balance').textContent = 'Coins: ' + farm.coins;
   if (!marketPanel.hidden) renderMarket();
+  if (!orderPanel.hidden) renderOrder();
 }
 function closePicker() { cropPicker.hidden = true; selectedBed = null; }
 function saveProgress() {
@@ -189,6 +239,7 @@ function activateBed(index) {
     selectedBed = index;
     closeBarn();
     closeMarket();
+    closeOrder();
     cropPicker.hidden = false;
     bedMessage.textContent = 'Choose a crop for bed ' + (index + 1) + '.';
   }
@@ -248,6 +299,11 @@ for (const building of buildings) {
     sprite.width = building.width;
     sprite.height = building.width * texture.height / texture.width;
     sprite.position.set(building.x, building.y);
+    if (building.file === 'order-board.webp') {
+      sprite.eventMode = 'static';
+      sprite.cursor = 'pointer';
+      sprite.on('pointertap', () => { if (!moved) openOrder(); });
+    }
     if (building.file === 'market-stall.webp') {
       sprite.eventMode = 'static';
       sprite.cursor = 'pointer';
