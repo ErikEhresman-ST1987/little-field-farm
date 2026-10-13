@@ -22,10 +22,10 @@ test('Pixi v8 app and scene remain connected', () => {
 
 test('all twelve beds share the approved layout and empty artwork', () => {
   assert.match(js, /index < 12/);
-  assert.match(js, /const FIELD = \\{ startX: 170, startY: 190, columns: 4,/);
-  assert.match(js, /crop-bed-empty\\.webp/);
+  assert.match(js, /const FIELD = \{ startX: 170, startY: 190, columns: 4,/);
+  assert.match(js, /crop-bed-empty\.webp/);
   assert.ok(existsSync(resolve(root, 'proof/assets/crop-bed-empty.webp')));
-  assert.match(js, /activateBed\\(index\\)/);
+  assert.match(js, /activateBed\(index\)/);
 });
 
 test('all 25 growth assets are declared and exist', () => {
@@ -54,4 +54,38 @@ test('camera boundaries and resilient optional art loading remain', () => {
   assert.match(js, /const assetWarnings =/);
   assert.match(js, /pointercancel/);
   assert.match(js, /lostpointercapture/);
+});
+
+test('market assets, stall interaction, and coin UI are wired', () => {
+  for (const crop of ['kohlrabi', 'pineapple', 'chard', 'dragonfruit', 'cauliflower']) {
+    assert.ok(existsSync(resolve(root, 'proof/assets', crop + '-harvest.webp')));
+  }
+  assert.match(js, /sellOne\\(farm, crop\\)/);
+  assert.match(js, /building\\.file === 'market-stall\\.webp'/);
+  assert.match(html, /id="market-panel"/);
+  assert.match(html, /id="coin-balance"/);
+});
+
+test('selling preserves inventory accounting and migrates old saves', async () => {
+  const source = read('proof/first-harvest.js');
+  const module = await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
+  const old = module.freshFarm();
+  old.version = 2;
+  delete old.coins;
+  old.inventory.pineapple = 2;
+  old.beds[3] = { crop: 'chard', plantedAt: 100 };
+  const storage = { getItem: () => JSON.stringify(old) };
+  const farm = module.loadFarm(storage);
+  assert.equal(farm.version, 3);
+  assert.equal(farm.coins, 0);
+  assert.equal(farm.inventory.pineapple, 2);
+  assert.equal(farm.beds[3].crop, 'chard');
+  assert.equal(module.sellOne(farm, 'pineapple'), true);
+  assert.equal(farm.inventory.pineapple, 1);
+  assert.equal(farm.coins, module.SELL_PRICES.pineapple);
+  assert.equal(module.sellOne(farm, 'pineapple'), true);
+  assert.equal(module.sellOne(farm, 'pineapple'), false);
+  assert.equal(farm.inventory.pineapple, 0);
+  assert.equal(module.sellOne(farm, 'invalid'), false);
+  assert.equal(module.validFarm(farm), true);
 });
