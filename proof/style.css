@@ -41,3 +41,60 @@
 .bakery-job{padding:9px 11px;border-radius:9px;background:#314d3b;font-size:13px}
 #bakery-panel button:disabled{opacity:.45;cursor:not-allowed}
 #collect-bakery{margin-top:12px}
+
+/* Mobile interface refinement: farm remains the primary surface. */
+html,body{width:100%;overflow:hidden}
+main{height:100dvh;min-height:0;min-width:0}
+header{flex:0 0 auto;gap:10px;padding:8px 12px}
+header strong{font-size:clamp(16px,2.5vw,20px)}
+#stage{width:100%;min-width:0;flex:1 1 auto}
+#stage canvas{max-width:none}
+footer{display:flex;flex:0 0 auto;flex-direction:column;align-items:stretch;gap:7px;min-height:0;max-height:45dvh;overflow-y:auto;overscroll-behavior:contain;padding:8px 12px max(8px,env(safe-area-inset-bottom))}
+#farm-controls{display:flex;flex-wrap:wrap;align-items:stretch;gap:7px;width:100%}
+#farm-controls button{flex:0 1 auto;min-height:44px;font-size:14px;padding:9px 12px;white-space:nowrap}
+#farm-feedback{display:flex;align-items:center;flex-wrap:wrap;gap:5px 12px;min-width:0;font-size:13px}
+#coin-balance{flex:0 0 auto;font-size:15px}
+#inventory{display:none}
+#bed-message{font-size:13px;min-width:0;flex:1 1 180px;overflow-wrap:anywhere}
+#status{font-size:11px;flex:1 1 100%;line-height:1.3}
+#barn-inventory,#market-panel,#order-panel,#bakery-panel,#crop-picker{position:fixed;max-height:min(85dvh,690px);overscroll-behavior:contain}
+#crop-picker{width:min(94vw,460px);max-height:85dvh;overflow-y:auto}
+#crop-buttons button{min-height:44px}
+@media(max-width:600px){
+  header{padding:7px 10px}
+  header span{font-size:11px}
+  footer{padding:7px 9px max(7px,env(safe-area-inset-bottom));gap:6px}
+  #farm-controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+  #farm-controls button{min-width:0;padding:8px 4px;font-size:13px;line-height:1.2;white-space:normal}
+  #reset{grid-column:span 2}
+  #open-barn{grid-column:span 2}
+  #open-market,#open-order,#open-bakery{grid-column:span 1}
+  #farm-controls:after{content:"";grid-column:span 1}
+  #farm-feedback{gap:4px 9px}
+  #status{display:none}
+  #barn-inventory,#market-panel,#order-panel,#bakery-panel{width:calc(100vw - 20px);padding:12px;max-height:calc(100dvh - 24px)}
+  .market-item{grid-template-columns:52px minmax(0,1fr) auto;gap:7px;padding:7px}
+  .market-item img{width:50px;height:50px}
+  .market-item .market-details{font-size:12px;overflow-wrap:anywhere}
+  .market-item button{min-height:44px;padding:8px}
+  .barn-item img{width:60px;height:60px}
+  .barn-heading button,#close-picker,#fulfill-order,#collect-bakery{min-height:44px}
+}
+@media(max-width:390px){
+  .market-item{grid-template-columns:48px minmax(0,1fr)}
+  .market-item img{width:46px;height:46px}
+  .market-item button{grid-column:2;justify-self:start}
+}
+@media(max-height:500px) and (orientation:landscape){
+  header span{display:none}
+  header{padding:4px 10px}
+  footer{padding:5px 10px;gap:4px;max-height:43dvh}
+  #farm-controls{display:flex;flex-wrap:nowrap;gap:5px}
+  #farm-controls:after{display:none}
+  #farm-controls button{flex:1 1 0;min-height:40px;font-size:12px;padding:6px 4px}
+  #farm-feedback{font-size:12px}
+  #coin-balance{font-size:13px}
+  #bed-message{font-size:12px}
+  #status{display:none}
+  #barn-inventory,#market-panel,#order-panel,#bakery-panel,#crop-picker{max-height:calc(100dvh - 12px)}
+}
