@@ -560,7 +560,7 @@ for (const building of buildings) {
       const chimneyY = building.y - sprite.height * .83;
       const smoke = new PIXI.Container(); smoke.position.set(chimneyX, chimneyY); community.addChild(smoke);
       const puffs = Array.from({ length: 5 }, (_, i) => {
-        const circle = new PIXI.Graphics().circle(0, 0, 10 + i * 2).fill({ color: 0xf2f0e9, alpha: .65 });
+        const circle = new PIXI.Graphics().circle(0, 0, 12 + i * 2).fill({ color: 0xf2f0e9, alpha: .85 });
         smoke.addChild(circle); return circle;
       });
       app.ticker.add(ticker => {
@@ -571,7 +571,7 @@ for (const building of buildings) {
         for (let i = 0; i < puffs.length; i++) {
           const progress = ((time * .19 + i / puffs.length) % 1);
           puffs[i].position.set(Math.sin(time + i) * 4 + progress * 26, -progress * 95);
-          puffs[i].alpha = (1 - progress) * .55;
+          puffs[i].alpha = (1 - progress) * .82;
           puffs[i].scale.set(.5 + progress * .8);
         }
       });
