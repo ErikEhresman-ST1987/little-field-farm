@@ -1,6 +1,9 @@
 // First Harvest: twelve independently planted beds, with migration of the original first bed.
 export const CROPS = ['kohlrabi', 'pineapple', 'chard', 'dragonfruit', 'cauliflower'];
-export const GROW_MS = 30000; // Provisional 30-second test cycle.
+export const GROW_TIMES = Object.freeze({ kohlrabi: 30000, chard: 45000, pineapple: 90000, cauliflower: 120000, dragonfruit: 180000 });
+export const GROW_MS = 30000; // Legacy constant; use growthTime(crop) for individual crops.
+export function growthTime(crop) { return GROW_TIMES[crop] ?? GROW_MS; }
+export function remainingGrowthMs(bed, now) { return bed ? Math.max(0, growthTime(bed.crop) - Math.max(0, now - bed.plantedAt)) : 0; }
 export const PLOT_COUNT = 12;
 // Temporary prices until the farm economy is balanced.
 export const SELL_PRICES = Object.freeze({ kohlrabi: 3, pineapple: 5, chard: 3, dragonfruit: 7, cauliflower: 5 });
@@ -53,7 +56,7 @@ export function saveFarm(storage, farm) { storage.setItem(SAVE_KEY, JSON.stringi
 export function stageAt(bed, now) {
   if (!bed) return -1;
   const elapsed = Math.max(0, now - bed.plantedAt);
-  return Math.min(4, Math.floor(elapsed / GROW_MS * 4));
+  return Math.min(4, Math.floor(elapsed / growthTime(bed.crop) * 4));
 }
 export function plant(farm, index, crop, now) {
   if (!Number.isInteger(index) || index < 0 || index >= PLOT_COUNT || farm.beds[index] || !CROPS.includes(crop) || !Number.isFinite(now) || now < 0) return false;
