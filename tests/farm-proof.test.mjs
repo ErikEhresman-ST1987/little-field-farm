@@ -134,8 +134,8 @@ test('individual crop growth times, offline elapsed time, and unchanged saved be
   assert.deepEqual(loaded.beds[2], bed);
   assert.equal(game.stageAt(loaded.beds[2], 181000), 4);
   assert.ok(js.includes('remainingGrowthMs(bed, Date.now())'));
-  assert.ok(html.includes('main.js?v=tartlets-1'));
-  assert.ok(js.includes('first-harvest.js?v=tartlets-1'));
+  assert.ok(html.includes('main.js?v=save-guard-1'));
+  assert.ok(js.includes('first-harvest.js?v=save-guard-1'));
 });
 
 test('bakery assets and UI remain connected', () => {
@@ -239,8 +239,8 @@ test('backup controls and cache versions are connected', () => {
   assert.match(html, /id="export-farm"/);
   assert.match(html, /id="import-farm-file"/);
   assert.match(html, /id="restore-farm"/);
-  assert.match(html, /main\\.js\\?v=tartlets-1/);
-  assert.match(js, /first-harvest\\.js\\?v=tartlets-1/);
+  assert.match(html, /main\\.js\\?v=save-guard-1/);
+  assert.match(js, /first-harvest\\.js\\?v=save-guard-1/);
   assert.match(js, /window\\.confirm/);
   assert.match(css, /#farm-data-panel/);
 });
@@ -378,4 +378,17 @@ test('v7 saved farm and backup migrate to v8 preserving all prior inventory and 
   const backup = JSON.stringify({ format: game.BACKUP_FORMAT, backupVersion: game.BACKUP_VERSION, createdAt: '2026-10-13T12:00:00Z', farm: old });
   assert.deepEqual(game.parseFarmBackup(backup), loaded);
   assert.equal(game.validFarm(loaded), true);
+});
+
+test('unreadable and incompatible saves never silently reset or get overwritten', async () => {
+  const game = await import('data:text/javascript;base64,' + Buffer.from(read('proof/first-harvest.js')).toString('base64'));
+  for (const raw of ['{bad-json', JSON.stringify({ version: 99, coins: 500 })]) {
+    let writes = 0;
+    const storage = { getItem: () => raw, setItem: () => { writes++; } };
+    assert.throws(() => game.loadFarm(storage), /Farm save/);
+    assert.throws(() => game.saveFarm(storage, game.freshFarm()), /save|overwrite/i);
+    assert.equal(writes, 0);
+  }
+  const emptyStorage = { getItem: () => null };
+  assert.equal(game.loadFarm(emptyStorage).version, 8);
 });
