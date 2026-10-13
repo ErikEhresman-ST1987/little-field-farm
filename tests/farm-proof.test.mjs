@@ -134,8 +134,8 @@ test('individual crop growth times, offline elapsed time, and unchanged saved be
   assert.deepEqual(loaded.beds[2], bed);
   assert.equal(game.stageAt(loaded.beds[2], 181000), 4);
   assert.ok(js.includes('remainingGrowthMs(bed, Date.now())'));
-  assert.ok(html.includes('main.js?v=inventory-1'));
-  assert.ok(js.includes('first-harvest.js?v=inventory-1'));
+  assert.ok(html.includes('main.js?v=tartlets-1'));
+  assert.ok(js.includes('first-harvest.js?v=tartlets-1'));
 });
 
 test('bakery assets and UI remain connected', () => {
@@ -239,8 +239,8 @@ test('backup controls and cache versions are connected', () => {
   assert.match(html, /id="export-farm"/);
   assert.match(html, /id="import-farm-file"/);
   assert.match(html, /id="restore-farm"/);
-  assert.match(html, /main\\.js\\?v=inventory-1/);
-  assert.match(js, /first-harvest\\.js\\?v=inventory-1/);
+  assert.match(html, /main\\.js\\?v=tartlets-1/);
+  assert.match(js, /first-harvest\\.js\\?v=tartlets-1/);
   assert.match(js, /window\\.confirm/);
   assert.match(css, /#farm-data-panel/);
 });
