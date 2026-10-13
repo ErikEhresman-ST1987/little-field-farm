@@ -76,7 +76,7 @@ test('selling preserves inventory accounting and migrates old saves', async () =
   old.beds[3] = { crop: 'chard', plantedAt: 100 };
   const storage = { getItem: () => JSON.stringify(old) };
   const farm = module.loadFarm(storage);
-  assert.equal(farm.version, 3);
+  assert.equal(farm.version, 4);
   assert.equal(farm.coins, 0);
   assert.equal(farm.inventory.pineapple, 2);
   assert.equal(farm.beds[3].crop, 'chard');
@@ -88,4 +88,26 @@ test('selling preserves inventory accounting and migrates old saves', async () =
   assert.equal(farm.inventory.pineapple, 0);
   assert.equal(module.sellOne(farm, 'invalid'), false);
   assert.equal(module.validFarm(farm), true);
+});
+
+test('single customer order persists, rejects insufficient stock, and pays once', async () => {
+  const source = read('proof/first-harvest.js');
+  const game = await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
+  const farm = game.freshFarm();
+  assert.equal(farm.order.number, 0);
+  const crop = farm.order.crop;
+  const reward = farm.order.reward;
+  assert.equal(game.fulfillOrder(farm), false);
+  assert.equal(farm.coins, 0);
+  farm.inventory[crop] = farm.order.quantity;
+  assert.equal(game.fulfillOrder(farm), true);
+  assert.equal(farm.coins, reward);
+  assert.equal(farm.inventory[crop], 0);
+  assert.equal(farm.order.number, 1);
+  assert.equal(game.fulfillOrder(farm), false);
+  assert.equal(game.validFarm(farm), true);
+  const storage = { getItem: () => JSON.stringify(farm) };
+  assert.deepEqual(game.loadFarm(storage), farm);
+  assert.match(js, /building\.file === 'order-board\.webp'/);
+  assert.match(html, /id="order-panel"/);
 });
