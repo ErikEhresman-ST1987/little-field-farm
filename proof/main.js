@@ -1,5 +1,5 @@
 import * as PIXI from 'https://cdn.jsdelivr.net/npm/pixi.js@8.14.3/dist/pixi.min.mjs';
-import { CROPS, growthTime, remainingGrowthMs, loadFarm, saveFarm, stageAt, plant, harvest, SELL_PRICES, sellOne, fulfillOrder, BAKERY_RECIPES, BAKERY_PRODUCTS, BAKERY_CAPACITY, enqueueBakery, bakeryReadyCount, collectBakery, sellBakeryProduct, createFarmBackup, restoreFarmBackup } from './first-harvest.js?v=backup-1';
+import { CROPS, growthTime, remainingGrowthMs, loadFarm, saveFarm, stageAt, plant, harvest, SELL_PRICES, sellOne, fulfillOrder, BAKERY_RECIPES, BAKERY_PRODUCTS, BAKERY_CAPACITY, enqueueBakery, bakeryReadyCount, collectBakery, sellBakeryProduct, createFarmBackup, restoreFarmBackup } from './first-harvest.js?v=inventory-1';
 
 const stageEl = document.getElementById('stage');
 const status = document.getElementById('status');
@@ -73,7 +73,7 @@ function renderBarnInventory() {
   }
   for (const id of BAKERY_PRODUCTS) {
     const count = document.getElementById('barn-count-' + id);
-    if (count) count.textContent = 'In storage: ' + farm.bakery.products[id];
+    if (count) count.textContent = 'In storage: ' + farm.inventory[id];
   }
 }
 function openBarn() {
@@ -174,8 +174,8 @@ function renderMarket() {
   }
   for (const id of BAKERY_PRODUCTS) {
     const row = marketRows.get(id);
-    row.quantity.textContent = 'In barn: ' + farm.bakery.products[id];
-    row.button.disabled = farm.bakery.products[id] < 1;
+    row.quantity.textContent = 'In barn: ' + farm.inventory[id];
+    row.button.disabled = farm.inventory[id] < 1;
   }
 }
 function closeMarket() { marketPanel.hidden = true; }
