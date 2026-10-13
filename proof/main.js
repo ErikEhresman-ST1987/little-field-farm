@@ -1,5 +1,5 @@
 import * as PIXI from 'https://cdn.jsdelivr.net/npm/pixi.js@8.14.3/dist/pixi.min.mjs';
-import { CROPS, GROW_MS, loadFarm, saveFarm, stageAt, plant, harvest, SELL_PRICES, sellOne, fulfillOrder } from './first-harvest.js?v=orders-1';
+import { CROPS, growthTime, remainingGrowthMs, loadFarm, saveFarm, stageAt, plant, harvest, SELL_PRICES, sellOne, fulfillOrder } from './first-harvest.js?v=crop-timing-1';
 
 const stageEl = document.getElementById('stage');
 const status = document.getElementById('status');
@@ -232,7 +232,7 @@ function activateBed(index) {
       bedMessage.textContent = 'Bed ' + (index + 1) + ': harvest collected!';
       refreshBeds();
     } else {
-      const seconds = Math.ceil(Math.max(0, GROW_MS - (Date.now() - bed.plantedAt)) / 1000);
+      const seconds = Math.ceil(remainingGrowthMs(bed, Date.now()) / 1000);
       bedMessage.textContent = 'Bed ' + (index + 1) + ': ' + bed.crop + ' growing — about ' + seconds + ' seconds remaining.';
     }
   } else {
@@ -252,7 +252,7 @@ for (const crop of CROPS) {
       const bedNumber = selectedBed + 1;
       saveProgress();
       refreshBeds();
-      bedMessage.textContent = 'Bed ' + bedNumber + ': planted ' + crop + '. Ready in about 30 seconds.';
+      bedMessage.textContent = 'Bed ' + bedNumber + ': planted ' + crop + '. Ready in about ' + Math.ceil(growthTime(crop) / 1000) + ' seconds.';
     }
     closePicker();
   };
