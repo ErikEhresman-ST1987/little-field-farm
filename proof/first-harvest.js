@@ -112,6 +112,29 @@ export function loadFarm(storage) {
   return freshFarm();
 }
 export function saveFarm(storage, farm) { storage.setItem(SAVE_KEY, JSON.stringify(farm)); }
+
+export const BACKUP_FORMAT = 'little-field-farm-backup';
+export const BACKUP_VERSION = 1;
+export function createFarmBackup(farm, createdAt = new Date().toISOString()) {
+  if (!validFarm(farm) || !Number.isFinite(Date.parse(createdAt))) throw new Error('Farm data is not valid for backup.');
+  return JSON.stringify({ format: BACKUP_FORMAT, backupVersion: BACKUP_VERSION, createdAt, farm: structuredClone(farm) }, null, 2);
+}
+export function parseFarmBackup(text) {
+  if (typeof text !== 'string' || text.length > 2_000_000) throw new Error('Backup file is missing or too large.');
+  let data;
+  try { data = JSON.parse(text); } catch { throw new Error('This file is not valid JSON.'); }
+  if (!data || data.format !== BACKUP_FORMAT || data.backupVersion !== BACKUP_VERSION
+      || typeof data.createdAt !== 'string' || !Number.isFinite(Date.parse(data.createdAt))
+      || !validFarm(data.farm)) throw new Error('This is not a compatible Little Field Farm backup.');
+  return structuredClone(data.farm);
+}
+export function restoreFarmBackup(storage, text) {
+  const restored = parseFarmBackup(text);
+  // Validate before touching the existing save. A failed storage write does not change the live farm.
+  saveFarm(storage, restored);
+  return restored;
+}
+
 export function stageAt(bed, now) {
   if (!bed) return -1;
   const elapsed = Math.max(0, now - bed.plantedAt);
