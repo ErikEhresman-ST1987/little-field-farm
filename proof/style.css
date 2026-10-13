@@ -10,3 +10,15 @@
 .barn-item .crop-name{font-size:13px;font-weight:700}
 .barn-item .crop-count{font-size:13px}
 @media(max-width:360px){.barn-items{grid-template-columns:1fr}.barn-item{flex-direction:row;justify-content:space-between}.barn-item img{width:54px;height:54px}}
+
+/* Market uses the same compact visual language as the barn. */
+#market-panel{position:absolute;inset:50% auto auto 50%;transform:translate(-50%,-50%);z-index:20;width:min(94vw,490px);max-height:min(80dvh,640px);overflow:auto;background:#233a2d;border:2px solid #e7e5b8;border-radius:16px;padding:16px;box-shadow:0 10px 36px #000a}
+#market-panel[hidden]{display:none}
+#market-coins,#coin-balance{font-weight:700;color:#f4e8a3}
+.market-items{display:flex;flex-direction:column;gap:8px}
+.market-item{display:grid;grid-template-columns:58px minmax(0,1fr) auto;align-items:center;gap:10px;background:#314d3b;padding:8px;border-radius:12px}
+.market-item img{width:56px;height:56px;object-fit:contain;background:#fff;border-radius:8px}
+.market-item .market-details{display:flex;flex-direction:column;gap:3px;min-width:0;font-size:13px}
+.market-item button{padding:9px 10px;white-space:nowrap}
+.market-item button:disabled{opacity:.45;cursor:not-allowed}
+#market-message{font-size:13px;margin-bottom:0}
