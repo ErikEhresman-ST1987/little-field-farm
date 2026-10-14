@@ -1,5 +1,5 @@
 import * as PIXI from 'https://cdn.jsdelivr.net/npm/pixi.js@8.14.3/dist/pixi.min.mjs';
-import { CROPS, growthTime, remainingGrowthMs, loadFarm, saveFarm, stageAt, plant, harvest, SELL_PRICES, sellOne, fulfillOrder, BAKERY_RECIPES, BAKERY_PRODUCTS, BAKERY_CAPACITY, enqueueBakery, bakeryReadyCount, collectBakery, sellBakeryProduct, createFarmBackup, restoreFarmBackup, CHICKEN_DURATION, EGG_PRICE, chickenState, feedChickens, collectEggs, sellEgg } from './first-harvest.js?v=save-guard-1';
+import { CROPS, growthTime, remainingGrowthMs, loadFarm, saveFarm, stageAt, plant, harvest, SELL_PRICES, sellOne, fulfillOrder, BAKERY_RECIPES, BAKERY_PRODUCTS, BAKERY_CAPACITY, enqueueBakery, bakeryReadyCount, collectBakery, sellBakeryProduct, createFarmBackup, restoreFarmBackup, CHICKEN_DURATION, EGG_PRICE, chickenState, feedChickens, collectEggs, sellEgg } from './first-harvest.js?v=layout-proof-1';
 
 const stageEl = document.getElementById('stage');
 const status = document.getElementById('status');
@@ -662,6 +662,38 @@ app.ticker.add(() => {
     sprite.x = 680 + index * 112 + Math.sin(t * .42 + index * 2) * 12;
   }
 });
+
+// Temporary Home Farm layout proof. Visual-only; no state, saves, or gameplay changes.
+const layoutProof = new PIXI.Container();
+layoutProof.eventMode = 'none';
+world.addChild(layoutProof);
+const proposedZones = [
+  { label: 'COWS', x: 790, y: 240, w: 215, h: 145, color: 0x8bc7e7 },
+  { label: 'SHEEP', x: 1190, y: 240, w: 215, h: 145, color: 0xe8d5ac },
+  { label: 'CREAMERY', x: 790, y: 495, w: 210, h: 115, color: 0xf1d092 },
+  { label: 'TEXTILE WORKSHOP', x: 1190, y: 495, w: 245, h: 115, color: 0xeab5d2 },
+  { label: 'SMOOTHIE STATION', x: 1310, y: 645, w: 230, h: 95, color: 0xb8d992 }
+];
+for (const zone of proposedZones) {
+  const shape = new PIXI.Graphics()
+    .roundRect(-zone.w / 2, -zone.h / 2, zone.w, zone.h, 16)
+    .fill({ color: zone.color, alpha: .65 })
+    .roundRect(-zone.w / 2, -zone.h / 2, zone.w, zone.h, 16)
+    .stroke({ color: 0x304c3b, width: 4, alpha: .95 });
+  shape.position.set(zone.x, zone.y);
+  layoutProof.addChild(shape);
+  const label = new PIXI.Text({ text: zone.label + '\\nPLANNED', style: { fontFamily: 'Arial, sans-serif', fontSize: 22, fontWeight: 'bold', fill: 0x203528, align: 'center' } });
+  label.anchor.set(.5);
+  label.position.set(zone.x, zone.y);
+  layoutProof.addChild(label);
+}
+layoutProof.visible = false;
+const layoutButton = document.getElementById('toggle-layout-proof');
+layoutButton.onclick = () => {
+  layoutProof.visible = !layoutProof.visible;
+  layoutButton.textContent = layoutProof.visible ? 'Hide layout' : 'Preview layout';
+  layoutButton.setAttribute('aria-pressed', String(layoutProof.visible));
+};
 
 // Camera and gesture handling: thresholded taps, bounded panning, and pinch zoom.
 let scale = 1;
