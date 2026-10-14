@@ -1,5 +1,5 @@
 import * as PIXI from 'https://cdn.jsdelivr.net/npm/pixi.js@8.14.3/dist/pixi.min.mjs';
-import { CROPS, growthTime, remainingGrowthMs, loadFarm, saveFarm, stageAt, plant, harvest, SELL_PRICES, sellOne, fulfillOrder, BAKERY_RECIPES, BAKERY_PRODUCTS, BAKERY_CAPACITY, enqueueBakery, bakeryReadyCount, collectBakery, sellBakeryProduct, createFarmBackup, restoreFarmBackup, CHICKEN_DURATION, EGG_PRICE, chickenState, feedChickens, collectEggs, sellEgg } from './first-harvest.js?v=layout-proof-1';
+import { CROPS, growthTime, remainingGrowthMs, loadFarm, saveFarm, stageAt, plant, harvest, SELL_PRICES, sellOne, fulfillOrder, BAKERY_RECIPES, BAKERY_PRODUCTS, BAKERY_CAPACITY, enqueueBakery, bakeryReadyCount, collectBakery, sellBakeryProduct, createFarmBackup, restoreFarmBackup, CHICKEN_DURATION, EGG_PRICE, chickenState, feedChickens, collectEggs, sellEgg } from './first-harvest.js?v=layout-proof-2';
 
 const stageEl = document.getElementById('stage');
 const status = document.getElementById('status');
@@ -670,9 +670,9 @@ world.addChild(layoutProof);
 const proposedZones = [
   { label: 'COWS', x: 790, y: 240, w: 215, h: 145, color: 0x8bc7e7 },
   { label: 'SHEEP', x: 1190, y: 240, w: 215, h: 145, color: 0xe8d5ac },
-  { label: 'CREAMERY', x: 790, y: 495, w: 210, h: 115, color: 0xf1d092 },
-  { label: 'TEXTILE WORKSHOP', x: 1190, y: 495, w: 245, h: 115, color: 0xeab5d2 },
-  { label: 'SMOOTHIE STATION', x: 1310, y: 645, w: 230, h: 95, color: 0xb8d992 }
+  { label: 'CREAMERY', x: 735, y: 485, w: 210, h: 115, color: 0xf1d092 },
+  { label: 'TEXTILE WORKSHOP', x: 1190, y: 435, w: 245, h: 115, color: 0xeab5d2 },
+  { label: 'SMOOTHIE STATION', x: 540, y: 670, w: 230, h: 95, color: 0xb8d992 }
 ];
 for (const zone of proposedZones) {
   const shape = new PIXI.Graphics()
@@ -682,7 +682,7 @@ for (const zone of proposedZones) {
     .stroke({ color: 0x304c3b, width: 4, alpha: .95 });
   shape.position.set(zone.x, zone.y);
   layoutProof.addChild(shape);
-  const label = new PIXI.Text({ text: zone.label + '\\nPLANNED', style: { fontFamily: 'Arial, sans-serif', fontSize: 22, fontWeight: 'bold', fill: 0x203528, align: 'center' } });
+  const label = new PIXI.Text({ text: [zone.label, 'PLANNED'].join(String.fromCharCode(10)), style: { fontFamily: 'Arial, sans-serif', fontSize: 22, fontWeight: 'bold', fill: 0x203528, align: 'center' } });
   label.anchor.set(.5);
   label.position.set(zone.x, zone.y);
   layoutProof.addChild(label);
