@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Little Field Farm v2 — Placement Verification</title>
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#15271c;color:#fff;font:16px system-ui,sans-serif}header{padding:12px 16px;display:flex;flex-wrap:wrap;align-items:center;gap:12px}h1{font-size:1.05rem;margin:0;flex:1}button{font:inherit;border:1px solid #a8c8a8;border-radius:8px;background:#294f35;color:white;padding:9px 12px;min-height:44px}button[aria-pressed=true]{background:#58763d}main{max-width:1100px;margin:auto;padding:0 10px 20px}.stage{width:100%;aspect-ratio:4/3;position:relative;background:#273b2e;touch-action:manipulation;overflow:hidden;border:1px solid #799478;border-radius:8px}.stage canvas{display:block;width:100%;height:100%}#status{padding:10px 2px;min-height:48px;line-height:1.4}#legend{font-size:.85rem;color:#d7e4d1}a{color:#d5e8a7}
+</style></head>
+<body><header><h1>Farm v2 — Placement Verification</h1><button id="toggle" aria-pressed="true">Guides: On</button><button id="reset">Clear selection</button></header>
+<main><div id="stage" class="stage" aria-label="Farm background and tappable placement guides"></div><div id="status" role="status">Loading the approved farm and placement map…</div><div id="legend">Diagnostic only: tap a crop, factory pad, animal pen, market, trade board, or NPC entrance. Guides are estimated, not approved hitboxes. No game saves are changed. Requires network for the existing PixiJS CDN dependency.</div></main>
+<script type="module">
+import * as PIXI from 'https://cdn.jsdelivr.net/npm/pixi.js@8.14.3/dist/pixi.min.mjs';
+const base='../background/';
+const stage=document.getElementById('stage'),status=document.getElementById('status'),toggle=document.getElementById('toggle'),reset=document.getElementById('reset');
+const W=1448,H=1086;
+const app=new PIXI.Application();
+try{
+ await app.init({resizeTo:stage,background:'#233b29',antialias:true,resolution:Math.min(window.devicePixelRatio||1,2),autoDensity:true});
+ stage.appendChild(app.canvas);
+ const [map,texture]=await Promise.all([fetch(base+'farm_placement_map.json').then(r=>{if(!r.ok)throw Error('Placement map HTTP '+r.status);return r.json()}),PIXI.Assets.load(base+'farm_background_lossless.webp')]);
+ if(map.canonical.width!==W||map.canonical.height!==H)throw Error('Unexpected placement map dimensions');
+ const world=new PIXI.Container();app.stage.addChild(world);
+ const bg=new PIXI.Sprite(texture);bg.width=W;bg.height=H;world.addChild(bg);
+ const overlay=new PIXI.Container();world.addChild(overlay);
+ const hitAreas=[];
+ let selected=null;
+ const colors={crop:0x56c76a,production:0xffcb66,animal:0x76c5ef,npc:0xe9a2f5,market:0xf5a2b3,order:0xffffff};
+ for(const [id,region] of Object.entries(map.regions)){
+   const poly=region.polygon.flat(),type=id.split('_')[0],color=colors[type]??0xffffff;
+   const g=new PIXI.Graphics();g.poly(poly).fill({color,alpha:0.13}).stroke({color,width:4,alpha:0.95});
+   g.eventMode='static';g.cursor='pointer';g.hitArea=new PIXI.Polygon(poly);
+   g.on('pointertap',()=>{selected=id;status.textContent='Selected: '+id+' — anchor ('+region.center.join(', ')+') native pixels. Review touch target and alignment on iPad.';});
+   overlay.addChild(g);hitAreas.push(g);
+ }
+ function layout(){const sw=app.renderer.width/app.renderer.resolution,sh=app.renderer.height/app.renderer.resolution;const s=Math.min(sw/W,sh/H);world.scale.set(s);world.position.set((sw-W*s)/2,(sh-H*s)/2);}
+ layout();new ResizeObserver(layout).observe(stage);
+ toggle.addEventListener('click',()=>{overlay.visible=!overlay.visible;toggle.setAttribute('aria-pressed',String(overlay.visible));toggle.textContent='Guides: '+(overlay.visible?'On':'Off');});
+ reset.addEventListener('click',()=>{selected=null;status.textContent='Selection cleared. Tap a highlighted region to test alignment.';});
+ status.textContent='Loaded '+hitAreas.length+' placement regions on the approved 4:3 background. Tap highlighted areas to inspect.';
+}catch(error){console.error(error);status.textContent='Could not load verification scene: '+error.message+'. No player data was changed.';}
+</script></body></html>
