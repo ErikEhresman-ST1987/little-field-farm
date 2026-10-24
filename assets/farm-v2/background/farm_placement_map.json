@@ -1,0 +1,505 @@
+{
+  "status": "prepared_for_review_not_runtime_verified",
+  "canonical": {
+    "file": "farm_background_canonical.png",
+    "width": 1448,
+    "height": 1086,
+    "sha256": "93cdc2094a25abd5e8f7fdda0e70ddd5c88b8028047edb9afd14eaff918defb6"
+  },
+  "lossless_webp": {
+    "file": "farm_background_lossless.webp",
+    "sha256": "6327d058141c6ae5a073f62f507e8f22f705f307357b7adf7b15bbd12c312776"
+  },
+  "coordinate_system": "native pixels, origin top-left; scale all coordinates with displayed image size; preserve aspect ratio",
+  "regions": {
+    "crop_1": {
+      "polygon": [
+        [
+          140,
+          356
+        ],
+        [
+          309,
+          353
+        ],
+        [
+          294,
+          454
+        ],
+        [
+          111,
+          459
+        ]
+      ],
+      "center": [
+        214,
+        406
+      ]
+    },
+    "crop_2": {
+      "polygon": [
+        [
+          327,
+          354
+        ],
+        [
+          496,
+          354
+        ],
+        [
+          489,
+          456
+        ],
+        [
+          309,
+          456
+        ]
+      ],
+      "center": [
+        405,
+        405
+      ]
+    },
+    "crop_3": {
+      "polygon": [
+        [
+          513,
+          356
+        ],
+        [
+          681,
+          356
+        ],
+        [
+          689,
+          458
+        ],
+        [
+          504,
+          458
+        ]
+      ],
+      "center": [
+        597,
+        407
+      ]
+    },
+    "crop_4": {
+      "polygon": [
+        [
+          101,
+          488
+        ],
+        [
+          299,
+          488
+        ],
+        [
+          288,
+          558
+        ],
+        [
+          70,
+          558
+        ]
+      ],
+      "center": [
+        190,
+        523
+      ]
+    },
+    "crop_5": {
+      "polygon": [
+        [
+          311,
+          489
+        ],
+        [
+          492,
+          489
+        ],
+        [
+          489,
+          559
+        ],
+        [
+          301,
+          559
+        ]
+      ],
+      "center": [
+        398,
+        524
+      ]
+    },
+    "crop_6": {
+      "polygon": [
+        [
+          503,
+          490
+        ],
+        [
+          688,
+          490
+        ],
+        [
+          692,
+          561
+        ],
+        [
+          499,
+          560
+        ]
+      ],
+      "center": [
+        596,
+        525
+      ]
+    },
+    "crop_7": {
+      "polygon": [
+        [
+          70,
+          580
+        ],
+        [
+          289,
+          578
+        ],
+        [
+          282,
+          662
+        ],
+        [
+          27,
+          659
+        ]
+      ],
+      "center": [
+        167,
+        620
+      ]
+    },
+    "crop_8": {
+      "polygon": [
+        [
+          299,
+          579
+        ],
+        [
+          490,
+          580
+        ],
+        [
+          490,
+          662
+        ],
+        [
+          284,
+          662
+        ]
+      ],
+      "center": [
+        391,
+        621
+      ]
+    },
+    "crop_9": {
+      "polygon": [
+        [
+          499,
+          581
+        ],
+        [
+          691,
+          582
+        ],
+        [
+          696,
+          663
+        ],
+        [
+          495,
+          665
+        ]
+      ],
+      "center": [
+        595,
+        623
+      ]
+    },
+    "production_1": {
+      "polygon": [
+        [
+          789,
+          359
+        ],
+        [
+          1000,
+          357
+        ],
+        [
+          1027,
+          492
+        ],
+        [
+          788,
+          501
+        ]
+      ],
+      "center": [
+        901,
+        427
+      ]
+    },
+    "production_2": {
+      "polygon": [
+        [
+          1085,
+          359
+        ],
+        [
+          1335,
+          356
+        ],
+        [
+          1375,
+          488
+        ],
+        [
+          1091,
+          497
+        ]
+      ],
+      "center": [
+        1222,
+        425
+      ]
+    },
+    "production_3": {
+      "polygon": [
+        [
+          789,
+          549
+        ],
+        [
+          1008,
+          545
+        ],
+        [
+          1029,
+          681
+        ],
+        [
+          789,
+          686
+        ]
+      ],
+      "center": [
+        904,
+        615
+      ]
+    },
+    "production_4": {
+      "polygon": [
+        [
+          1092,
+          546
+        ],
+        [
+          1347,
+          544
+        ],
+        [
+          1382,
+          681
+        ],
+        [
+          1092,
+          688
+        ]
+      ],
+      "center": [
+        1228,
+        615
+      ]
+    },
+    "animal_1": {
+      "polygon": [
+        [
+          34,
+          765
+        ],
+        [
+          320,
+          754
+        ],
+        [
+          330,
+          851
+        ],
+        [
+          23,
+          854
+        ]
+      ],
+      "center": [
+        177,
+        806
+      ]
+    },
+    "animal_2": {
+      "polygon": [
+        [
+          391,
+          765
+        ],
+        [
+          667,
+          756
+        ],
+        [
+          679,
+          856
+        ],
+        [
+          371,
+          860
+        ]
+      ],
+      "center": [
+        527,
+        809
+      ]
+    },
+    "animal_3": {
+      "polygon": [
+        [
+          748,
+          770
+        ],
+        [
+          988,
+          761
+        ],
+        [
+          1002,
+          860
+        ],
+        [
+          739,
+          868
+        ]
+      ],
+      "center": [
+        869,
+        815
+      ]
+    },
+    "animal_4": {
+      "polygon": [
+        [
+          1125,
+          768
+        ],
+        [
+          1373,
+          755
+        ],
+        [
+          1396,
+          857
+        ],
+        [
+          1113,
+          862
+        ]
+      ],
+      "center": [
+        1252,
+        810
+      ]
+    },
+    "npc_entrance": {
+      "polygon": [
+        [
+          901,
+          207
+        ],
+        [
+          990,
+          208
+        ],
+        [
+          997,
+          306
+        ],
+        [
+          889,
+          308
+        ]
+      ],
+      "center": [
+        944,
+        257
+      ]
+    },
+    "market": {
+      "polygon": [
+        [
+          534,
+          204
+        ],
+        [
+          709,
+          201
+        ],
+        [
+          706,
+          304
+        ],
+        [
+          524,
+          307
+        ]
+      ],
+      "center": [
+        618,
+        254
+      ]
+    },
+    "order_board": {
+      "polygon": [
+        [
+          745,
+          211
+        ],
+        [
+          870,
+          209
+        ],
+        [
+          874,
+          295
+        ],
+        [
+          741,
+          295
+        ]
+      ],
+      "center": [
+        808,
+        252
+      ]
+    }
+  },
+  "notes": [
+    "Guide polygons are visually estimated, not validated PixiJS hit areas.",
+    "Background already includes empty crop soil, four outlined production pads, four animal fences.",
+    "Near-side animal fences are baked into background and require foreground occlusion artwork for natural depth, or limited animal movement avoiding fence overlap.",
+    "Farmhouse, barn, market, board, arch, dock and scenery are baked into background as fixed scenery.",
+    "Purchased chicken coop and production facilities must be independent transparent sprites.",
+    "Use bottom-center anchors for standing animals and buildings; confirm actual feet/base positions in placement test.",
+    "Do not generate separate crop soil underneath the existing soil unless a replacement state is explicitly desired."
+  ]
+}
