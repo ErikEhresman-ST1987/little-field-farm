@@ -32,7 +32,7 @@ try{
    g.on('pointertap',()=>{selected=id;status.textContent='Selected: '+id+' — anchor ('+region.center.join(', ')+') native pixels. Review touch target and alignment on iPad.';});
    overlay.addChild(g);hitAreas.push(g);
  }
- function layout(){const sw=app.renderer.width/app.renderer.resolution,sh=app.renderer.height/app.renderer.resolution;const s=Math.min(sw/W,sh/H);world.scale.set(s);world.position.set((sw-W*s)/2,(sh-H*s)/2);}
+ function layout(){const sw=app.screen.width,sh=app.screen.height;const s=Math.min(sw/W,sh/H);world.scale.set(s);world.position.set((sw-W*s)/2,(sh-H*s)/2);}
  layout();new ResizeObserver(layout).observe(stage);
  toggle.addEventListener('click',()=>{overlay.visible=!overlay.visible;toggle.setAttribute('aria-pressed',String(overlay.visible));toggle.textContent='Guides: '+(overlay.visible?'On':'Off');});
  reset.addEventListener('click',()=>{selected=null;status.textContent='Selection cleared. Tap a highlighted region to test alignment.';});
