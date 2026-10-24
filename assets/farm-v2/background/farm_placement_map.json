@@ -1,5 +1,5 @@
 {
-  "status": "prepared_for_review_not_runtime_verified",
+  "status": "user_calibrated_draft_pending_sprite_verification",
   "canonical": {
     "file": "farm_background_canonical.png",
     "width": 1448,
@@ -15,92 +15,104 @@
     "crop_1": {
       "polygon": [
         [
-          140,
-          356
+          161,
+          372
         ],
         [
-          309,
-          353
+          314,
+          370
         ],
         [
-          294,
-          454
+          282,
+          451
         ],
         [
-          111,
-          459
+          126,
+          450
         ]
       ],
       "center": [
         214,
+        406
+      ],
+      "sprite_anchor": [
+        220,
         406
       ]
     },
     "crop_2": {
       "polygon": [
         [
-          327,
-          354
+          344,
+          371
         ],
         [
-          496,
-          354
+          495,
+          373
         ],
         [
-          489,
-          456
+          488,
+          453
         ],
         [
-          309,
-          456
+          326,
+          450
         ]
       ],
       "center": [
         405,
         405
+      ],
+      "sprite_anchor": [
+        408,
+        413
       ]
     },
     "crop_3": {
       "polygon": [
         [
-          513,
-          356
+          537,
+          373
         ],
         [
-          681,
-          356
+          696,
+          370
         ],
         [
-          689,
-          458
+          695,
+          450
         ],
         [
-          504,
-          458
+          530,
+          454
         ]
       ],
       "center": [
         597,
         407
+      ],
+      "sprite_anchor": [
+        612,
+        409
       ]
     },
     "crop_4": {
       "polygon": [
         [
-          101,
-          488
+          118,
+          475
         ],
         [
-          299,
-          488
+          282,
+          475
         ],
         [
-          288,
-          558
+          253,
+          563
         ],
         [
-          70,
-          558
+          76,
+          557
         ]
       ],
       "center": [
@@ -111,20 +123,20 @@
     "crop_5": {
       "polygon": [
         [
-          311,
-          489
+          323,
+          474
         ],
         [
-          492,
-          489
+          483,
+          478
         ],
         [
-          489,
-          559
+          478,
+          563
         ],
         [
           301,
-          559
+          561
         ]
       ],
       "center": [
@@ -135,289 +147,337 @@
     "crop_6": {
       "polygon": [
         [
-          503,
-          490
+          528,
+          477
         ],
         [
-          688,
-          490
+          691,
+          478
         ],
         [
-          692,
-          561
+          695,
+          562
         ],
         [
-          499,
-          560
+          521,
+          566
         ]
       ],
       "center": [
         596,
         525
+      ],
+      "sprite_anchor": [
+        609,
+        513
       ]
     },
     "crop_7": {
       "polygon": [
         [
-          70,
-          580
+          63,
+          588
         ],
         [
-          289,
-          578
+          250,
+          590
         ],
         [
-          282,
-          662
+          217,
+          666
         ],
         [
-          27,
-          659
+          30,
+          663
         ]
       ],
       "center": [
         167,
         620
+      ],
+      "sprite_anchor": [
+        131,
+        626
       ]
     },
     "crop_8": {
       "polygon": [
         [
-          299,
-          579
+          293,
+          585
         ],
         [
-          490,
-          580
+          477,
+          587
         ],
         [
-          490,
-          662
+          465,
+          678
         ],
         [
-          284,
-          662
+          270,
+          672
         ]
       ],
       "center": [
         391,
         621
+      ],
+      "sprite_anchor": [
+        374,
+        629
       ]
     },
     "crop_9": {
       "polygon": [
         [
-          499,
-          581
+          516,
+          591
         ],
         [
-          691,
-          582
+          697,
+          588
         ],
         [
-          696,
-          663
+          695,
+          677
         ],
         [
-          495,
-          665
+          511,
+          675
         ]
       ],
       "center": [
         595,
         623
+      ],
+      "sprite_anchor": [
+        606,
+        634
       ]
     },
     "production_1": {
       "polygon": [
         [
-          789,
-          359
+          821,
+          376
         ],
         [
-          1000,
-          357
+          1013,
+          371
         ],
         [
-          1027,
-          492
+          1039,
+          476
         ],
         [
-          788,
-          501
+          822,
+          478
         ]
       ],
       "center": [
         901,
         427
+      ],
+      "sprite_anchor": [
+        926,
+        457
       ]
     },
     "production_2": {
       "polygon": [
         [
-          1085,
-          359
+          1129,
+          379
         ],
         [
-          1335,
-          356
+          1330,
+          374
         ],
         [
-          1375,
-          488
+          1380,
+          478
         ],
         [
-          1091,
-          497
+          1163,
+          483
         ]
       ],
       "center": [
         1222,
         425
+      ],
+      "sprite_anchor": [
+        1251,
+        463
       ]
     },
     "production_3": {
       "polygon": [
         [
-          789,
-          549
+          829,
+          572
         ],
         [
-          1008,
-          545
+          1045,
+          571
         ],
         [
-          1029,
-          681
-        ],
-        [
-          789,
+          1069,
           686
+        ],
+        [
+          840,
+          679
         ]
       ],
       "center": [
         904,
         615
+      ],
+      "sprite_anchor": [
+        945,
+        660
       ]
     },
     "production_4": {
       "polygon": [
         [
-          1092,
-          546
+          1171,
+          574
         ],
         [
-          1347,
-          544
+          1394,
+          572
         ],
         [
-          1382,
-          681
+          1431,
+          687
         ],
         [
-          1092,
+          1198,
           688
         ]
       ],
       "center": [
         1228,
         615
+      ],
+      "sprite_anchor": [
+        1303,
+        666
       ]
     },
     "animal_1": {
       "polygon": [
         [
-          34,
-          765
+          99,
+          783
         ],
         [
-          320,
-          754
+          304,
+          801
         ],
         [
-          330,
-          851
+          259,
+          850
         ],
         [
-          23,
-          854
+          74,
+          817
         ]
       ],
       "center": [
         177,
         806
+      ],
+      "sprite_anchor": [
+        180,
+        826
       ]
     },
     "animal_2": {
       "polygon": [
         [
-          391,
-          765
+          454,
+          795
         ],
         [
-          667,
-          756
+          648,
+          808
         ],
         [
-          679,
-          856
+          650,
+          858
         ],
         [
-          371,
-          860
+          430,
+          850
         ]
       ],
       "center": [
         527,
         809
+      ],
+      "sprite_anchor": [
+        544,
+        850
       ]
     },
     "animal_3": {
       "polygon": [
         [
-          748,
-          770
+          791,
+          818
         ],
         [
-          988,
-          761
+          1000,
+          810
         ],
         [
-          1002,
-          860
+          992,
+          878
         ],
         [
-          739,
+          788,
           868
         ]
       ],
       "center": [
         869,
         815
+      ],
+      "sprite_anchor": [
+        890,
+        860
       ]
     },
     "animal_4": {
       "polygon": [
         [
-          1125,
-          768
+          1170,
+          815
         ],
         [
-          1373,
-          755
+          1356,
+          814
         ],
         [
-          1396,
-          857
+          1395,
+          886
         ],
         [
-          1113,
-          862
+          1200,
+          885
         ]
       ],
       "center": [
         1252,
         810
+      ],
+      "sprite_anchor": [
+        1283,
+        864
       ]
     },
     "npc_entrance": {
@@ -500,6 +560,7 @@
     "Farmhouse, barn, market, board, arch, dock and scenery are baked into background as fixed scenery.",
     "Purchased chicken coop and production facilities must be independent transparent sprites.",
     "Use bottom-center anchors for standing animals and buildings; confirm actual feet/base positions in placement test.",
-    "Do not generate separate crop soil underneath the existing soil unless a replacement state is explicitly desired."
+    "Do not generate separate crop soil underneath the existing soil unless a replacement state is explicitly desired.",
+    "User-calibrated on iPad 2026-10-23; not yet approved as final sprite alignment."
   ]
 }
