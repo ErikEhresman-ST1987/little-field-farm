@@ -1,0 +1,11 @@
+{
+  "format": "game-graphics-animation",
+  "version": 1,
+  "asset": "animation-6frames-256px.webp",
+  "frameWidth": 256,
+  "frameHeight": 256,
+  "frameCount": 6,
+  "fps": 3,
+  "layout": "horizontal",
+  "loop": true
+}
