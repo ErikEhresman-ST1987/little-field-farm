@@ -32,7 +32,7 @@ function draw(){
  for(const o of scene.objects){
    const img=art.get(o.data);
    if(!img)continue;
-   const render=()=>{const animation=animatedObjects.get(o.id);const frame=animation?animation.frames[Math.floor(performance.now()/1000*animation.fps)%animation.frames.length]:img;drawImage(frame,o.x,o.y,o.w,objectHeight(o,frame),o.rotation||0);};
+   const render=()=>{const animation=animatedObjects.get(o);const frame=animation?animation.frames[Math.floor(performance.now()/1000*animation.fps)%animation.frames.length]:img;drawImage(frame,o.x,o.y,o.w,objectHeight(o,frame),o.rotation||0);};
    const name=(o.name||o.asset||'').toLowerCase();
    if(name.includes('empty-field'))penBases.push(render);
    else if(name.includes('cow')||name.includes('sheep')||name.includes('chicken')||name.includes('animation-6frames'))animals.push(render);
@@ -77,7 +77,7 @@ async function loadAnimations(){
    const config=o.animation;
    // The original Sprite Factory export uses the named source file in animals/.
    const base='../assets/farm-v2/animals/';
-   const sourceName=config.metadata?.replace(/\\.json$/i,'.webp')||config.asset;
+   const sourceName=config.metadata?.replace(/\.json$/i,'.webp')||config.asset;
    try{
      const [metadataResponse,strip]=await Promise.all([
        fetch(base+encodeURIComponent(config.metadata)),
@@ -93,7 +93,7 @@ async function loadAnimations(){
        frame.getContext('2d').drawImage(strip,i*fw,0,fw,fh,0,0,fw,fh);
        frames.push(frame);
      }
-     animatedObjects.set(o.id,{frames,fps:metadata.fps||config.fps||3});
+     animatedObjects.set(o,{frames,fps:metadata.fps||config.fps||3});
    }catch(error){
      console.warn('Animation unavailable; keeping static scene preview:',o.name,error);
    }
@@ -144,5 +144,5 @@ canvas.addEventListener('pointerup',e=>{
 try{
  const saved=localStorage.getItem(KEY);state=saved?validateSave(JSON.parse(saved)):emptyState();
  await loadArtwork();loading.remove();refresh();tell('Tap a bed to plant. Your new farm saves automatically.');
- setInterval(()=>{if(panel.hidden)draw();},1000);
+ setInterval(()=>{if(panel.hidden)draw();},100);
 }catch(e){console.error(e);loading.textContent='Farm could not start: '+e.message;loading.style.color='#fff';}
