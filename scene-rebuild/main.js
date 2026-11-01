@@ -23,24 +23,36 @@ function currentStage(bed){if(!bed)return -1;return Math.min(2,Math.floor((now()
 function ready(bed){return bed && now()-bed.plantedAt>=TIMES[bed.crop];}
 function draw(){
  if(!scene)return;
- ctx.clearRect(0,0,1024,768);
- if(background)ctx.drawImage(background,0,0,1024,768);
- const items=[];
+ ctx.clearRect(0,0,canvas.width,canvas.height);
+ if(background)ctx.drawImage(background,0,0,canvas.width,canvas.height);
+ // Render in explicit visual layers. Scene Editor y coordinates describe placement,
+ // not the stacking order: pens and soil must never cover their occupants.
+ const penBases=[], buildings=[], animals=[];
  for(const o of scene.objects){
-   const img=art.get(o.data); if(img && img instanceof Promise)continue;
-   if(img)items.push({y:o.y,draw:()=>drawImage(img,o.x,o.y,o.w,objectHeight(o,img),o.rotation||0)});
+   const img=art.get(o.data);
+   if(!img)continue;
+   const render=()=>drawImage(img,o.x,o.y,o.w,objectHeight(o,img),o.rotation||0);
+   const name=(o.name||o.asset||'').toLowerCase();
+   if(name.includes('empty-field'))penBases.push(render);
+   else if(name.includes('cow')||name.includes('sheep')||name.includes('chicken')||name.includes('animation-6frames'))animals.push(render);
+   else buildings.push(render);
  }
+ for(const render of penBases)render();
+ // Foundation artwork is always below crops, regardless of editor coordinates.
+ for(const bed of scene.visualLocations){
+   const f=bed.foundation, img=art.get(f.data);
+   if(img)drawImage(img,f.x,f.y,f.width,f.height,f.rotation||0);
+ }
+ for(const render of buildings)render();
  for(let i=0;i<scene.visualLocations.length;i++){
-   const bed=scene.visualLocations[i], b=state.beds[i], f=bed.foundation;
-   const fimg=art.get(f.data);
-   if(fimg && !(fimg instanceof Promise))items.push({y:f.y,draw:()=>drawImage(fimg,f.x,f.y,f.width,f.height,f.rotation||0)});
-   if(b){
-     const choice=bed.choices.find(c=>c.id===b.crop), a=choice?.appearances[currentStage(b)];
-     const im=a && art.get(a.data);
-     if(im && !(im instanceof Promise))items.push({y:a.y+1,draw:()=>drawImage(im,a.x,a.y,a.width,a.height,a.rotation||0)});
-   }
+   const bed=scene.visualLocations[i], planted=state.beds[i];
+   if(!planted)continue;
+   const choice=bed.choices.find(c=>c.id===planted.crop);
+   const a=choice?.appearances[currentStage(planted)];
+   const img=a&&art.get(a.data);
+   if(img)drawImage(img,a.x,a.y,a.width,a.height,a.rotation||0);
  }
- items.sort((a,b)=>a.y-b.y);for(const item of items)item.draw();
+ for(const render of animals)render();
 }
 async function loadArtwork(){
  const data = await fetch(SCENE_URL,{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('Scene file unavailable ('+r.status+').');return r.json();});
