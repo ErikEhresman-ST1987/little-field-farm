@@ -7,6 +7,7 @@ const NAMES = { wheat:'Wheat', 'rainbow-chard':'Rainbow Chard', pineapple:'Pinea
 const PRICES = { wheat:4, 'rainbow-chard':6, pineapple:9, strawberry:7, squash:8 };
 const TIMES = { wheat:45000, 'rainbow-chard':55000, pineapple:90000, strawberry:65000, squash:75000 };
 let scene, state, art = new Map(), background, selectedBed = -1;
+const animatedObjects = new Map();
 const now = () => Date.now();
 const emptyState = () => ({version:1, coins:30, beds:Array(6).fill(null), inventory:Object.fromEntries(Object.keys(NAMES).map(k=>[k,0])), order:0, bakery:[], products:0, eggs:0, chickenFedAt:0});
 function validateSave(s) {
@@ -31,7 +32,7 @@ function draw(){
  for(const o of scene.objects){
    const img=art.get(o.data);
    if(!img)continue;
-   const render=()=>drawImage(img,o.x,o.y,o.w,objectHeight(o,img),o.rotation||0);
+   const render=()=>{const animation=animatedObjects.get(o.id);const frame=animation?animation.frames[Math.floor(performance.now()/1000*animation.fps)%animation.frames.length]:img;drawImage(frame,o.x,o.y,o.w,objectHeight(o,frame),o.rotation||0);};
    const name=(o.name||o.asset||'').toLowerCase();
    if(name.includes('empty-field'))penBases.push(render);
    else if(name.includes('cow')||name.includes('sheep')||name.includes('chicken')||name.includes('animation-6frames'))animals.push(render);
@@ -63,9 +64,42 @@ async function loadArtwork(){
  for(const bed of data.visualLocations){sources.add(bed.foundation.data);for(const choice of bed.choices)for(const a of choice.appearances)sources.add(a.data);}
  const resolved=await Promise.all([...sources].map(async src=>[src,await getImage(src)]));
  art=new Map(resolved);background=art.get(data.background);
+ await loadAnimations();
  if(!background)throw Error('Background could not be decoded.');
  draw();
 }
+// Animation metadata describes playback; the embedded scene image is a static
+// positioning preview and must never be mistaken for the sprite strip.
+async function loadAnimations(){
+ animatedObjects.clear();
+ for(const o of scene.objects){
+   if(!o.animation)continue;
+   const config=o.animation;
+   // The original Sprite Factory export uses the named source file in animals/.
+   const base='../assets/farm-v2/animals/';
+   const sourceName=config.metadata?.replace(/\\.json$/i,'.webp')||config.asset;
+   try{
+     const [metadataResponse,strip]=await Promise.all([
+       fetch(base+encodeURIComponent(config.metadata)),
+       image(base+encodeURIComponent(sourceName))
+     ]);
+     if(!metadataResponse.ok)throw Error('Metadata not found');
+     const metadata=await metadataResponse.json();
+     const fw=metadata.frameWidth,fh=metadata.frameHeight,count=metadata.frameCount;
+     if(metadata.layout!=='horizontal'||!Number.isInteger(count)||count<1||strip.width!==fw*count||strip.height!==fh)throw Error('Sprite strip dimensions do not match metadata');
+     const frames=[];
+     for(let i=0;i<count;i++){
+       const frame=document.createElement('canvas');frame.width=fw;frame.height=fh;
+       frame.getContext('2d').drawImage(strip,i*fw,0,fw,fh,0,0,fw,fh);
+       frames.push(frame);
+     }
+     animatedObjects.set(o.id,{frames,fps:metadata.fps||config.fps||3});
+   }catch(error){
+     console.warn('Animation unavailable; keeping static scene preview:',o.name,error);
+   }
+ }
+}
+
 function openPanel(title){panelTitle.textContent=title;panelContent.replaceChildren();panel.hidden=false;}
 function closePanel(){panel.hidden=true;selectedBed=-1;}
 document.querySelector('#close').onclick=closePanel;
