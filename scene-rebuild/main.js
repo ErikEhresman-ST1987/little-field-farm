@@ -63,7 +63,7 @@ function image(src){return new Promise((resolve,reject)=>{const im=new Image();i
 async function getImage(src){if(!src)return null;if(!art.has(src))art.set(src,image(src).catch(e=>{console.warn('Image unavailable',e);return null;}));return art.get(src);}
 function drawImage(img,x,y,w,h,rotation=0){if(!img)return;ctx.save();ctx.translate(x,y);ctx.rotate(rotation*Math.PI/180);ctx.drawImage(img,-w/2,-h/2,w,h);ctx.restore();}
 function objectHeight(o,img){return o.w*img.height/img.width;}
-function currentStage(bed){if(!bed)return -1;return Math.min(2,Math.floor((now()-bed.plantedAt)/TIMES[bed.crop]*3));}
+function currentStage(bed){if(!bed)return -1;const elapsed=now()-bed.plantedAt;const duration=TIMES[bed.crop];return elapsed>=duration?2:elapsed>=duration/2?1:0;}
 function ready(bed){return bed && now()-bed.plantedAt>=TIMES[bed.crop];}
 function draw(){
  if(!scene)return;
