@@ -179,8 +179,8 @@ function market(){
  }
 }
 const ANIMALS={
- cow:{name:'Cow',resource:'milk',quantity:2,seconds:90,feed:null},
- sheep:{name:'Sheep',resource:'wool',quantity:2,seconds:90,feed:null},
+ cow:{name:'Cow',resource:'milk',quantity:2,seconds:90,feed:'wheat'},
+ sheep:{name:'Sheep',resource:'wool',quantity:2,seconds:90,feed:'wheat'},
  chicken:{name:'Chickens',resource:'eggs',quantity:2,seconds:60,feed:'rainbow-chard'}
 };
 function animals(){
