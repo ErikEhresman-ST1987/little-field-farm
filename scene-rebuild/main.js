@@ -182,7 +182,7 @@ function tapBed(i){
  else tell(NAMES[b.crop]+' growing — '+Math.ceil((TIMES[b.crop]-(now()-b.plantedAt))/1000)+' seconds left.');
  return;}
  selectedBed=i;openPanel('Plant bed '+(i+1));
- for(const c of scene.visualLocations[i].choices)entry(NAMES[c.id]||c.id,{label:'Plant',fn:()=>plantBed(i,c.id)});
+ for(const c of scene.visualLocations[i].choices)itemEntry(c.id,(NAMES[c.id]||c.id)+' · '+Math.ceil(TIMES[c.id]/1000)+' sec to grow',{label:'Plant',fn:()=>plantBed(i,c.id)});
 }
 const itemName=id=>NAMES[id]||GOODS[id]?.[0]||id;
 const itemPrice=id=>PRICES[id]||GOODS[id]?.[1]||0;
@@ -261,14 +261,28 @@ function factory(id){
    }},remaining>0);
  });
  for(const [product,needs,seconds] of RECIPES[id]){
-  itemEntry(product,itemName(product)+' · '+ingredients(needs)+' · '+seconds+' sec',
-   {label:'Make',fn:()=>{
-    if(queue.length>=3||!hasItems(needs))return;
-    for(const [ingredient,n] of Object.entries(needs))state.inventory[ingredient]-=n;
-    const last=queue.reduce((end,j)=>Math.max(end,j.finish),now());
-    queue.push({product,finish:last+seconds*1000});
-    save();refresh();factory(id);
-   }},queue.length>=3||!hasItems(needs));
+  const recipe=document.createElement('section');recipe.className='recipe-card';
+  const heading=document.createElement('div');heading.className='recipe-heading';
+  if(PRODUCT_ART[product])addArt(heading,'products',PRODUCT_ART[product],itemName(product));
+  const name=document.createElement('strong');name.textContent=itemName(product)+' · '+seconds+' sec';heading.append(name);
+  const make=button('Make',()=>{
+   if(queue.length>=3||!hasItems(needs))return;
+   for(const [ingredient,n] of Object.entries(needs))state.inventory[ingredient]-=n;
+   const last=queue.reduce((end,j)=>Math.max(end,j.finish),now());
+   queue.push({product,finish:last+seconds*1000});
+   save();refresh();factory(id);
+  },queue.length>=3||!hasItems(needs));
+  heading.append(make);recipe.append(heading);
+  const list=document.createElement('div');list.className='recipe-ingredients';
+  for(const [ingredient,needed] of Object.entries(needs)){
+   const available=inventoryCount(ingredient),line=document.createElement('div');
+   line.className='recipe-ingredient'+(available<needed?' ingredient-short':'');
+   if(PRODUCT_ART[ingredient])addArt(line,'products',PRODUCT_ART[ingredient],itemName(ingredient));
+   const label=document.createElement('span');
+   label.textContent=itemName(ingredient)+': '+available+' / '+needed+(available<needed?' · Need '+(needed-available)+' more':' · Ready');
+   line.append(label);list.append(line);
+  }
+  recipe.append(list);panelContent.append(recipe);
  }
 }
 function bakery(){factory('bakery');}
