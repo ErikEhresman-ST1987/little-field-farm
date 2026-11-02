@@ -7,3 +7,11 @@ main{width:100%;max-width:100%;min-width:0}
 nav{width:100%;min-width:0;grid-template-columns:repeat(4,minmax(0,1fr))}
 nav button{min-width:0;overflow-wrap:anywhere}
 @media(max-width:600px){nav{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* Illustrated inventory, recipes, market and neighbor orders. */
+.entry{min-width:0;justify-content:flex-start}
+.entry>span{flex:1;min-width:0;overflow-wrap:anywhere}
+.entry>button{margin-left:auto}
+.product-art{width:48px;height:48px;object-fit:contain;flex:0 0 48px}
+.npc-art{display:block;width:132px;height:132px;object-fit:contain;margin:12px auto;border-radius:14px}
+@media(max-width:600px){.product-art{width:42px;height:42px;flex-basis:42px}}
