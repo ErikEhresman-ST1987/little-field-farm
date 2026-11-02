@@ -40,6 +40,7 @@ function itemEntry(id,label,action,disabled=false){
 const TIMES = { wheat:45000, 'rainbow-chard':55000, pineapple:90000, strawberry:65000, squash:75000 };
 let scene, state, art = new Map(), background, selectedBed = -1;
 let liveProductionPanel = null;
+let saveRecoveryRequired = false;
 const animatedObjects = new Map();
 const now = () => Date.now();
 const RECIPES = {
@@ -102,7 +103,7 @@ function validateSave(s){
  }
  return s;
 }
-function save(){try{validateSave(state);localStorage.setItem(KEY,JSON.stringify(state));}catch(e){tell('Save failed. Export a backup before closing.');console.error(e);}}
+function save(){if(saveRecoveryRequired){tell('Save blocked: restore a valid backup before continuing.');return;}try{validateSave(state);localStorage.setItem(KEY,JSON.stringify(state));}catch(e){tell('Save failed. Export a backup before closing.');console.error(e);}}
 function tell(s){notice.textContent=s;}
 function image(src){return new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=reject;im.src=src;});}
 async function getImage(src){if(!src)return null;if(!art.has(src))art.set(src,image(src).catch(e=>{console.warn('Image unavailable',e);return null;}));return art.get(src);}
@@ -345,9 +346,10 @@ function orders(){
  }},inventoryCount(o.item)<o.quantity);
 }
 
-function backup(){openPanel('Farm backup');entry('This new farm has separate saved progress from the previous game.');entry('Download a backup',{label:'Export',fn:()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='little-field-farm-new-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);}});
+function backup(){openPanel('Farm backup');entry('This new farm has separate saved progress from the previous game.');
+ if(saveRecoveryRequired)entry('Saved data could not be loaded. Restore a valid backup to resume saving.');entry('Download a backup',{label:'Export',fn:()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='little-field-farm-new-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);}});
  const input=document.createElement('input');input.type='file';input.accept='.json,application/json';panelContent.append(input);
- entry('Restore selected backup',{label:'Restore',fn:async()=>{if(!input.files?.[0]){tell('Choose a backup first.');return;}try{const s=validateSave(JSON.parse(await input.files[0].text()));if(!confirm('Replace this new farm\'s saved progress?'))return;state=s;save();refresh();closePanel();tell('Backup restored.');}catch(e){tell('Restore failed: '+e.message);}}});}
+ entry('Restore selected backup',{label:'Restore',fn:async()=>{if(!input.files?.[0]){tell('Choose a backup first.');return;}try{const s=validateSave(JSON.parse(await input.files[0].text()));if(!confirm('Replace this new farm\'s saved progress?'))return;state=s;saveRecoveryRequired=false;save();refresh();closePanel();tell('Backup restored.');}catch(e){tell('Restore failed: '+e.message);}}});}
 const panels={barn,market,orders,bakery,creamery,textile,animals,backup};
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>panels[b.dataset.panel]());
 function hit(rect,x,y){return x>=rect.x&&x<=rect.x+rect.width&&y>=rect.y&&y<=rect.y+rect.height;}
@@ -363,8 +365,8 @@ try{
   try{state=saved?validateSave(JSON.parse(saved)):emptyState();}
   catch(error){
    console.error('Saved farm failed validation; preserving original save:',error);
-   state=emptyState();
-   tell('Saved progress could not be read. Original data is preserved; use Backup to restore a valid file.');
+   state=emptyState();saveRecoveryRequired=true;
+   tell('Saved progress could not be read. Saving is blocked until a valid backup is restored.');
   }
  await loadArtwork();loading.remove();refresh();if(!saved)tell('Tap a bed to plant. Your new farm saves automatically.');
  setInterval(()=>{if(panel.hidden)draw();},100);
