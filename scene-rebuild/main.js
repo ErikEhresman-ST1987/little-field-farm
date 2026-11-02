@@ -13,6 +13,30 @@ const GOODS = {
  'strawberry-pineapple-smoothie':['Strawberry-Pineapple Smoothie',63],
  'wool-yarn':['Wool Yarn',20], 'knitted-scarf':['Knitted Scarf',54], 'wool-blanket':['Wool Blanket',110]
 };
+const PRODUCT_ART = {
+ wheat:'wheat.webp','rainbow-chard':'rainbow-chard.webp',pineapple:'pineapple.webp',
+ strawberry:'stawberries.webp',squash:'crooked-neck-squash.webp',
+ milk:'milk.webp',wool:'wool.webp',eggs:'eggs.webp',
+ 'farm-bread':'farm-bread.webp','squash-fritters':'squash-fritters.webp',
+ 'strawberry-pie':'strawberry-pie.webp','farmhouse-cheese':'farm-cheese.webp',
+ 'fresh-butter':'butter.webp','strawberry-yogurt':'strawberry-yogurt.webp',
+ 'strawberry-smoothie':'strawberry-smoothie.webp','pineapple-smoothie':'pineapple-smoothie.webp',
+ 'strawberry-pineapple-smoothie':'strawberry-pineapple-smoothie.webp',
+ 'wool-yarn':'yarn.webp','knitted-scarf':'wool-scarf.webp','wool-blanket':'wool-blanket.webp'
+};
+const NPC_ART = ['Juliette-Childers.webp','Andy-Tiller.webp','Keiko-Obrien.webp','Felix-Underwood.webp'];
+function addArt(container,folder,file,alt,portrait=false){
+ const img=document.createElement('img');
+ img.src='../assets/farm-v2/'+folder+'/'+file;
+ img.alt=alt;img.className=portrait?'npc-art':'product-art';
+ img.loading='lazy';img.onerror=()=>img.remove();
+ container.prepend(img);
+}
+function itemEntry(id,label,action,disabled=false){
+ entry(label,action,disabled);
+ const row=panelContent.lastElementChild;
+ if(PRODUCT_ART[id])addArt(row,'products',PRODUCT_ART[id],itemName(id));
+}
 const TIMES = { wheat:45000, 'rainbow-chard':55000, pineapple:90000, strawberry:65000, squash:75000 };
 let scene, state, art = new Map(), background, selectedBed = -1;
 const animatedObjects = new Map();
@@ -167,13 +191,13 @@ const ingredients=needs=>Object.entries(needs).map(([id,n])=>n+' '+itemName(id))
 function barn(){
  openPanel('Barn inventory');
  for(const id of [...Object.keys(NAMES),...Object.keys(GOODS)])
-  entry(itemName(id)+': '+inventoryCount(id));
+  itemEntry(id,itemName(id)+': '+inventoryCount(id));
 }
 function market(){
  openPanel('Farm market');
  for(const id of [...Object.keys(NAMES),...Object.keys(GOODS)]){
   const price=itemPrice(id);
-  entry(itemName(id)+' · '+inventoryCount(id)+' stored · '+price+' coins each',
+  itemEntry(id,itemName(id)+' · '+inventoryCount(id)+' stored · '+price+' coins each',
    {label:'Sell 1',fn:()=>{if(inventoryCount(id)<1)return;state.inventory[id]--;state.coins+=price;save();refresh();market();}},
    inventoryCount(id)<1);
  }
@@ -210,7 +234,7 @@ function factory(id){
  entry('Production queue: '+queue.length+' / 3');
  queue.forEach((job,i)=>{
   const remaining=Math.max(0,Math.ceil((job.finish-now())/1000));
-  entry(itemName(job.product)+(remaining?' · '+remaining+' sec remaining':' · Ready'),
+  itemEntry(job.product,itemName(job.product)+(remaining?' · '+remaining+' sec remaining':' · Ready'),
    {label:'Collect',fn:()=>{
     if(now()<job.finish)return;
     state.inventory[job.product]++;
@@ -220,7 +244,7 @@ function factory(id){
    }},remaining>0);
  });
  for(const [product,needs,seconds] of RECIPES[id]){
-  entry(itemName(product)+' · '+ingredients(needs)+' · '+seconds+' sec',
+  itemEntry(product,itemName(product)+' · '+ingredients(needs)+' · '+seconds+' sec',
    {label:'Make',fn:()=>{
     if(queue.length>=3||!hasItems(needs))return;
     for(const [ingredient,n] of Object.entries(needs))state.inventory[ingredient]-=n;
@@ -251,9 +275,9 @@ function orders(){
  const o=state.pendingOrder,c=CUSTOMERS[o.customer];
  openPanel('Neighbor order');
  entry(c.name+' · '+c.role);
- entry('Portrait: '+c.name+' (placeholder)');
+ addArt(panelContent,'NPCs',NPC_ART[o.customer],c.name,true);
  entry(c.message);
- entry('Request: '+o.quantity+' '+itemName(o.item));
+ itemEntry(o.item,'Request: '+o.quantity+' '+itemName(o.item));
  entry('In barn: '+inventoryCount(o.item));
  entry('Reward: '+o.reward+' coins (25% order bonus)');
  entry('Deliver order',{label:'Deliver',fn:()=>{
