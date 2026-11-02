@@ -15,3 +15,12 @@ nav button{min-width:0;overflow-wrap:anywhere}
 .product-art{width:48px;height:48px;object-fit:contain;flex:0 0 48px}
 .npc-art{display:block;width:132px;height:132px;object-fit:contain;margin:12px auto;border-radius:14px}
 @media(max-width:600px){.product-art{width:42px;height:42px;flex-basis:42px}}
+
+/* Illustrated animal production cards: one output, feed and collection group per animal. */
+.animal-production{border:1px solid #ffffff40;border-radius:12px;padding:10px 12px;margin:12px 0;background:#ffffff0a}
+.animal-production h3{margin:0 0 8px;font-size:18px}
+.animal-product-line,.animal-feed-line,.animal-collect-line{display:flex;align-items:center;gap:10px;min-width:0;padding:6px 0}
+.animal-product-line>span,.animal-feed-line>span,.animal-collect-line>span{flex:1;min-width:0;overflow-wrap:anywhere}
+.animal-feed-line button,.animal-collect-line button{margin-left:auto;flex-shrink:0}
+.animal-product-line .product-art,.animal-feed-line .product-art{width:48px;height:48px;flex:0 0 48px}
+@media(max-width:600px){.animal-production{padding:9px}.animal-product-line .product-art,.animal-feed-line .product-art{width:42px;height:42px;flex-basis:42px}}
