@@ -211,20 +211,37 @@ function animals(){
  openPanel('Farm animals');
  for(const [id,a] of Object.entries(ANIMALS)){
   const started=state.animals[id],remaining=started?Math.max(0,Math.ceil((started+a.seconds*1000-now())/1000)):0;
-  entry(a.name+': '+(started?(remaining?remaining+' sec until collection':'Ready to collect'):'Ready')+
-   ' · '+a.quantity+' '+itemName(a.resource));
-  entry(a.feed?'Feed 1 '+itemName(a.feed):'Start '+a.name.toLowerCase()+' production',
-   {label:a.feed?'Feed':'Start',fn:()=>{
-    if(state.animals[id]||a.feed&&inventoryCount(a.feed)<1)return;
-    if(a.feed)state.inventory[a.feed]--;
-    state.animals[id]=now();save();animals();
-   }},!!started||!!a.feed&&inventoryCount(a.feed)<1);
-  entry('Collect '+a.quantity+' '+itemName(a.resource),{label:'Collect',fn:()=>{
+  const section=document.createElement('section');
+  section.className='animal-production';
+  const heading=document.createElement('h3');heading.textContent=a.name;section.append(heading);
+  const output=document.createElement('div');output.className='animal-product-line';
+  if(PRODUCT_ART[a.resource])addArt(output,'products',PRODUCT_ART[a.resource],itemName(a.resource));
+  const summary=document.createElement('span');
+  summary.textContent='Produces '+a.quantity+' '+itemName(a.resource)+' · '+(started?(remaining?remaining+' sec remaining':'Ready to collect'):'Ready to feed');
+  output.append(summary);section.append(output);
+  const feed=document.createElement('div');feed.className='animal-feed-line';
+  if(a.feed&&PRODUCT_ART[a.feed])addArt(feed,'products',PRODUCT_ART[a.feed],itemName(a.feed));
+  const feedLabel=document.createElement('span');
+  feedLabel.textContent=a.feed?'Feed: 1 '+itemName(a.feed)+' · '+inventoryCount(a.feed)+' in barn':'Start production';
+  feed.append(feedLabel);
+  feed.append(button(a.feed?'Feed':'Start',()=>{
+   if(state.animals[id]||a.feed&&inventoryCount(a.feed)<1)return;
+   if(a.feed)state.inventory[a.feed]--;
+   state.animals[id]=now();save();animals();
+  },!!started||!!a.feed&&inventoryCount(a.feed)<1));
+  section.append(feed);
+  const collection=document.createElement('div');collection.className='animal-collect-line';
+  const collectionLabel=document.createElement('span');
+  collectionLabel.textContent=started?(remaining?'Production in progress':'Ready: '+a.quantity+' '+itemName(a.resource)):'Not producing yet';
+  collection.append(collectionLabel);
+  collection.append(button('Collect',()=>{
    if(!state.animals[id]||now()-state.animals[id]<a.seconds*1000)return;
    state.inventory[a.resource]+=a.quantity;state.animals[id]=0;
    if(!state.unlocked.includes(a.resource))state.unlocked.push(a.resource);
    save();refresh();animals();
-  }},!started||remaining>0);
+  },!started||remaining>0));
+  section.append(collection);
+  panelContent.append(section);
  }
 }
 function factory(id){
