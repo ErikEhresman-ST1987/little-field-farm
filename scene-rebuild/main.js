@@ -73,16 +73,36 @@ const emptyState=()=>({
  unlocked:[],pendingOrder:null
 });
 function validateSave(s){
- if(!s||s.version!==3||!Array.isArray(s.beds)||s.beds.length!==6||
- !s.inventory||typeof s.inventory!=='object'||!Number.isFinite(s.coins)||
- !s.queues||!s.animals||!Array.isArray(s.unlocked)||
- !['bakery','creamery','textile'].every(k=>Array.isArray(s.queues[k])&&s.queues[k].length<=3))
- throw Error('Not a backup from this farm version.');
- for(const k of [...Object.keys(NAMES),...Object.keys(GOODS)])
-  if(!Number.isSafeInteger(s.inventory[k])||s.inventory[k]<0)throw Error('Invalid inventory.');
+ const fail=()=>{throw Error('Invalid or incompatible farm backup.');};
+ const integer=(n,min=0)=>Number.isSafeInteger(n)&&n>=min;
+ const stamp=n=>Number.isSafeInteger(n)&&n>0;
+ if(!s||typeof s!=='object'||Array.isArray(s)||s.version!==3||
+  !integer(s.coins)||!integer(s.order)||!Array.isArray(s.beds)||s.beds.length!==6||
+  !s.inventory||typeof s.inventory!=='object'||Array.isArray(s.inventory)||
+  !s.queues||typeof s.queues!=='object'||!s.animals||typeof s.animals!=='object'||
+  !Array.isArray(s.unlocked)||!s.unlocked.every(id=>typeof id==='string'&&Object.hasOwn(GOODS,id)))fail();
+ const allIds=[...Object.keys(NAMES),...Object.keys(GOODS)];
+ for(const id of allIds)if(!integer(s.inventory[id]))fail();
+ for(const bed of s.beds)if(bed!==null&&(!bed||typeof bed!=='object'||
+  !Object.hasOwn(TIMES,bed.crop)||!stamp(bed.plantedAt)))fail();
+ for(const [factoryId,recipes] of Object.entries(RECIPES)){
+  const queue=s.queues[factoryId];
+  if(!Array.isArray(queue)||queue.length>3)fail();
+  for(const job of queue)if(!job||typeof job!=='object'||
+   !recipes.some(recipe=>recipe[0]===job.product)||!stamp(job.finish))fail();
+ }
+ for(const animal of Object.keys(ANIMALS)){
+  const started=s.animals[animal];
+  if(started!==0&&!stamp(started))fail();
+ }
+ if(s.pendingOrder!==null){
+  const o=s.pendingOrder;
+  if(!o||typeof o!=='object'||!integer(o.customer)||o.customer>=CUSTOMERS.length||
+   !allIds.includes(o.item)||!integer(o.quantity,1)||!integer(o.reward))fail();
+ }
  return s;
 }
-function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){tell('Save failed. Export a backup before closing.');console.error(e);}}
+function save(){try{validateSave(state);localStorage.setItem(KEY,JSON.stringify(state));}catch(e){tell('Save failed. Export a backup before closing.');console.error(e);}}
 function tell(s){notice.textContent=s;}
 function image(src){return new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=reject;im.src=src;});}
 async function getImage(src){if(!src)return null;if(!art.has(src))art.set(src,image(src).catch(e=>{console.warn('Image unavailable',e);return null;}));return art.get(src);}
@@ -259,7 +279,7 @@ function factory(id){
   const remaining=Math.max(0,Math.ceil((job.finish-now())/1000));
   itemEntry(job.product,itemName(job.product)+(remaining?' · '+remaining+' sec remaining':' · Ready'),
    {label:'Collect',fn:()=>{
-    if(now()<job.finish)return;
+    if(now()<job.finish||state.queues[id][i]!==job)return;
     state.inventory[job.product]++;
     state.queues[id].splice(i,1);
     if(!state.unlocked.includes(job.product))state.unlocked.push(job.product);
@@ -272,10 +292,10 @@ function factory(id){
   if(PRODUCT_ART[product])addArt(heading,'products',PRODUCT_ART[product],itemName(product));
   const name=document.createElement('strong');name.textContent=itemName(product)+' · '+seconds+' sec';heading.append(name);
   const make=button('Make',()=>{
-   if(queue.length>=3||!hasItems(needs))return;
+   if(state.queues[id].length>=3||!hasItems(needs))return;
    for(const [ingredient,n] of Object.entries(needs))state.inventory[ingredient]-=n;
-   const last=queue.reduce((end,j)=>Math.max(end,j.finish),now());
-   queue.push({product,finish:last+seconds*1000});
+   const last=state.queues[id].reduce((end,j)=>Math.max(end,j.finish),now());
+   state.queues[id].push({product,finish:last+seconds*1000});
    save();refresh();factory(id);
   },queue.length>=3||!hasItems(needs));
   heading.append(make);recipe.append(heading);
@@ -339,8 +359,14 @@ canvas.addEventListener('pointerup',e=>{
  for(const o of [...scene.objects].reverse()){if(!o.interactive||!o.touchZone||!hit(o.touchZone,x,y))continue;const name=o.name.toLowerCase();if(name.includes('bakery'))bakery();else if(o.animation||name.includes('chicken')||name.includes('cow')||name.includes('sheep'))animals();else if(name.includes('creamery'))creamery();else if(name.includes('textile'))textile();return;}
 });
 try{
- const saved=localStorage.getItem(KEY);state=saved?validateSave(JSON.parse(saved)):emptyState();
- await loadArtwork();loading.remove();refresh();tell('Tap a bed to plant. Your new farm saves automatically.');
+ const saved=localStorage.getItem(KEY);
+  try{state=saved?validateSave(JSON.parse(saved)):emptyState();}
+  catch(error){
+   console.error('Saved farm failed validation; preserving original save:',error);
+   state=emptyState();
+   tell('Saved progress could not be read. Original data is preserved; use Backup to restore a valid file.');
+  }
+ await loadArtwork();loading.remove();refresh();if(!saved)tell('Tap a bed to plant. Your new farm saves automatically.');
  setInterval(()=>{if(panel.hidden)draw();},100);
   // Refresh time-dependent labels and button states while production panels stay open.
   setInterval(()=>{if(!panel.hidden&&liveProductionPanel)liveProductionPanel();},1000);
