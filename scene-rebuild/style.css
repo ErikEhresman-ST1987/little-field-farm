@@ -24,3 +24,15 @@ nav button{min-width:0;overflow-wrap:anywhere}
 .animal-feed-line button,.animal-collect-line button{margin-left:auto;flex-shrink:0}
 .animal-product-line .product-art,.animal-feed-line .product-art{width:48px;height:48px;flex:0 0 48px}
 @media(max-width:600px){.animal-production{padding:9px}.animal-product-line .product-art,.animal-feed-line .product-art{width:42px;height:42px;flex-basis:42px}}
+
+/* Crop choices and ingredient availability in production recipes. */
+.recipe-card{border:1px solid #ffffff40;border-radius:12px;background:#ffffff0a;padding:10px 12px;margin:12px 0}
+.recipe-heading{display:flex;align-items:center;gap:10px;min-width:0}
+.recipe-heading strong{flex:1;min-width:0;overflow-wrap:anywhere}
+.recipe-heading button{margin-left:auto;flex-shrink:0}
+.recipe-ingredients{display:grid;gap:4px;margin:8px 0 0 58px}
+.recipe-ingredient{display:flex;align-items:center;gap:8px;min-width:0;font-size:14px}
+.recipe-ingredient .product-art{width:30px;height:30px;flex:0 0 30px}
+.recipe-ingredient span{min-width:0;overflow-wrap:anywhere}
+.ingredient-short{color:#ffd6a4}
+@media(max-width:600px){.recipe-card{padding:9px}.recipe-ingredients{margin-left:0}.recipe-heading .product-art{width:42px;height:42px;flex-basis:42px}}
