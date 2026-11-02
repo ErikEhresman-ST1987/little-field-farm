@@ -1,17 +1,25 @@
 const SCENE_URL = '../assets/farm-v2/background/workshop-scene%20(9).json';
-const KEY = 'little-field-farm-scene-rebuild-v1';
+const KEY = 'little-field-farm-scene-rebuild-v2';
 const canvas = document.querySelector('#farm'), ctx = canvas.getContext('2d');
 const notice = document.querySelector('#notice'), loading = document.querySelector('#loading');
 const panel = document.querySelector('#panel'), panelTitle = document.querySelector('#panel-title'), panelContent = document.querySelector('#panel-content');
 const NAMES = { wheat:'Wheat', 'rainbow-chard':'Rainbow Chard', pineapple:'Pineapple', strawberry:'Strawberry', squash:'Squash' };
 const PRICES = { wheat:4, 'rainbow-chard':6, pineapple:9, strawberry:7, squash:8 };
+const GOODS = {
+ milk:['Milk',8], wool:['Wool',7], eggs:['Eggs',5],
+ 'farm-bread':['Farm Bread',28], 'squash-fritters':['Squash Fritters',55], 'strawberry-pie':['Strawberry Pie',58],
+ 'farmhouse-cheese':['Farmhouse Cheese',23], 'fresh-butter':['Fresh Butter',23], 'strawberry-yogurt':['Strawberry Yogurt',31],
+ 'strawberry-smoothie':['Strawberry Smoothie',30], 'pineapple-smoothie':['Pineapple Smoothie',35],
+ 'strawberry-pineapple-smoothie':['Strawberry-Pineapple Smoothie',63],
+ 'wool-yarn':['Wool Yarn',20], 'knitted-scarf':['Knitted Scarf',54], 'wool-blanket':['Wool Blanket',110]
+};
 const TIMES = { wheat:45000, 'rainbow-chard':55000, pineapple:90000, strawberry:65000, squash:75000 };
 let scene, state, art = new Map(), background, selectedBed = -1;
 const animatedObjects = new Map();
 const now = () => Date.now();
-const emptyState = () => ({version:1, coins:30, beds:Array(6).fill(null), inventory:Object.fromEntries(Object.keys(NAMES).map(k=>[k,0])), order:0, bakery:[], products:0, eggs:0, chickenFedAt:0});
+const emptyState = () => ({version:2, coins:30, beds:Array(6).fill(null), inventory:Object.fromEntries([...Object.keys(NAMES),...Object.keys(GOODS)].map(k=>[k,0])), order:0, bakery:[], products:0, chickenFedAt:0});
 function validateSave(s) {
- if(!s || s.version!==1 || !Array.isArray(s.beds) || s.beds.length!==6 || !s.inventory || typeof s.coins!=='number') throw Error('Unrecognized save; original data preserved.');
+ if(!s || s.version!==2 || !Array.isArray(s.beds) || s.beds.length!==6 || !s.inventory || typeof s.coins!=='number') throw Error('Unrecognized save; original data preserved.');
  return s;
 }
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){tell('Save failed. Export a backup before closing.');console.error(e);}}
@@ -117,17 +125,17 @@ function tapBed(i){
  selectedBed=i;openPanel('Plant bed '+(i+1));
  for(const c of scene.visualLocations[i].choices)entry(NAMES[c.id]||c.id,{label:'Plant',fn:()=>plantBed(i,c.id)});
 }
-function barn(){openPanel('Barn inventory');for(const c of Object.keys(NAMES))entry(NAMES[c]+': '+inventoryCount(c));entry('Eggs: '+state.eggs);entry('Bakery goods: '+state.products);}
+function barn(){openPanel('Barn inventory');for(const c of Object.keys(NAMES))entry(NAMES[c]+': '+inventoryCount(c));for(const [id,[name]] of Object.entries(GOODS))entry(name+': '+inventoryCount(id));}
 function market(){openPanel('Farm market');for(const c of Object.keys(NAMES))entry(NAMES[c]+' · '+inventoryCount(c)+' stored · '+PRICES[c]+' coins each',{label:'Sell 1',fn:()=>{state.inventory[c]--;state.coins+=PRICES[c];save();refresh();market();}},inventoryCount(c)<1);
  entry('Bakery goods · '+state.products+' stored · 15 coins each',{label:'Sell 1',fn:()=>{state.products--;state.coins+=15;save();refresh();market();}},state.products<1);
- entry('Eggs · '+state.eggs+' stored · 5 coins each',{label:'Sell 1',fn:()=>{state.eggs--;state.coins+=5;save();refresh();market();}},state.eggs<1);}
+ for(const [id,[name,price]] of Object.entries(GOODS))entry(name+' · '+inventoryCount(id)+' stored · '+price+' coins each',{label:'Sell 1',fn:()=>{state.inventory[id]--;state.coins+=price;save();refresh();market();}},inventoryCount(id)<1);}
 function orderSpec(){const crops=Object.keys(NAMES);const crop=crops[state.order%crops.length];return {crop,quantity:2+(state.order%3),reward:(2+(state.order%3))*PRICES[crop]+8};}
 function orders(){openPanel('Neighbor order');const o=orderSpec();entry('Request: '+o.quantity+' '+NAMES[o.crop]);entry('In barn: '+inventoryCount(o.crop));entry('Reward: '+o.reward+' coins');entry('Complete this order',{label:'Deliver',fn:()=>{state.inventory[o.crop]-=o.quantity;state.coins+=o.reward;state.order++;save();refresh();orders();tell('Order delivered!');}},inventoryCount(o.crop)<o.quantity);}
 function bakery(){openPanel('Farm bakery');const done=state.bakery.filter(t=>t<=now()).length;entry('Finished goods waiting: '+done,{label:'Collect',fn:()=>{state.products+=done;state.bakery=state.bakery.filter(t=>t>now());save();bakery();}},!done);entry('Oven queue: '+state.bakery.length+' / 3');
  entry('Bake a farm loaf: 2 wheat + 1 strawberry',{label:'Bake',fn:()=>{state.inventory.wheat-=2;state.inventory.strawberry--;state.bakery.push(Math.max(now(),...state.bakery)+60000);save();bakery();}},state.bakery.length>=3||inventoryCount('wheat')<2||inventoryCount('strawberry')<1);}
 function animals(){openPanel('Farm animals');entry('Cow and sheep are part of the farm scene.');entry('Chickens: '+(state.chickenFedAt?(now()-state.chickenFedAt>=60000?'Eggs ready':'Fed and resting'):'Ready to feed'));
  entry('Feed chickens 1 rainbow chard',{label:'Feed',fn:()=>{state.inventory['rainbow-chard']--;state.chickenFedAt=now();save();animals();}},!!state.chickenFedAt||inventoryCount('rainbow-chard')<1);
- entry('Collect 2 eggs',{label:'Collect',fn:()=>{state.eggs+=2;state.chickenFedAt=0;save();animals();}},!state.chickenFedAt||now()-state.chickenFedAt<60000);}
+ entry('Collect 2 eggs',{label:'Collect',fn:()=>{state.inventory.eggs+=2;state.chickenFedAt=0;save();animals();}},!state.chickenFedAt||now()-state.chickenFedAt<60000);}
 function backup(){openPanel('Farm backup');entry('This new farm has separate saved progress from the previous game.');entry('Download a backup',{label:'Export',fn:()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='little-field-farm-new-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);}});
  const input=document.createElement('input');input.type='file';input.accept='.json,application/json';panelContent.append(input);
  entry('Restore selected backup',{label:'Restore',fn:async()=>{if(!input.files?.[0]){tell('Choose a backup first.');return;}try{const s=validateSave(JSON.parse(await input.files[0].text()));if(!confirm('Replace this new farm\'s saved progress?'))return;state=s;save();refresh();closePanel();tell('Backup restored.');}catch(e){tell('Restore failed: '+e.message);}}});}
