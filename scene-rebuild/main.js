@@ -39,6 +39,7 @@ function itemEntry(id,label,action,disabled=false){
 }
 const TIMES = { wheat:45000, 'rainbow-chard':55000, pineapple:90000, strawberry:65000, squash:75000 };
 let scene, state, art = new Map(), background, selectedBed = -1;
+let liveProductionPanel = null;
 const animatedObjects = new Map();
 const now = () => Date.now();
 const RECIPES = {
@@ -167,8 +168,8 @@ async function loadAnimations(){
  }
 }
 
-function openPanel(title){panelTitle.textContent=title;panelContent.replaceChildren();panel.hidden=false;}
-function closePanel(){panel.hidden=true;selectedBed=-1;}
+function openPanel(title){liveProductionPanel=null;panelTitle.textContent=title;panelContent.replaceChildren();panel.hidden=false;}
+function closePanel(){panel.hidden=true;selectedBed=-1;liveProductionPanel=null;}
 document.querySelector('#close').onclick=closePanel;
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closePanel();});
 function button(label,fn,disabled=false){const b=document.createElement('button');b.textContent=label;b.disabled=disabled;b.onclick=fn;return b;}
@@ -208,7 +209,9 @@ const ANIMALS={
  chicken:{name:'Chickens',resource:'eggs',quantity:2,seconds:60,feed:'rainbow-chard'}
 };
 function animals(){
+ const previousScroll=panel.scrollTop;
  openPanel('Farm animals');
+ liveProductionPanel=animals;
  for(const [id,a] of Object.entries(ANIMALS)){
   const started=state.animals[id],remaining=started?Math.max(0,Math.ceil((started+a.seconds*1000-now())/1000)):0;
   const section=document.createElement('section');
@@ -243,10 +246,13 @@ function animals(){
   section.append(collection);
   panelContent.append(section);
  }
+ panel.scrollTop=previousScroll;
 }
 function factory(id){
+ const previousScroll=panel.scrollTop;
  const title={bakery:'Farm Bakery',creamery:'Creamery & Smoothies',textile:'Textile Workshop'}[id];
  openPanel(title);
+ liveProductionPanel=()=>factory(id);
  const queue=state.queues[id];
  entry('Production queue: '+queue.length+' / 3');
  queue.forEach((job,i)=>{
@@ -284,6 +290,7 @@ function factory(id){
   }
   recipe.append(list);panelContent.append(recipe);
  }
+ panel.scrollTop=previousScroll;
 }
 function bakery(){factory('bakery');}
 function creamery(){factory('creamery');}
@@ -335,4 +342,6 @@ try{
  const saved=localStorage.getItem(KEY);state=saved?validateSave(JSON.parse(saved)):emptyState();
  await loadArtwork();loading.remove();refresh();tell('Tap a bed to plant. Your new farm saves automatically.');
  setInterval(()=>{if(panel.hidden)draw();},100);
+  // Refresh time-dependent labels and button states while production panels stay open.
+  setInterval(()=>{if(!panel.hidden&&liveProductionPanel)liveProductionPanel();},1000);
 }catch(e){console.error(e);loading.textContent='Farm could not start: '+e.message;loading.style.color='#fff';}
