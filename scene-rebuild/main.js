@@ -1,4 +1,3 @@
-import {freshStory,validStory,storyView,storyAction,storyEvent} from './farm-story.js';
 const SCENE_URL = '../assets/farm-v2/background/workshop-scene%20(9).json';
 const KEY = 'little-field-farm-scene-rebuild-v3';
 const canvas = document.querySelector('#farm'), ctx = canvas.getContext('2d');
@@ -73,7 +72,7 @@ const freshInventory=()=>Object.fromEntries([...Object.keys(NAMES),...Object.key
 const emptyState=()=>({
  version:3,coins:30,beds:Array(6).fill(null),inventory:freshInventory(),order:0,
  queues:{bakery:[],creamery:[],textile:[]},animals:{cow:0,sheep:0,chicken:0},
- unlocked:[],pendingOrder:null,story:freshStory(),storyEngine:null
+ unlocked:[],pendingOrder:null,storyEngine:null
 });
 function validateSave(s){
  const fail=()=>{throw Error('Invalid or incompatible farm backup.');};
@@ -104,8 +103,7 @@ function validateSave(s){
    !allIds.includes(o.item)||!integer(o.quantity,1)||!integer(o.reward))fail();
  }
  if(s.story===undefined)s.story=freshStory();
- if(s.story.ink===undefined)s.story.ink=null;
- if(s.story.lines===undefined)s.story.lines=[];
+
  validStory(s.story);
  return s;
 }
