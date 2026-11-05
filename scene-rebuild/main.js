@@ -104,6 +104,7 @@ function validateSave(s){
  }
  if(s.story===undefined)s.story=freshStory();
  if(s.story.ink===undefined)s.story.ink=null;
+ if(s.story.lines===undefined)s.story.lines=[];
  validStory(s.story);
  return s;
 }
@@ -363,12 +364,15 @@ function stories(){
    const session=window.FarmInk.createSession(state.story.chapter,state.story.ink);
    const ink=session.view();
    state.story.ink=ink.ink;
+   state.story.lines.push(...ink.lines);
    save();
-   for(const line of ink.lines)entry(line);
+   for(const line of state.story.lines)entry(line);
    for(const choice of ink.choices)entry(choice.text,{label:'Choose',fn:()=>{
     try{
      const continuation=session.choose(choice.index);
-     state.story.ink=continuation.ink;save();stories();
+     state.story.ink=continuation.ink;
+     state.story.lines.push(...continuation.lines);
+     save();stories();
     }catch(e){tell('Story choice failed: '+e.message);}
    }});
   }catch(e){entry('Story dialogue could not load: '+e.message);return;}
