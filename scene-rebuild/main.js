@@ -1,3 +1,4 @@
+import {freshStory,validStory,storyView,storyAction,storyEvent} from './farm-story.js';
 const SCENE_URL = '../assets/farm-v2/background/workshop-scene%20(9).json';
 const KEY = 'little-field-farm-scene-rebuild-v3';
 const canvas = document.querySelector('#farm'), ctx = canvas.getContext('2d');
@@ -71,7 +72,7 @@ const freshInventory=()=>Object.fromEntries([...Object.keys(NAMES),...Object.key
 const emptyState=()=>({
  version:3,coins:30,beds:Array(6).fill(null),inventory:freshInventory(),order:0,
  queues:{bakery:[],creamery:[],textile:[]},animals:{cow:0,sheep:0,chicken:0},
- unlocked:[],pendingOrder:null
+ unlocked:[],pendingOrder:null,story:freshStory()
 });
 function validateSave(s){
  const fail=()=>{throw Error('Invalid or incompatible farm backup.');};
@@ -101,6 +102,8 @@ function validateSave(s){
   if(!o||typeof o!=='object'||!integer(o.customer)||o.customer>=CUSTOMERS.length||
    !allIds.includes(o.item)||!integer(o.quantity,1)||!integer(o.reward))fail();
  }
+ if(s.story===undefined)s.story=freshStory();
+ validStory(s.story);
  return s;
 }
 function save(){if(saveRecoveryRequired){tell('Save blocked: restore a valid backup before continuing.');return;}try{validateSave(state);localStorage.setItem(KEY,JSON.stringify(state));}catch(e){tell('Save failed. Export a backup before closing.');console.error(e);}}
@@ -200,7 +203,7 @@ function refresh(){document.querySelector('#coins').textContent='🪙 '+state.co
 function plantBed(i,crop){state.beds[i]={crop,plantedAt:now()};save();closePanel();tell('Bed '+(i+1)+': planted '+NAMES[crop]+'.');refresh();}
 function tapBed(i){
  const b=state.beds[i];
- if(b){if(ready(b)){state.inventory[b.crop]=(state.inventory[b.crop]||0)+1;state.beds[i]=null;save();tell('Harvested '+NAMES[b.crop]+' from bed '+(i+1)+'.');refresh();}
+ if(b){if(ready(b)){state.inventory[b.crop]=(state.inventory[b.crop]||0)+1;storyEvent(state.story,'harvest.'+b.crop);state.beds[i]=null;save();tell('Harvested '+NAMES[b.crop]+' from bed '+(i+1)+'.');refresh();}
  else tell(NAMES[b.crop]+' growing — '+Math.ceil((TIMES[b.crop]-(now()-b.plantedAt))/1000)+' seconds left.');
  return;}
  selectedBed=i;openPanel('Plant bed '+(i+1));
@@ -342,7 +345,7 @@ function orders(){
  entry('Deliver order',{label:'Deliver',fn:()=>{
   if(inventoryCount(o.item)<o.quantity)return;
   state.inventory[o.item]-=o.quantity;state.coins+=o.reward;
-  state.order++;state.pendingOrder=null;save();refresh();orders();tell('Order delivered to '+c.name+'!');
+  state.order++;state.pendingOrder=null;storyEvent(state.story,'order.delivered');save();refresh();orders();tell('Order delivered to '+c.name+'!');
  }},inventoryCount(o.item)<o.quantity);
 }
 
@@ -350,7 +353,13 @@ function backup(){openPanel('Farm backup');entry('This new farm has separate sav
  if(saveRecoveryRequired)entry('Saved data could not be loaded. Restore a valid backup to resume saving.');entry('Download a backup',{label:'Export',fn:()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='little-field-farm-new-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);}});
  const input=document.createElement('input');input.type='file';input.accept='.json,application/json';panelContent.append(input);
  entry('Restore selected backup',{label:'Restore',fn:async()=>{if(!input.files?.[0]){tell('Choose a backup first.');return;}try{const s=validateSave(JSON.parse(await input.files[0].text()));if(!confirm('Replace this new farm\'s saved progress?'))return;state=s;saveRecoveryRequired=false;save();refresh();closePanel();tell('Backup restored.');}catch(e){tell('Restore failed: '+e.message);}}});}
-const panels={barn,market,orders,bakery,creamery,textile,animals,backup};
+function stories(){
+ const view=storyView(state.story);
+ openPanel(view.title);
+ for(const line of view.lines)entry(line);
+ for(const [label,action] of view.actions)entry(label,{label,fn:()=>{if(storyAction(state.story,action)){save();stories();}}});
+}
+const panels={barn,market,orders,bakery,creamery,textile,animals,backup,stories};
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>panels[b.dataset.panel]());
 function hit(rect,x,y){return x>=rect.x&&x<=rect.x+rect.width&&y>=rect.y&&y<=rect.y+rect.height;}
 canvas.addEventListener('pointerup',e=>{
