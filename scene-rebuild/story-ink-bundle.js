@@ -10484,7 +10484,7 @@ Juliette: Until next time!
         sourceApproval: "TEST-FIXTURE-ONLY",
         chapters: compiled.map((_, i) => ({ id: "chapter-" + (i + 1), inkFile: "chapter-" + (i + 1) + ".ink", entry: "start", completion: "complete" })),
         requiresFacts: [],
-        events: ["harvest.wheat", "order.delivered"],
+        events: ["harvest.wheat", "order.delivered", "finish.story"],
         effects: []
       };
       function createCoordinator(saved) {
@@ -10507,6 +10507,7 @@ Juliette: Until next time!
               this.progress.order = true;
               return { changed: true, completed: true };
             }
+            if (context.chapterId === "chapter-3" && name === "finish.story") return { changed: true, completed: true };
             return { changed: false, completed: false };
           }
         });
