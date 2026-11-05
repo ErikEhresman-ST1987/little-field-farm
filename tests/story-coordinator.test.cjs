@@ -1,0 +1,22 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict');
+global.window={};require('../scene-rebuild/story-ink-entry.cjs');
+test('shared coordinator runs three Ink chapters and restores saved progress',()=>{
+ let engine=window.FarmInk.createCoordinator();
+ assert.equal(engine.view('juliette').invitation,'available');
+ engine.decide('juliette','accept');
+ assert.equal(engine.event('juliette','harvest.wheat').completed,false);
+ assert.equal(engine.event('juliette','harvest.wheat').completed,true);
+ assert.equal(engine.event('juliette','harvest.wheat').changed,false);
+ const saved=JSON.parse(JSON.stringify(engine.snapshot()));
+ engine=window.FarmInk.createCoordinator(saved);
+ assert.equal(engine.view('juliette').chapter,'chapter-1');
+ engine.nextChapter('juliette');
+ assert.equal(engine.event('juliette','order.delivered').completed,true);
+ engine.nextChapter('juliette');
+ assert.equal(engine.event('juliette','finish.story').completed,true);
+ assert.equal(engine.view('juliette').invitation,'completed');
+ assert.equal(engine.event('juliette','finish.story').changed,false);
+ const restored=window.FarmInk.createCoordinator(engine.snapshot());
+ assert.equal(restored.view('juliette').invitation,'completed');
+});
