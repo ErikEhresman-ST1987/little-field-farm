@@ -31,16 +31,21 @@ Juliette: Until next time!
 -> END`
 ];
 const compiled=chapters.map(source=>new Compiler(source).Compile().ToJson());
-function dialogue(chapter,choice=null){
+function createSession(chapter,saved){
  if(!Number.isInteger(chapter)||chapter<0||chapter>=compiled.length)throw Error('Invalid chapter');
- const story=new Story(compiled[chapter]);story.ChoosePathString('start');
- const lines=[];while(story.canContinue)lines.push(story.Continue().trim());
- const choices=story.currentChoices.map((c,index)=>({index,text:c.text}));
- if(choice!==null){
-  if(!Number.isInteger(choice)||choice<0||choice>=choices.length)throw Error('Invalid choice');
-  story.ChooseChoiceIndex(choice);
-  while(story.canContinue)lines.push(story.Continue().trim());
- }
- return {lines:lines.filter(Boolean),choices:choice===null?choices:[]};
+ const story=new Story(compiled[chapter]);
+ if(saved)story.state.LoadJson(saved);else story.ChoosePathString('start');
+ return {
+  view(){
+   const lines=[];
+   while(story.canContinue)lines.push(story.Continue().trim());
+   return {lines:lines.filter(Boolean),choices:story.currentChoices.map((c,index)=>({index,text:c.text})),ink:story.state.ToJson()};
+  },
+  choose(index){
+   if(!Number.isInteger(index)||index<0||index>=story.currentChoices.length)throw Error('Invalid Ink choice');
+   story.ChooseChoiceIndex(index);return this.view();
+  },
+  snapshot(){return story.state.ToJson()}
+ };
 }
-window.FarmInk={dialogue};
+window.FarmInk={createSession};
