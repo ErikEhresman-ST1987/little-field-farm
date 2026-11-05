@@ -3,6 +3,8 @@ on:
   push:
     branches: [story-engine-integration]
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -18,3 +20,7 @@ jobs:
         with:
           name: farm-ink-browser-bundle
           path: scene-rebuild/story-ink-bundle.js
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Build Ink browser runtime
+          file_pattern: scene-rebuild/story-ink-bundle.js
