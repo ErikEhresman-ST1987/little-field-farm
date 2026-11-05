@@ -355,7 +355,7 @@ function orders(){
 function backup(){openPanel('Farm backup');entry('This new farm has separate saved progress from the previous game.');
  if(saveRecoveryRequired)entry('Saved data could not be loaded. Restore a valid backup to resume saving.');entry('Download a backup',{label:'Export',fn:()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='little-field-farm-new-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);}});
  const input=document.createElement('input');input.type='file';input.accept='.json,application/json';panelContent.append(input);
- entry('Restore selected backup',{label:'Restore',fn:async()=>{if(!input.files?.[0]){tell('Choose a backup first.');return;}try{const s=validateSave(JSON.parse(await input.files[0].text()));if(!confirm('Replace this new farm\'s saved progress?'))return;state=s;saveRecoveryRequired=false;save();refresh();closePanel();tell('Backup restored.');}catch(e){tell('Restore failed: '+e.message);}}});}
+ entry('Restore selected backup',{label:'Restore',fn:async()=>{if(!input.files?.[0]){tell('Choose a backup first.');return;}try{const s=validateSave(JSON.parse(await input.files[0].text()));if(!confirm('Replace this new farm\'s saved progress?'))return;state=s;storyCoordinator=null;saveRecoveryRequired=false;save();refresh();closePanel();tell('Backup restored.');}catch(e){tell('Restore failed: '+e.message);}}});}
 function getStoryCoordinator(){
  if(!window.FarmInk?.createCoordinator)throw Error('Ink Story Engine bundle missing');
  if(!storyCoordinator)storyCoordinator=window.FarmInk.createCoordinator(state.storyEngine);
@@ -394,7 +394,7 @@ function stories(){
     const progress=engine.game.snapshot();
     entry(view.chapter==='chapter-1'?'Harvest wheat: '+progress.wheat+' / 2':view.chapter==='chapter-2'?'Complete one neighbor order from Orders.':'Finish the sample by completing a neighbor order.');
     if(view.chapter==='chapter-3')entry('Finish story',{label:'Finish',fn:()=>{
-     const result=engine.event('juliette','order.delivered');
+     const result=engine.event('juliette','finish.story');
      if(result.changed){state.storyEngine=engine.snapshot();save();stories();}
     }});
    }
