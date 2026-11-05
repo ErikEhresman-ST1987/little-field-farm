@@ -356,6 +356,11 @@ function backup(){openPanel('Farm backup');entry('This new farm has separate sav
 function stories(){
  const view=storyView(state.story);
  openPanel(view.title);
+ if(state.story.status==='active'&&window.FarmInk){
+  const ink=window.FarmInk.dialogue(state.story.chapter);
+  for(const line of ink.lines)entry(line);
+  for(const choice of ink.choices)entry(choice.text,{label:'Choose',fn:()=>{const continuation=window.FarmInk.dialogue(state.story.chapter,choice.index);for(const line of continuation.lines.slice(ink.lines.length))entry(line);}});
+ }
  for(const line of view.lines)entry(line);
  for(const [label,action] of view.actions)entry(label,{label,fn:()=>{if(storyAction(state.story,action)){save();stories();}}});
 }
