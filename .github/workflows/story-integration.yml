@@ -1,0 +1,20 @@
+name: Story integration build
+on:
+  push:
+    branches: [story-engine-integration]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: npm run build:story
+      - run: node --check scene-rebuild/story-ink-bundle.js
+      - uses: actions/upload-artifact@v4
+        with:
+          name: farm-ink-browser-bundle
+          path: scene-rebuild/story-ink-bundle.js
