@@ -1,5 +1,5 @@
 const SCENE_URL = '../assets/farm-v2/background/workshop-scene%20(9).json';
-const KEY = 'little-field-farm-scene-rebuild-v3';
+const KEY = 'little-field-farm-story-preview-v1';
 const canvas = document.querySelector('#farm'), ctx = canvas.getContext('2d');
 const notice = document.querySelector('#notice'), loading = document.querySelector('#loading');
 const panel = document.querySelector('#panel'), panelTitle = document.querySelector('#panel-title'), panelContent = document.querySelector('#panel-content');
@@ -102,9 +102,11 @@ function validateSave(s){
   if(!o||typeof o!=='object'||!integer(o.customer)||o.customer>=CUSTOMERS.length||
    !allIds.includes(o.item)||!integer(o.quantity,1)||!integer(o.reward))fail();
  }
- if(s.story===undefined)s.story=freshStory();
-
- validStory(s.story);
+ if(s.storyEngine!==null&&s.storyEngine!==undefined){
+  if(!window.FarmInk?.createCoordinator)fail();
+  try{window.FarmInk.createCoordinator(s.storyEngine);}catch(e){console.error('Invalid Story Engine save',e);fail();}
+ }
+ if(s.storyEngine===undefined)s.storyEngine=null;
  return s;
 }
 function save(){if(saveRecoveryRequired){tell('Save blocked: restore a valid backup before continuing.');return;}try{validateSave(state);localStorage.setItem(KEY,JSON.stringify(state));}catch(e){tell('Save failed. Export a backup before closing.');console.error(e);}}
