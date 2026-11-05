@@ -103,6 +103,7 @@ function validateSave(s){
    !allIds.includes(o.item)||!integer(o.quantity,1)||!integer(o.reward))fail();
  }
  if(s.story===undefined)s.story=freshStory();
+ if(s.story.ink===undefined)s.story.ink=null;
  validStory(s.story);
  return s;
 }
@@ -356,10 +357,21 @@ function backup(){openPanel('Farm backup');entry('This new farm has separate sav
 function stories(){
  const view=storyView(state.story);
  openPanel(view.title);
- if(state.story.status==='active'&&window.FarmInk){
-  const ink=window.FarmInk.dialogue(state.story.chapter);
-  for(const line of ink.lines)entry(line);
-  for(const choice of ink.choices)entry(choice.text,{label:'Choose',fn:()=>{const continuation=window.FarmInk.dialogue(state.story.chapter,choice.index);for(const line of continuation.lines.slice(ink.lines.length))entry(line);}});
+ if(state.story.status==='active'){
+  if(!window.FarmInk){entry('Story dialogue is not installed yet.');return;}
+  try{
+   const session=window.FarmInk.createSession(state.story.chapter,state.story.ink);
+   const ink=session.view();
+   state.story.ink=ink.ink;
+   save();
+   for(const line of ink.lines)entry(line);
+   for(const choice of ink.choices)entry(choice.text,{label:'Choose',fn:()=>{
+    try{
+     const continuation=session.choose(choice.index);
+     state.story.ink=continuation.ink;save();stories();
+    }catch(e){tell('Story choice failed: '+e.message);}
+   }});
+  }catch(e){entry('Story dialogue could not load: '+e.message);return;}
  }
  for(const line of view.lines)entry(line);
  for(const [label,action] of view.actions)entry(label,{label,fn:()=>{if(storyAction(state.story,action)){save();stories();}}});
