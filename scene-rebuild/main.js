@@ -392,7 +392,7 @@ function stories(){
     }});
    }else if(!chapter.chapterReady){
     const progress=engine.game.snapshot();
-    entry(view.chapter==='chapter-1'?'Harvest wheat: '+progress.wheat+' / 2':view.chapter==='chapter-2'?'Complete one neighbor order from Orders.':'Finish the sample by completing a neighbor order.');
+    entry(view.chapter==='chapter-1'?'Harvest wheat: '+progress.wheat+' / 2':view.chapter==='chapter-2'?'Complete one neighbor order from Orders.':'Review Juliette’s closing words, then select Finish story.');
     if(view.chapter==='chapter-3')entry('Finish story',{label:'Finish',fn:()=>{
      const result=engine.event('juliette','finish.story');
      if(result.changed){state.storyEngine=engine.snapshot();save();stories();}
