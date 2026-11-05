@@ -20,7 +20,9 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: farm-ink-browser-bundle
-          path: scene-rebuild/story-ink-bundle.js
+          path: |
+            scene-rebuild/
+            assets/farm-v2/
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: Build Ink browser runtime
