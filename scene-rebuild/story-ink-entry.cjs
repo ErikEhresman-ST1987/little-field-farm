@@ -1,5 +1,6 @@
 'use strict';
 const {Compiler,Story}=require('inkjs/full');
+const {SharedGameNarrative}=require('./story-engine/shared-game-narrative.cjs');
 // Sample-only chapter dialogue; compiled with inkjs and executed by the browser runtime.
 const chapters=[
 `=== start ===
@@ -48,4 +49,32 @@ function createSession(chapter,saved){
   snapshot(){return story.state.ToJson()}
  };
 }
-window.FarmInk={createSession};
+const manifest={
+ schema:1,storyId:'juliette',contentVersion:'sample-1',sourceApproval:'TEST-FIXTURE-ONLY',
+ chapters:compiled.map((_,i)=>({id:'chapter-'+(i+1),inkFile:'chapter-'+(i+1)+'.ink',entry:'start',completion:'complete'})),
+ requiresFacts:[],events:['harvest.wheat','order.delivered'],effects:[]
+};
+function createCoordinator(saved){
+ const createGame=()=>({
+  progress:{wheat:0,order:false},
+  snapshot(){return {...this.progress}},
+  restore(s){if(!s||!Number.isInteger(s.wheat)||s.wheat<0||s.wheat>2||typeof s.order!=='boolean')throw Error('Invalid game event progress');this.progress={...s}},
+  event(name,context){
+   if(context.storyId!=='juliette')return {changed:false,completed:false};
+   if(context.chapterId==='chapter-1'&&name==='harvest.wheat'&&this.progress.wheat<2){
+    this.progress.wheat++;
+    return {changed:true,completed:this.progress.wheat===2};
+   }
+   if(context.chapterId==='chapter-2'&&name==='order.delivered'&&!this.progress.order){
+    this.progress.order=true;return {changed:true,completed:true};
+   }
+   return {changed:false,completed:false};
+  }
+ });
+ return new SharedGameNarrative({
+  packages:[{manifest,compiledChapters:Object.fromEntries(compiled.map((c,i)=>['chapter-'+(i+1),{compiled:c}]))}],
+  createGame,save:saved
+ });
+}
+window.FarmInk={createSession,createCoordinator};
+
