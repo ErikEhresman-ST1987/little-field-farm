@@ -1,7 +1,7 @@
 // Experimental Farm Story adapter. Sample content only; Ink runtime connection follows.
-export function freshStory(){return {version:1,status:'available',chapter:0,harvests:0,choice:null,ink:null,receipts:[]};}
+export function freshStory(){return {version:1,status:'available',chapter:0,harvests:0,choice:null,ink:null,lines:[],receipts:[]};}
 export function validStory(s){
- if(!s||s.version!==1||!['available','active','completed'].includes(s.status)||!Number.isInteger(s.chapter)||s.chapter<0||s.chapter>2||!Number.isInteger(s.harvests)||s.harvests<0||s.harvests>2||!(s.choice===null||['help','later'].includes(s.choice))||!(s.ink===null||typeof s.ink==='string')||!Array.isArray(s.receipts)||s.receipts.some(r=>!['wheat-harvest','neighbor-order'].includes(r))||new Set(s.receipts).size!==s.receipts.length)throw Error('Invalid story progress');
+ if(!s||s.version!==1||!['available','active','completed'].includes(s.status)||!Number.isInteger(s.chapter)||s.chapter<0||s.chapter>2||!Number.isInteger(s.harvests)||s.harvests<0||s.harvests>2||!(s.choice===null||['help','later'].includes(s.choice))||!(s.ink===null||typeof s.ink==='string')||!Array.isArray(s.lines)||s.lines.some(x=>typeof x!=='string')||!Array.isArray(s.receipts)||s.receipts.some(r=>!['wheat-harvest','neighbor-order'].includes(r))||new Set(s.receipts).size!==s.receipts.length)throw Error('Invalid story progress');
  return s;
 }
 export function storyView(s){
@@ -15,7 +15,7 @@ export function storyView(s){
 export function storyAction(s,action){
  validStory(s);
  if(action==='accept'&&s.status==='available'){s.status='active';return true}
- if(action==='next'&&s.status==='active'&&((s.chapter===0&&s.harvests===2)||(s.chapter===1&&s.receipts.includes('neighbor-order')))){s.chapter++;s.ink=null;return true}
+ if(action==='next'&&s.status==='active'&&((s.chapter===0&&s.harvests===2)||(s.chapter===1&&s.receipts.includes('neighbor-order')))){s.chapter++;s.ink=null;s.lines=[];return true}
  if(action==='finish'&&s.status==='active'&&s.chapter===2){s.status='completed';return true}
  return false;
 }
