@@ -1,5 +1,5 @@
 const SCENE_URL = '../assets/farm-v2/background/workshop-scene%20(9).json';
-const KEY = 'little-field-farm-story-preview-v2';
+const KEY = 'little-field-farm-story-unlock-preview-v1';
 const canvas = document.querySelector('#farm'), ctx = canvas.getContext('2d');
 const notice = document.querySelector('#notice'), loading = document.querySelector('#loading');
 const panel = document.querySelector('#panel'), panelTitle = document.querySelector('#panel-title'), panelContent = document.querySelector('#panel-content');
@@ -72,7 +72,7 @@ const freshInventory=()=>Object.fromEntries([...Object.keys(NAMES),...Object.key
 const emptyState=()=>({
  version:3,coins:30,beds:Array(6).fill(null),inventory:freshInventory(),order:0,
  queues:{bakery:[],creamery:[],textile:[]},animals:{cow:0,sheep:0,chicken:0},
- unlocked:[],pendingOrder:null,storyEngine:null
+ unlocked:[],pendingOrder:null,storyEngine:null,storyUnlocks:window.FarmStoryUnlocks.initialize()
 });
 function validateSave(s){
  const fail=()=>{throw Error('Invalid or incompatible farm backup.');};
@@ -107,6 +107,8 @@ function validateSave(s){
   try{window.FarmInk.createCoordinator(s.storyEngine);}catch(e){console.error('Invalid Story Engine save',e);fail();}
  }
  if(s.storyEngine===undefined)s.storyEngine=null;
+ s.storyUnlocks=window.FarmStoryUnlocks.initialize(s.storyUnlocks);
+ window.FarmStoryUnlocks.reconcile(s.storyUnlocks);
  return s;
 }
 function save(){if(saveRecoveryRequired){tell('Save blocked: restore a valid backup before continuing.');return;}try{validateSave(state);localStorage.setItem(KEY,JSON.stringify(state));}catch(e){tell('Save failed. Export a backup before closing.');console.error(e);}}
@@ -348,7 +350,11 @@ function orders(){
  entry('Deliver order',{label:'Deliver',fn:()=>{
   if(inventoryCount(o.item)<o.quantity)return;
   state.inventory[o.item]-=o.quantity;state.coins+=o.reward;
-  state.order++;state.pendingOrder=null;save();refresh();orders();tell('Order delivered to '+c.name+'!');
+  state.order++;state.pendingOrder=null;
+  const before=state.storyUnlocks.unlocked.length;
+  window.FarmStoryUnlocks.delivered(state.storyUnlocks,o.customer);
+  const newInvitation=state.storyUnlocks.unlocked.length>before;
+  save();refresh();orders();tell('Order delivered to '+c.name+'!'+(newInvitation?' A new story invitation is waiting.':''));
  }},inventoryCount(o.item)<o.quantity);
 }
 
@@ -365,6 +371,11 @@ function stories(){
  openPanel('Juliette — The Dinner That Almost Wasn\'t');
  try{
   const engine=getStoryCoordinator(),view=engine.view('juliette');
+  if(view.invitation==='completed'&&state.storyUnlocks.unlocked.includes('juliette'))window.FarmStoryUnlocks.complete(state.storyUnlocks,'juliette');
+  if(!state.storyUnlocks.unlocked.includes('juliette')&&!state.storyUnlocks.completed.includes('juliette')){
+   entry('No story invitations yet. Complete customer orders to build relationships with your neighbors.');
+   return;
+  }
   const commit=()=>{state.storyEngine=engine.snapshot();save();stories();};
   if(view.invitation==='available'||view.invitation==='deferred'){
    entry('Juliette has an invitation for the farm.');
@@ -411,6 +422,7 @@ function stories(){
     }
    }
   }
+  if(view.invitation==='completed'&&state.storyUnlocks.unlocked.includes('juliette'))window.FarmStoryUnlocks.complete(state.storyUnlocks,'juliette');
   state.storyEngine=engine.snapshot();save();
  }catch(e){entry('Story Engine error: '+e.message);console.error(e);}
 }
