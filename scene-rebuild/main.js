@@ -241,7 +241,7 @@ async function loadAnimations(){
  }
 }
 
-function openPanel(title){panel.classList.remove('story-panel');liveProductionPanel=null;panelTitle.textContent=title;panelContent.replaceChildren();panel.hidden=false;}
+function openPanel(title){panel.classList.remove('story-panel','welcome-panel');liveProductionPanel=null;panelTitle.textContent=title;panelContent.replaceChildren();panel.hidden=false;}
 function closePanel(){if(state&&!state.welcomeSeen&&!saveRecoveryRequired)return;panel.hidden=true;selectedBed=-1;liveProductionPanel=null;}
 document.querySelector('#close').onclick=closePanel;
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closePanel();});
@@ -493,6 +493,25 @@ function storyLine(raw){
  panelContent.append(card);
 }
 function stories(){
+ openPanel('Your Farm Stories');
+ panel.classList.add('story-panel');
+ entry('Your neighbors have stories to share!');
+ entry('Complete customer orders, get to know the townspeople, and discover new adventures as your friendships grow.');
+ try{
+  const unlocked=state.storyUnlocks.unlocked.includes('juliette');
+  const completed=state.storyUnlocks.completed.includes('juliette');
+  if(!unlocked&&!completed){
+   entry('No story invitations yet.');
+   return;
+  }
+  const view=getStoryCoordinator().view('juliette');
+  const status=completed||view.invitation==='completed'?'Completed':view.invitation==='active'?'In progress':'Invitation available';
+  entry('Juliette — The Dinner That Almost Wasn\'t · '+status,
+   {label:status==='Completed'?'View':status==='In progress'?'Continue':'Open',fn:()=>openJulietteStory()});
+ }catch(e){entry('Story Engine error: '+e.message);console.error(e);}
+}
+function openJulietteStory(){
+
  openPanel('Juliette — The Dinner That Almost Wasn\'t');
  panel.classList.add('story-panel');
  try{
@@ -502,7 +521,7 @@ function stories(){
    entry('No story invitations yet. Complete customer orders to build relationships with your neighbors.');
    return;
   }
-  const commit=()=>{state.storyEngine=engine.snapshot();save();stories();};
+  const commit=()=>{state.storyEngine=engine.snapshot();save();openJulietteStory();};
   if(view.invitation==='available'||view.invitation==='deferred'){
    entry('Juliette has an invitation for the farm.');
    entry('Accept invitation',{label:'Accept',fn:()=>{engine.decide('juliette','accept');commit();}});
