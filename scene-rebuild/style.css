@@ -70,3 +70,9 @@ main{position:relative}
 .welcome-content p{margin:8px 0 14px}
 .welcome-ornament{text-align:center;font-size:2rem;color:#97733e;letter-spacing:.2em;margin:4px 0 14px}
 .welcome-content button{display:block;margin:24px auto 0;padding:12px 24px;border-radius:14px;background:#476f43;color:white;font-weight:bold}
+
+/* Stories always owns its palette, even if welcome styles linger. */
+#panel.story-panel,#panel.story-panel.welcome-panel{background:#344e38;color:#fff9e6;border-color:#e8d8a5}
+#panel.story-panel .panel-head,#panel.story-panel.welcome-panel .panel-head{background:#344e38;color:#fff9e6}
+#panel.story-panel .panel-head h2{color:#fff9e6!important;opacity:1}
+#panel.story-panel .entry>span{color:#fff9e6}
