@@ -84,7 +84,7 @@ const CUSTOMERS = [
 ];
 const freshInventory=()=>Object.fromEntries([...Object.keys(NAMES),...Object.keys(GOODS)].map(k=>[k,0]));
 const emptyState=()=>({
- version:3,coins:30,beds:Array(6).fill(null),inventory:freshInventory(),order:0,
+ version:3,coins:40,welcomeSeen:false,orderHistory:[],beds:Array(6).fill(null),inventory:freshInventory(),order:0,
  queues:{bakery:[],creamery:[],textile:[]},animals:{cow:0,sheep:0,chicken:0},
  unlocked:[],purchases:emptyPurchases(),recipes:[...FREE_RECIPES],pendingOrder:null,storyEngine:null,storyUnlocks:window.FarmStoryUnlocks.initialize()
 });
@@ -107,6 +107,10 @@ function validateSave(s){
   !Array.isArray(s.recipes)||s.recipes.some(id=>!Object.hasOwn(RECIPE_COSTS,id))||
   new Set(s.recipes).size!==s.recipes.length||
   FREE_RECIPES.some(id=>!s.recipes.includes(id)))fail();
+ if(s.welcomeSeen===undefined)s.welcomeSeen=true;
+ if(typeof s.welcomeSeen!=='boolean')fail();
+ if(s.orderHistory===undefined)s.orderHistory=[];
+ if(!Array.isArray(s.orderHistory)||s.orderHistory.length>8||s.orderHistory.some(k=>typeof k!=='string'||k.length>120))fail();
  const allIds=[...Object.keys(NAMES),...Object.keys(GOODS)];
  for(const id of allIds)if(!integer(s.inventory[id]))fail();
  for(const bed of s.beds)if(bed!==null&&(!bed||typeof bed!=='object'||
@@ -134,6 +138,22 @@ function validateSave(s){
  s.storyUnlocks=window.FarmStoryUnlocks.initialize(s.storyUnlocks);
  window.FarmStoryUnlocks.reconcile(s.storyUnlocks);
  return s;
+}
+function showWelcome(){
+ if(state.welcomeSeen||saveRecoveryRequired)return;
+ openPanel('Welcome to Little Field Farm!');panel.classList.add('welcome-panel');
+ const content=document.createElement('div');content.className='welcome-content';
+ const ornament=document.createElement('div');ornament.className='welcome-ornament';ornament.textContent='❧  🌻  ❧';content.append(ornament);
+ const paragraphs=[
+ 'A little patch of countryside is yours to care for! Here, life moves at a gentler pace. Plant colorful crops, tend friendly animals, and turn your harvests into homemade goods. As your farm grows, you’ll get to know your neighbors, help them with their everyday challenges, and become part of the stories unfolding around you.',
+ 'Getting Started',
+ 'Tap an empty garden bed to plant crops and harvest them when they’re ready. Sell your produce at the Market or fill customer Orders to earn coins. Use your earnings to welcome new animals, open workshops, and learn new recipes.',
+ 'Discover Your Neighbors’ Stories',
+ 'There’s more to farm life than growing crops! Open the Menu and choose Stories, or tap your farmhouse, to discover adventures involving your neighbors. Follow their stories, make choices, and help your little community grow.',
+ 'A Little Welcome Gift',
+ 'To help you get started, here’s 40 coins for your first farming adventures!'];
+ paragraphs.forEach((line,i)=>{const el=document.createElement([1,3,5].includes(i)?'h3':'p');el.textContent=line;content.append(el);});
+ const button=document.createElement('button');button.textContent='Begin Farming';button.onclick=()=>{state.welcomeSeen=true;save();closePanel();refresh();};content.append(button);panelContent.append(content);
 }
 function save(){if(saveRecoveryRequired){tell('Save blocked: restore a valid backup before continuing.');return;}try{validateSave(state);localStorage.setItem(KEY,JSON.stringify(state));}catch(e){tell('Save failed. Export a backup before closing.');console.error(e);}}
 function tell(s){notice.textContent=s;}
@@ -222,7 +242,7 @@ async function loadAnimations(){
 }
 
 function openPanel(title){panel.classList.remove('story-panel');liveProductionPanel=null;panelTitle.textContent=title;panelContent.replaceChildren();panel.hidden=false;}
-function closePanel(){panel.hidden=true;selectedBed=-1;liveProductionPanel=null;}
+function closePanel(){if(state&&!state.welcomeSeen&&!saveRecoveryRequired)return;panel.hidden=true;selectedBed=-1;liveProductionPanel=null;}
 document.querySelector('#close').onclick=closePanel;
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closePanel();});
 function button(label,fn,disabled=false){const b=document.createElement('button');b.textContent=label;b.disabled=disabled;b.onclick=fn;return b;}
@@ -379,19 +399,43 @@ function creamery(){factory('creamery');}
 function textile(){factory('textile');}
 const RAW_IDS=[...Object.keys(NAMES),'milk','eggs','wool'];
 const FINISHED_IDS=Object.keys(GOODS).filter(id=>!['milk','eggs','wool'].includes(id));
+const ORDER_REASONS={
+ 0:['A busy evening is coming to the restaurant.','Juliette is trying a new seasonal special.','A neighbor gathering needs fresh ingredients.','The kitchen is preparing a comforting family meal.'],
+ 1:['Andy is stocking supplies for a long day at the office.','The sheriff is helping prepare a community picnic.','Andy promised refreshments for the volunteers.','A few neighbors could use a little practical help.'],
+ 2:['Keiko is preparing a hands-on classroom activity.','The school is planning a small celebration.','The children are learning where their food comes from.','Keiko wants to thank the school volunteers.'],
+ 3:['Felix is restocking the busiest shelf at the general store.','A customer asked Felix to find something locally made.','The store is preparing a seasonal display.','Felix wants to feature goods from nearby farms.']
+};
+function canProduce(id,seen=new Set()){
+ if(Object.hasOwn(NAMES,id))return true;
+ if(id==='eggs')return true;
+ if(id==='milk')return canUse('cow');
+ if(id==='wool')return canUse('sheep');
+ if(seen.has(id))return false;
+ for(const [factory,recipes] of Object.entries(RECIPES)){
+  const recipe=recipes.find(([product])=>product===id);
+  if(recipe)return canUse(factory)&&state.recipes.includes(id)&&
+   Object.keys(recipe[1]).every(ingredient=>canProduce(ingredient,new Set([...seen,id])));
+ }
+ return false;
+}
 function makeOrder(){
- const customer=CUSTOMERS[state.order%CUSTOMERS.length];
- const raw=RAW_IDS.filter(id=>Object.hasOwn(NAMES,id)||
-  state.unlocked.includes(id)&&(id==='eggs'||id==='milk'&&canUse('cow')||id==='wool'&&canUse('sheep')));
- const finished=FINISHED_IDS.filter(id=>state.unlocked.includes(id)&&
-  Object.entries(RECIPES).some(([factory,recipes])=>canUse(factory)&&
-   recipes.some(([product])=>product===id&&state.recipes.includes(product))));
- let pool=customer.kind==='raw'?raw:customer.kind==='finished'?finished:[...raw,...finished];
- // The store owner waits for a first crafted product, rather than demanding an impossible delivery.
- if(!pool.length)pool=raw;
- const item=pool[(Math.floor(state.order/CUSTOMERS.length)+state.order)%pool.length];
- const quantity=FINISHED_IDS.includes(item)?1:2+(state.order%3);
- return {customer:state.order%CUSTOMERS.length,item,quantity,reward:Math.round(quantity*itemPrice(item)*1.25)};
+ const raw=RAW_IDS.filter(canProduce);
+ const finished=FINISHED_IDS.filter(canProduce);
+ const choices=[];
+ for(let customer=0;customer<CUSTOMERS.length;customer++){
+  const kind=CUSTOMERS[customer].kind;
+  const pool=kind==='raw'?raw:kind==='finished'?(finished.length?finished:raw):[...raw,...finished];
+  for(const item of pool)for(let reason=0;reason<ORDER_REASONS[customer].length;reason++){
+   const key=customer+':'+item+':'+reason;
+   if(!state.orderHistory.includes(key))choices.push({customer,item,reason,key});
+  }
+ }
+ // Reset only the short repetition window if all available combinations have been used.
+ if(!choices.length){state.orderHistory=[];return makeOrder();}
+ const choice=choices[Math.floor(Math.random()*choices.length)];
+ const quantity=FINISHED_IDS.includes(choice.item)?1:2+Math.floor(Math.random()*3);
+ return {customer:choice.customer,item:choice.item,quantity,
+  reward:Math.round(quantity*itemPrice(choice.item)*1.25),reason:choice.reason};
 }
 function orders(){
  if(!state.pendingOrder){state.pendingOrder=makeOrder();save();}
@@ -399,13 +443,15 @@ function orders(){
  openPanel('Neighbor order');
  entry(c.name+' · '+c.role);
  addArt(panelContent,'NPCs',NPC_ART[o.customer],c.name,true);
- entry(c.message);
+ entry(ORDER_REASONS[o.customer]?.[o.reason]||c.message);
  itemEntry(o.item,'Request: '+o.quantity+' '+itemName(o.item));
  entry('In barn: '+inventoryCount(o.item));
  entry('Reward: '+o.reward+' coins (25% order bonus)');
  entry('Deliver order',{label:'Deliver',fn:()=>{
   if(inventoryCount(o.item)<o.quantity)return;
   state.inventory[o.item]-=o.quantity;state.coins+=o.reward;
+  state.orderHistory.push(o.customer+':'+o.item+':'+(o.reason??0));
+  state.orderHistory=state.orderHistory.slice(-8);
   state.order++;state.pendingOrder=null;
   const before=state.storyUnlocks.unlocked.length;
   window.FarmStoryUnlocks.delivered(state.storyUnlocks,o.customer);
@@ -534,7 +580,7 @@ try{
    state=emptyState();saveRecoveryRequired=true;
    tell('Saved progress could not be read. Saving is blocked until a valid backup is restored.');
   }
- await loadArtwork();loading.remove();refresh();if(!saved)tell('Tap a bed to plant. Your new farm saves automatically.');
+ await loadArtwork();loading.remove();refresh();showWelcome();if(!saved)tell('Tap a bed to plant. Your new farm saves automatically.');
  setInterval(()=>{if(panel.hidden)draw();},100);
   // Refresh time-dependent labels and button states while production panels stay open.
   setInterval(()=>{if(!panel.hidden&&liveProductionPanel)liveProductionPanel();},1000);
