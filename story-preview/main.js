@@ -415,7 +415,17 @@ function stories(){
  }catch(e){entry('Story Engine error: '+e.message);console.error(e);}
 }
 const panels={barn,market,orders,bakery,creamery,textile,animals,backup,stories};
-document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>panels[b.dataset.panel]());
+const menuToggle=document.querySelector('#menu-toggle'),farmMenu=document.querySelector('#farm-menu');
+menuToggle.onclick=()=>{
+ const open=farmMenu.hidden;
+ farmMenu.hidden=!open;
+ menuToggle.setAttribute('aria-expanded',String(open));
+ menuToggle.textContent=open?'✕ Close menu':'☰ Menu';
+};
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+ farmMenu.hidden=true;menuToggle.setAttribute('aria-expanded','false');menuToggle.textContent='☰ Menu';
+ panels[b.dataset.panel]();
+});
 function hit(rect,x,y){return x>=rect.x&&x<=rect.x+rect.width&&y>=rect.y&&y<=rect.y+rect.height;}
 canvas.addEventListener('pointerup',e=>{
  if(!scene||!panel.hidden)return;
