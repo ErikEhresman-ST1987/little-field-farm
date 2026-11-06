@@ -43,3 +43,22 @@ nav button{min-width:0;overflow-wrap:anywhere}
 #farm-menu[hidden]{display:none}
 main{position:relative}
 @media(min-width:700px){#farm-menu{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* Storybook narrative presentation: portrait remains beside the speaker on small screens. */
+#panel.story-panel{width:min(94vw,760px);background:#344e38;border:2px solid #e8d8a5}
+.story-panel .panel-head{position:sticky;top:-15px;z-index:2;background:#344e38;padding:8px 0 12px;border-bottom:1px solid #f1e2b454}
+.story-panel .panel-head h2{font-size:clamp(18px,3vw,23px);line-height:1.25}
+.story-chapter{color:#f6df9d;font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin:16px 0 10px}
+.story-line{margin:12px 0;min-width:0}
+.story-spoken{display:flex;align-items:flex-start;gap:15px;padding:14px;background:#f8f0dc;color:#27372c;border:1px solid #e4d3ad;border-radius:16px;box-shadow:0 3px 10px #0002}
+.story-portrait{display:block;flex:0 0 clamp(76px,20vw,132px);width:clamp(76px,20vw,132px);height:clamp(90px,23vw,145px);object-fit:contain;object-position:center top;background:#e7ddc1;border:2px solid #d6bd8c;border-radius:12px}
+.story-portrait-missing{visibility:hidden}
+.story-dialogue-body{flex:1;min-width:0}
+.story-speaker{display:block;font-size:clamp(17px,2.8vw,21px);line-height:1.3;color:#31543b}
+.story-role{display:block;color:#6a6658;font-size:12px;margin-top:2px}
+.story-line p{margin:9px 0 0;font-size:clamp(16px,2.5vw,18px);line-height:1.58;overflow-wrap:anywhere}
+.story-narration{padding:10px 15px;border-left:3px solid #e8d8a5;background:#ffffff0d;border-radius:0 10px 10px 0}
+.story-narration p{margin:0;font-style:italic;color:#f7f0de}
+.story-panel .entry{line-height:1.55;gap:12px}
+.story-panel .entry button{min-height:44px}
+@media(max-width:600px){#panel.story-panel{padding:12px}.story-panel .panel-head{top:-12px}.story-spoken{gap:10px;padding:10px}.story-portrait{flex-basis:76px;width:76px;height:96px}.story-line p{font-size:16px}}
