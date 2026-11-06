@@ -62,3 +62,11 @@ main{position:relative}
 .story-panel .entry{line-height:1.55;gap:12px}
 .story-panel .entry button{min-height:44px}
 @media(max-width:600px){#panel.story-panel{padding:12px}.story-panel .panel-head{top:-12px}.story-spoken{gap:10px;padding:10px}.story-portrait{flex-basis:76px;width:76px;height:96px}.story-line p{font-size:16px}}
+
+/* First-visit storybook welcome */
+#panel.welcome-panel{width:min(94vw,690px);background:#f9f1d9;color:#344b31;border:3px solid #b99a62}
+.welcome-content{max-width:610px;margin:auto;padding:8px 12px 22px;line-height:1.55}
+.welcome-content h3{margin:20px 0 5px;color:#48633a}
+.welcome-content p{margin:8px 0 14px}
+.welcome-ornament{text-align:center;font-size:2rem;color:#97733e;letter-spacing:.2em;margin:4px 0 14px}
+.welcome-content button{display:block;margin:24px auto 0;padding:12px 24px;border-radius:14px;background:#476f43;color:white;font-weight:bold}
