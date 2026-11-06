@@ -1,7 +1,7 @@
 name: Story integration build
 on:
   push:
-    branches: [story-engine-integration, story-unlock-progression]
+    branches: [story-engine-integration, story-unlock-progression, story-dialogue-portraits]
   workflow_dispatch:
 permissions:
   contents: write
