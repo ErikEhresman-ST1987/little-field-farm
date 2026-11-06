@@ -419,8 +419,8 @@ function canProduce(id,seen=new Set()){
  return false;
 }
 function makeOrder(){
- const raw=RAW_IDS.filter(canProduce);
- const finished=FINISHED_IDS.filter(canProduce);
+ const raw=RAW_IDS.filter(id=>canProduce(id));
+ const finished=FINISHED_IDS.filter(id=>canProduce(id));
  const choices=[];
  for(let customer=0;customer<CUSTOMERS.length;customer++){
   const kind=CUSTOMERS[customer].kind;
