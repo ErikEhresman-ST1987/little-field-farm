@@ -241,7 +241,7 @@ async function loadAnimations(){
  }
 }
 
-function openPanel(title){panel.classList.remove('story-panel');liveProductionPanel=null;panelTitle.textContent=title;panelContent.replaceChildren();panel.hidden=false;}
+function openPanel(title){panel.classList.remove('story-panel','welcome-panel');liveProductionPanel=null;panelTitle.textContent=title;panelContent.replaceChildren();panel.hidden=false;}
 function closePanel(){if(state&&!state.welcomeSeen&&!saveRecoveryRequired)return;panel.hidden=true;selectedBed=-1;liveProductionPanel=null;}
 document.querySelector('#close').onclick=closePanel;
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closePanel();});
