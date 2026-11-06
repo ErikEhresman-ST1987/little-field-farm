@@ -1,7 +1,7 @@
 # Little Field Farm — Story Engine integration (verified v1)
 
 ## Status and evidence
-**Integration verified in Safari on iPad, November 5, 2026.** Player completed all three sample chapters, refreshing after each stage, and confirmed narrative and farm progress persisted. Observed: invitation/Ink dialogue, two wheat harvests advancing Chapter 1, a normal neighbor order advancing Chapter 2, explicit final action completing Chapter 3, and completed-state persistence. Farm coins and order activity remained functional. GitHub Actions story-integration build/tests passed after final-chapter instruction cleanup (commit 47f8b811).
+**Integration verified in Safari on iPad, November 5, 2026.** Player completed all three sample chapters, refreshing after each stage, and confirmed narrative and farm progress persisted. Observed: invitation/Ink dialogue, two wheat harvests advancing Chapter 1, a normal neighbor order advancing Chapter 2, explicit final action completing Chapter 3, and completed-state persistence. Farm coins and order activity remained functional. GitHub Actions story-integration build/tests passed following approved narrative integration and navigation changes.
 
 This is **an integration proof**, not an approved Juliette story. The chapter dialogue is marked TEST-FIXTURE-ONLY. No full narrative has been approved through OmniQuest Game Story Foundry.
 
@@ -29,3 +29,27 @@ This is **an integration proof**, not an approved Juliette story. The chapter di
 
 ## Acceptance outcome
 **Pass for the current integration seam.** Next work: approve real Juliette story blueprint and Ink content, then test that content separately before release. Do not expand the module contract or add speculative features merely because the first integration succeeded.
+
+## Player acceptance and lessons learned — November 5, 2026
+The player completed the **approved** three-chapter *The Dinner That Almost Wasn't* on iPad Safari, supplying ingredients and reaching the completion panel. The player reported refreshing after each step and that the story worked perfectly. Screenshots show the opening wheat delivery prompt, normal farm play, and the completed story. The player also confirmed the revised collapsible navigation menu works well.
+
+**Friction resolved:** Nine permanently displayed navigation buttons occupied three rows below the farm and reduced the visible play area. A compact **Menu** control now reveals those features on demand, preserving gameplay space. The user confirmed the revised menu works.
+
+**Future idea only:** A touch-sensitive area over the farmhouse could open Stories, possibly with an invitation indicator. This is not part of the accepted release scope and is not implemented.
+
+**Reusable lesson:** Preserve game ownership of real inventory, deliveries, and rewards. Use narrative events and saved Ink state to coordinate story progress without duplicating gameplay mechanics. Reuse the existing farm interface before creating additional systems.
+
+## Merge readiness checklist — November 5, 2026
+- [x] Approved three-chapter Juliette story implemented in Ink
+- [x] Two crop paths (squash and rainbow chard) covered by automated progression/persistence tests
+- [x] Two final conversational choices implemented in Ink
+- [x] Chapter completion and save/restore covered by automated tests
+- [x] Player completed approved story in isolated Safari preview and confirmed refresh persistence
+- [x] Player confirmed collapsible menu fixes screen-space issue
+- [x] Preview remains isolated from production; production farm not yet merged
+- [x] Production save namespace restored on integration branch to `little-field-farm-scene-rebuild-v3` for eventual merge; isolated preview on `main/story-preview/` retains `little-field-farm-story-preview-v2`
+- [ ] Confirm latest post-release-key-change CI succeeds
+- [ ] Final PR mergeability / conflicts check at merge time
+- [ ] Explicit decision to merge PR #2 into main
+
+**Release caution:** The preview was tested with a fresh isolated save. Existing live version-3 farm saves are expected to be accepted by the code's backward-compatible `storyEngine` default, but that migration has not been independently verified in Safari. Preserve a JSON backup of any valued live save before first launch after merge. No merge or production deployment is authorized by this checklist alone.
