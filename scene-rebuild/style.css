@@ -36,3 +36,10 @@ nav button{min-width:0;overflow-wrap:anywhere}
 .recipe-ingredient span{min-width:0;overflow-wrap:anywhere}
 .ingredient-short{color:#ffd6a4}
 @media(max-width:600px){.recipe-card{padding:9px}.recipe-ingredients{margin-left:0}.recipe-heading .product-art{width:42px;height:42px;flex-basis:42px}}
+
+/* Compact navigation: only the menu toggle reserves vertical game space. */
+#menu-toggle{display:block;width:100%;border-radius:0;min-height:42px;padding:7px 12px;background:#e7e2b4;color:#243c2b}
+#farm-menu{position:absolute;left:0;right:0;bottom:42px;z-index:8;background:#203b2a;box-shadow:0 -8px 24px #0007;grid-template-columns:repeat(3,minmax(0,1fr));padding:9px;max-height:min(70dvh,440px);overflow-y:auto}
+#farm-menu[hidden]{display:none}
+main{position:relative}
+@media(min-width:700px){#farm-menu{grid-template-columns:repeat(3,minmax(0,1fr))}}
