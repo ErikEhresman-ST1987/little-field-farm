@@ -358,7 +358,11 @@ function orders(){
  }},inventoryCount(o.item)<o.quantity);
 }
 
-function backup(){openPanel('Farm backup');entry('This new farm has separate saved progress from the previous game.');
+function backup(){openPanel('Farm backup');entry('This preview has separate saved progress from the live farm.');
+ entry('Start a new preview farm and replay Juliette’s story. This resets only the preview.',{label:'Restart preview',fn:()=>{
+  if(!confirm('Restart this story preview from the beginning? This deletes only the preview save, not your live farm.'))return;
+  localStorage.removeItem(KEY);location.reload();
+ }});
  if(saveRecoveryRequired)entry('Saved data could not be loaded. Restore a valid backup to resume saving.');entry('Download a backup',{label:'Export',fn:()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='little-field-farm-new-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);}});
  const input=document.createElement('input');input.type='file';input.accept='.json,application/json';panelContent.append(input);
  entry('Restore selected backup',{label:'Restore',fn:async()=>{if(!input.files?.[0]){tell('Choose a backup first.');return;}try{const s=validateSave(JSON.parse(await input.files[0].text()));if(!confirm('Replace this new farm\'s saved progress?'))return;state=s;storyCoordinator=null;saveRecoveryRequired=false;save();refresh();closePanel();tell('Backup restored.');}catch(e){tell('Restore failed: '+e.message);}}});}
