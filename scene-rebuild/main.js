@@ -46,7 +46,7 @@ const animatedObjects = new Map();
 const now = () => Date.now();
 const RECIPES = {
  bakery:[
-  ['farm-bread',{'wheat':3,milk:1},60],
+  ['farm-bread',{'wheat':3},60],
   ['squash-fritters',{squash:2,eggs:1,'farmhouse-cheese':1},90],
   ['strawberry-pie',{strawberry:3,wheat:2,eggs:1,milk:1},120]
  ],
@@ -62,6 +62,20 @@ const RECIPES = {
   ['wool-blanket',{'wool-yarn':4},150]
  ]
 };
+const PURCHASES={cow:150,sheep:100,bakery:200,creamery:250,textile:300};
+const RECIPE_COSTS={
+ 'farm-bread':0,'squash-fritters':25,'strawberry-pie':50,
+ 'farmhouse-cheese':0,'fresh-butter':25,'strawberry-yogurt':30,
+ 'strawberry-smoothie':35,'pineapple-smoothie':40,'strawberry-pineapple-smoothie':50,
+ 'wool-yarn':0,'knitted-scarf':25,'wool-blanket':50
+};
+const FREE_RECIPES=['farm-bread','farmhouse-cheese','wool-yarn'];
+const emptyPurchases=()=>({cow:false,sheep:false,bakery:false,creamery:false,textile:false});
+const canUse=id=>id==='chicken'||state.purchases[id]===true;
+function buyUnlock(id,price,onSuccess){
+ if(state.coins<price){tell('Not enough coins.');return;}
+ state.coins-=price;onSuccess();save();refresh();
+}
 const CUSTOMERS = [
  {name:'Juliette Childers',role:'Restaurant owner',kind:'raw',message:'Fresh ingredients for tonight’s kitchen.'},
  {name:'Sheriff Andy Tiller',role:'Sheriff',kind:'any',message:'Supplies for the sheriff’s office.'},
@@ -72,7 +86,7 @@ const freshInventory=()=>Object.fromEntries([...Object.keys(NAMES),...Object.key
 const emptyState=()=>({
  version:3,coins:30,beds:Array(6).fill(null),inventory:freshInventory(),order:0,
  queues:{bakery:[],creamery:[],textile:[]},animals:{cow:0,sheep:0,chicken:0},
- unlocked:[],pendingOrder:null,storyEngine:null,storyUnlocks:window.FarmStoryUnlocks.initialize()
+ unlocked:[],purchases:emptyPurchases(),recipes:[...FREE_RECIPES],pendingOrder:null,storyEngine:null,storyUnlocks:window.FarmStoryUnlocks.initialize()
 });
 function validateSave(s){
  const fail=()=>{throw Error('Invalid or incompatible farm backup.');};
@@ -83,6 +97,16 @@ function validateSave(s){
   !s.inventory||typeof s.inventory!=='object'||Array.isArray(s.inventory)||
   !s.queues||typeof s.queues!=='object'||!s.animals||typeof s.animals!=='object'||
   !Array.isArray(s.unlocked)||!s.unlocked.every(id=>typeof id==='string'&&Object.hasOwn(GOODS,id)))fail();
+ // Pre-economy saves had every facility and recipe available. Preserve that access.
+ if(s.purchases===undefined&&s.recipes===undefined){
+  s.purchases=Object.fromEntries(Object.keys(PURCHASES).map(id=>[id,true]));
+  s.recipes=Object.keys(RECIPE_COSTS);
+ }
+ if(!s.purchases||typeof s.purchases!=='object'||Array.isArray(s.purchases)||
+  Object.keys(PURCHASES).some(id=>typeof s.purchases[id]!=='boolean')||
+  !Array.isArray(s.recipes)||s.recipes.some(id=>!Object.hasOwn(RECIPE_COSTS,id))||
+  new Set(s.recipes).size!==s.recipes.length||
+  FREE_RECIPES.some(id=>!s.recipes.includes(id)))fail();
  const allIds=[...Object.keys(NAMES),...Object.keys(GOODS)];
  for(const id of allIds)if(!integer(s.inventory[id]))fail();
  for(const bed of s.beds)if(bed!==null&&(!bed||typeof bed!=='object'||
@@ -242,6 +266,13 @@ function animals(){
  openPanel('Farm animals');
  liveProductionPanel=animals;
  for(const [id,a] of Object.entries(ANIMALS)){
+  if(!canUse(id)){
+   entry(a.name+' · Locked · '+PURCHASES[id]+' coins',{label:'Purchase',fn:()=>{
+    buyUnlock(id,PURCHASES[id],()=>{state.purchases[id]=true;});
+    animals();
+   }},state.coins<PURCHASES[id]);
+   continue;
+  }
   const started=state.animals[id],remaining=started?Math.max(0,Math.ceil((started+a.seconds*1000-now())/1000)):0;
   const section=document.createElement('section');
   section.className='animal-production';
@@ -282,6 +313,14 @@ function factory(id){
  const title={bakery:'Farm Bakery',creamery:'Creamery & Smoothies',textile:'Textile Workshop'}[id];
  openPanel(title);
  liveProductionPanel=()=>factory(id);
+ if(!canUse(id)){
+  entry(title+' · Locked · '+PURCHASES[id]+' coins',{label:'Purchase',fn:()=>{
+   buyUnlock(id,PURCHASES[id],()=>{state.purchases[id]=true;});
+   factory(id);
+  }},state.coins<PURCHASES[id]);
+  panel.scrollTop=previousScroll;
+  return;
+ }
  const queue=state.queues[id];
  entry('Production queue: '+queue.length+' / 3');
  queue.forEach((job,i)=>{
@@ -300,7 +339,21 @@ function factory(id){
   const heading=document.createElement('div');heading.className='recipe-heading';
   if(PRODUCT_ART[product])addArt(heading,'products',PRODUCT_ART[product],itemName(product));
   const name=document.createElement('strong');name.textContent=itemName(product)+' · '+seconds+' sec';heading.append(name);
+  const cost=RECIPE_COSTS[product],owned=state.recipes.includes(product);
+  if(!owned){
+   heading.append(button('Unlock · '+cost+' coins',()=>{
+    if(!canUse(id)||state.recipes.includes(product))return;
+    buyUnlock(product,cost,()=>state.recipes.push(product));
+    factory(id);
+   },state.coins<cost));
+   recipe.append(heading);
+   const info=document.createElement('div');info.className='recipe-ingredients';
+   info.textContent='Recipe locked · one-time purchase';
+   recipe.append(info);panelContent.append(recipe);
+   continue;
+  }
   const make=button('Make',()=>{
+   if(!canUse(id)||!state.recipes.includes(product))return;
    if(state.queues[id].length>=3||!hasItems(needs))return;
    for(const [ingredient,n] of Object.entries(needs))state.inventory[ingredient]-=n;
    const last=state.queues[id].reduce((end,j)=>Math.max(end,j.finish),now());
@@ -328,8 +381,11 @@ const RAW_IDS=[...Object.keys(NAMES),'milk','eggs','wool'];
 const FINISHED_IDS=Object.keys(GOODS).filter(id=>!['milk','eggs','wool'].includes(id));
 function makeOrder(){
  const customer=CUSTOMERS[state.order%CUSTOMERS.length];
- const raw=RAW_IDS.filter(id=>Object.hasOwn(NAMES,id)||state.unlocked.includes(id));
- const finished=FINISHED_IDS.filter(id=>state.unlocked.includes(id));
+ const raw=RAW_IDS.filter(id=>Object.hasOwn(NAMES,id)||
+  state.unlocked.includes(id)&&(id==='eggs'||id==='milk'&&canUse('cow')||id==='wool'&&canUse('sheep')));
+ const finished=FINISHED_IDS.filter(id=>state.unlocked.includes(id)&&
+  Object.entries(RECIPES).some(([factory,recipes])=>canUse(factory)&&
+   recipes.some(([product])=>product===id&&state.recipes.includes(product))));
  let pool=customer.kind==='raw'?raw:customer.kind==='finished'?finished:[...raw,...finished];
  // The store owner waits for a first crafted product, rather than demanding an impossible delivery.
  if(!pool.length)pool=raw;
