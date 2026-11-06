@@ -197,7 +197,7 @@ async function loadAnimations(){
  }
 }
 
-function openPanel(title){liveProductionPanel=null;panelTitle.textContent=title;panelContent.replaceChildren();panel.hidden=false;}
+function openPanel(title){panel.classList.remove('story-panel');liveProductionPanel=null;panelTitle.textContent=title;panelContent.replaceChildren();panel.hidden=false;}
 function closePanel(){panel.hidden=true;selectedBed=-1;liveProductionPanel=null;}
 document.querySelector('#close').onclick=closePanel;
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closePanel();});
@@ -367,8 +367,32 @@ function getStoryCoordinator(){
  if(!storyCoordinator)storyCoordinator=window.FarmInk.createCoordinator(state.storyEngine);
  return storyCoordinator;
 }
+function storyLine(raw){
+ const speakers={
+  'Juliette':{name:'Juliette Childers',role:'Restaurant owner',portrait:NPC_ART[0]},
+  'Andy':{name:'Sheriff Andy Tiller',role:'Sheriff',portrait:NPC_ART[1]},
+  'Keiko':{name:"Miss Keiko O'Brien",role:'Schoolteacher',portrait:NPC_ART[2]},
+  'Felix':{name:'Felix Underwood',role:'General store owner',portrait:NPC_ART[3]}
+ };
+ const match=/^(Juliette|Andy|Keiko|Felix):\s*(.*)$/.exec(raw);
+ const speaker=match?speakers[match[1]]:null;
+ const card=document.createElement('div');card.className='story-line'+(speaker?' story-spoken':' story-narration');
+ if(speaker){
+  const img=document.createElement('img');img.className='story-portrait';img.src='../assets/farm-v2/NPCs/'+speaker.portrait;
+  img.alt=speaker.name;img.loading='lazy';img.onerror=()=>img.classList.add('story-portrait-missing');
+  const body=document.createElement('div');body.className='story-dialogue-body';
+  const name=document.createElement('strong');name.className='story-speaker';name.textContent=speaker.name;
+  const role=document.createElement('small');role.className='story-role';role.textContent=speaker.role;
+  const text=document.createElement('p');text.textContent=match[2];
+  body.append(name,role,text);card.append(img,body);
+ }else{
+  const text=document.createElement('p');text.textContent=raw;card.append(text);
+ }
+ panelContent.append(card);
+}
 function stories(){
  openPanel('Juliette — The Dinner That Almost Wasn\'t');
+ panel.classList.add('story-panel');
  try{
   const engine=getStoryCoordinator(),view=engine.view('juliette');
   if(view.invitation==='completed'&&state.storyUnlocks.unlocked.includes('juliette'))window.FarmStoryUnlocks.complete(state.storyUnlocks,'juliette');
@@ -384,11 +408,11 @@ function stories(){
   }else if(view.invitation==='completed'){
    entry('The dinner was a success. Juliette thanks you for sharing in it.');
   }else if(view.invitation==='active'){
-   entry('Chapter '+view.chapter.slice(-1)+' of 3');
-   for(const line of view.lines)entry(line);
+   const chapterHeading=document.createElement('div');chapterHeading.className='story-chapter';chapterHeading.textContent='Chapter '+view.chapter.slice(-1)+' of 3';panelContent.append(chapterHeading);
+   for(const line of view.lines)storyLine(line);
    const progress=engine.game.snapshot();
    if(view.chapter==='chapter-3'&&progress.vegetable){
-    entry(progress.vegetable==='squash'
+    storyLine(progress.vegetable==='squash'
      ?'Juliette: The roasted squash was lovely. Felix declared it an excellent use of available produce, which is practically a standing ovation from Felix.'
      :'Juliette: The rainbow chard looked beautiful on the table. Keiko was explaining the colorful stems to everyone, and I think Andy learned more about vegetables than he planned.');
    }
