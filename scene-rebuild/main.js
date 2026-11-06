@@ -374,7 +374,7 @@ function storyLine(raw){
   'Keiko':{name:"Miss Keiko O'Brien",role:'Schoolteacher',portrait:NPC_ART[2]},
   'Felix':{name:'Felix Underwood',role:'General store owner',portrait:NPC_ART[3]}
  };
- const match=/^(Juliette|Andy|Keiko|Felix):\\s*(.*)$/.exec(raw);
+ const match=/^(Juliette|Andy|Keiko|Felix):\s*(.*)$/.exec(raw);
  const speaker=match?speakers[match[1]]:null;
  const card=document.createElement('div');card.className='story-line'+(speaker?' story-spoken':' story-narration');
  if(speaker){
