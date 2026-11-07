@@ -7,6 +7,13 @@ assert.match(farmSource,/const KEY = 'little-field-farm-ink-recovery-test-v1'/,'
 assert.doesNotMatch(farmSource,/const KEY = 'little-field-farm-scene-rebuild-v4'/,'Recovery branch must not use live save key');
 assert.match(farmSource,/function completeStoryObjective\(/,'Farm must use transactional story objective handling');
 assert.match(farmSource,/if\(completeStoryObjective\(engine,story.id,objective\)\)openInkStory\(story\)/,'Story completion must verify objective success');
+const html=fs.readFileSync(require('node:path').join(__dirname,'index.html'),'utf8');
+const bundlePos=html.indexOf('src="story-ink-bundle.js?v=');
+const registryPos=html.indexOf('src="story-ink-registry.js?v=');
+const unlocksPos=html.indexOf('src="story-unlocks.js?v=');
+const mainPos=html.indexOf('src="main.js?v=');
+assert.ok(bundlePos>=0&&bundlePos<registryPos&&registryPos<unlocksPos&&unlocksPos<mainPos,'Story dependencies must load in order');
+assert.doesNotMatch(html,/story-ink-bundle\.js\?v=20261105-savefix-3/,'Browser must not reuse obsolete Ink bundle');
 const bundle=fs.readFileSync(require('node:path').join(__dirname,'story-ink-bundle.js'),'utf8');
 const context={window:{},console,structuredClone};
 vm.runInNewContext(bundle,context);
