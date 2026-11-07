@@ -1,0 +1,204 @@
+{
+  "format": "game-graphics-placement",
+  "version": 1,
+  "canvas": {
+    "width": 1024,
+    "height": 768
+  },
+  "background": "REPLACE_WITH_GAME_BACKGROUND_ASSET_PATH",
+  "hotspots": [
+    {
+      "id": "hotspot_1",
+      "name": "market",
+      "action": "hotspot_1",
+      "x": 381,
+      "y": 138,
+      "width": 123,
+      "height": 86,
+      "type": "rectangle"
+    },
+    {
+      "id": "hotspot_2",
+      "name": "order-board",
+      "action": "hotspot_2",
+      "x": 548,
+      "y": 131,
+      "width": 77,
+      "height": 69,
+      "type": "rectangle"
+    },
+    {
+      "id": "hotspot_3",
+      "name": "storage-barn",
+      "action": "hotspot_3",
+      "x": 790,
+      "y": 49,
+      "width": 205,
+      "height": 154,
+      "type": "rectangle"
+    },
+    {
+      "id": "hotspot_4",
+      "name": "farmhouse",
+      "action": "farmhouse-stories",
+      "x": 30,
+      "y": 30,
+      "width": 258,
+      "height": 184,
+      "type": "rectangle"
+    }
+  ],
+  "objects": [
+    {
+      "id": "sprite_1",
+      "name": "empty-field.webp",
+      "asset": "REPLACE_WITH_GAME_ASSET_PATH/empty-field.webp",
+      "x": 858,
+      "y": 687,
+      "width": 373,
+      "height": 373,
+      "rotation": 0,
+      "layer": 0
+    },
+    {
+      "id": "sprite_2",
+      "name": "empty-field.webp",
+      "asset": "REPLACE_WITH_GAME_ASSET_PATH/empty-field.webp",
+      "x": 534,
+      "y": 695,
+      "width": 340,
+      "height": 340,
+      "rotation": 0,
+      "layer": 1
+    },
+    {
+      "id": "sprite_3",
+      "name": "animation-6frames-256px.webp",
+      "asset": "REPLACE_WITH_GAME_ASSET_PATH/animation-6frames-256px.webp",
+      "x": 787,
+      "y": 671,
+      "width": 357,
+      "height": 357,
+      "rotation": 0,
+      "layer": 2,
+      "touchZone": {
+        "type": "rectangle",
+        "x": 733,
+        "y": 621,
+        "width": 109,
+        "height": 91
+      },
+      "animation": {
+        "asset": "REPLACE_WITH_GAME_ASSET_PATH/animation-6frames-256px.webp",
+        "metadata": "REPLACE_WITH_GAME_ASSET_PATH/Cow-animation-6frames-256px.json",
+        "frameWidth": 256,
+        "frameHeight": 256,
+        "frameCount": 6,
+        "fps": 3,
+        "loop": true,
+        "layout": "horizontal"
+      }
+    },
+    {
+      "id": "sprite_4",
+      "name": "empty-field.webp",
+      "asset": "REPLACE_WITH_GAME_ASSET_PATH/empty-field.webp",
+      "x": 889,
+      "y": 526,
+      "width": 365,
+      "height": 365,
+      "rotation": 0,
+      "layer": 3
+    },
+    {
+      "id": "sprite_5",
+      "name": "bakery.webp",
+      "asset": "REPLACE_WITH_GAME_ASSET_PATH/bakery.webp",
+      "x": 870,
+      "y": 327,
+      "width": 299,
+      "height": 299,
+      "rotation": 0,
+      "layer": 4,
+      "touchZone": {
+        "type": "rectangle",
+        "x": 755,
+        "y": 232,
+        "width": 266,
+        "height": 189
+      }
+    },
+    {
+      "id": "sprite_6",
+      "name": "textile-factory.webp",
+      "asset": "REPLACE_WITH_GAME_ASSET_PATH/textile-factory.webp",
+      "x": 572,
+      "y": 524,
+      "width": 307,
+      "height": 307,
+      "rotation": 0,
+      "layer": 5,
+      "touchZone": {
+        "type": "rectangle",
+        "x": 466,
+        "y": 433,
+        "width": 242,
+        "height": 172
+      }
+    },
+    {
+      "id": "sprite_7",
+      "name": "creamery-smoothie.webp",
+      "asset": "REPLACE_WITH_GAME_ASSET_PATH/creamery-smoothie.webp",
+      "x": 581,
+      "y": 332,
+      "width": 324,
+      "height": 324,
+      "rotation": 0,
+      "layer": 6,
+      "touchZone": {
+        "type": "rectangle",
+        "x": 455,
+        "y": 246,
+        "width": 276,
+        "height": 169
+      }
+    },
+    {
+      "id": "sprite_8",
+      "name": "chicken-neutral.webp",
+      "asset": "REPLACE_WITH_GAME_ASSET_PATH/chicken-neutral.webp",
+      "x": 531,
+      "y": 687,
+      "width": 75,
+      "height": 75,
+      "rotation": 0,
+      "layer": 7,
+      "touchZone": {
+        "type": "rectangle",
+        "x": 496,
+        "y": 648,
+        "width": 77,
+        "height": 80
+      }
+    },
+    {
+      "id": "sprite_9",
+      "name": "sheep-neutral.webp",
+      "asset": "REPLACE_WITH_GAME_ASSET_PATH/sheep-neutral.webp",
+      "x": 864,
+      "y": 512,
+      "width": 83,
+      "height": 83,
+      "rotation": 0,
+      "layer": 8,
+      "touchZone": {
+        "type": "rectangle",
+        "x": 822,
+        "y": 470,
+        "width": 84,
+        "height": 83
+      }
+    }
+  ]
+}
