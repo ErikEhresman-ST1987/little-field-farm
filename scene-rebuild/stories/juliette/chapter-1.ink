@@ -10,5 +10,4 @@ Juliette: I want to welcome her with an extraordinary dinner! Would you help wit
     Juliette: A little fresh wheat for bread would be wonderful! Now, do you suppose Keiko still likes strawberries?
     -> END
 === complete ===
-Juliette: Thank you for the wheat. I'll make sure the bread is ready for Keiko.
 -> END
