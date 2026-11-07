@@ -8,6 +8,7 @@ on:
       - 'scene-rebuild/stories/**'
       - 'scene-rebuild/story-engine/**'
       - 'scene-rebuild/story-ink-entry.cjs'
+      - 'scene-rebuild/story-ink-generated.cjs'
       - 'scene-rebuild/compile-ink-stories.cjs'
       - 'scene-rebuild/story-ink-registry.js'
       - 'scene-rebuild/story-ink-bundle.js'
@@ -40,6 +41,9 @@ jobs:
         run: |
           git diff --exit-code -- scene-rebuild/story-ink-bundle.js scene-rebuild/story-ink-registry.js
           test -s scene-rebuild/story-ink-generated.cjs
+      - name: Validate generated story metadata
+        run: |
+          node -e "const p=require('./scene-rebuild/story-ink-generated.cjs');if(!p.length||p.some(x=>x.manifest.chapters.length!==Object.keys(x.compiledChapters).length))process.exit(1)"
       - name: Syntax checks
         run: |
           node --check scene-rebuild/main.js
