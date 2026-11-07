@@ -17,5 +17,4 @@ Juliette: You’re right. I’ll make something simple. Something that reminds h
     Juliette: Exactly! And this time, I intend to remember it.
     -> END
 === complete ===
-Juliette: It's settled, then. A simple dinner and an old friendship are all we need.
 -> END
