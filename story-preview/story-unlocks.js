@@ -2,7 +2,7 @@
 (function(root){
  'use strict';
  const LIMIT=2;
- const STORIES=[{id:'juliette',customer:0,minOrders:2,maxOrders:4,requires:[]}];
+ const STORIES=(root.FarmStoryCatalog||[]).map(s=>({id:s.id,customer:s.unlockCustomer,minOrders:2,maxOrders:4,requires:[]}));
  const fresh=()=>({counts:[0,0,0,0],thresholds:{},unlocked:[],completed:[]});
  function valid(p){
   if(!p||!Array.isArray(p.counts)||p.counts.length!==4||p.counts.some(n=>!Number.isSafeInteger(n)||n<0)||
