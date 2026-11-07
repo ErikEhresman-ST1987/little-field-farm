@@ -509,6 +509,26 @@ function stories(){
   if(!found)entry('No story invitations yet.');
  }catch(e){entry('Story Engine error: '+e.message);console.error(e);}
 }
+function completeStoryObjective(engine,storyId,objective,item=null){
+ const before=engine.snapshot();
+ const inventoryBefore=item?state.inventory[item]:null;
+ if(item&&inventoryCount(item)<objective.quantity)return false;
+ try{
+  if(item)state.inventory[item]-=objective.quantity;
+  const result=engine.event(storyId,objective.event);
+  if(result?.changed!==true||result?.completed!==true)throw Error('Story objective was not confirmed');
+  state.storyEngine=engine.snapshot();
+  save();
+  return true;
+ }catch(error){
+  if(item)state.inventory[item]=inventoryBefore;
+  try{storyCoordinator=window.FarmInk.createCoordinator(before);}catch(restoreError){console.error('Story rollback failed',restoreError);}
+  state.storyEngine=before;
+  tell('Story objective could not be completed.');
+  console.error('Story objective failed',error);
+  return false;
+ }
+}
 function openInkStory(story){
  openPanel(story.lead+' — '+story.title);panel.classList.add('story-panel');
  try{
@@ -544,8 +564,7 @@ function openInkStory(story){
      entry(objective.label+'. In barn: '+inventoryCount(objective.item));
      entry('Deliver ingredients',{label:'Deliver',fn:()=>{
       if(inventoryCount(objective.item)<objective.quantity)return;
-      state.inventory[objective.item]-=objective.quantity;
-      engine.event(story.id,objective.event);commit();refresh();
+      if(completeStoryObjective(engine,story.id,objective,objective.item)){openInkStory(story);refresh();}
      }},inventoryCount(objective.item)<objective.quantity);
     }else if(objective.type==='selected-delivery'){
      const selected=engine.game.snapshot()[objective.selectedKey];
@@ -554,13 +573,12 @@ function openInkStory(story){
       entry('Deliver '+objective.quantity+' '+itemName(selected)+'. In barn: '+inventoryCount(selected));
       entry('Deliver ingredients',{label:'Deliver',fn:()=>{
        if(inventoryCount(selected)<objective.quantity)return;
-       state.inventory[selected]-=objective.quantity;
-       engine.event(story.id,objective.event);commit();refresh();
+       if(completeStoryObjective(engine,story.id,objective,selected)){openInkStory(story);refresh();}
       }},inventoryCount(selected)<objective.quantity);
      }
     }else if(objective.type==='advance'){
      if(view.choices.length)entry('Choose a response before continuing.');
-     else entry('Continue story',{label:'Continue',fn:()=>{engine.event(story.id,objective.event);commit();}});
+     else entry('Continue story',{label:'Continue',fn:()=>{if(completeStoryObjective(engine,story.id,objective))openInkStory(story);}});
     }else if(objective.type==='finish'){
      if(view.choices.length)entry('Choose a response before finishing.');
      else entry('Finish story',{label:'Finish',fn:()=>{engine.event(story.id,objective.event);commit();}});
