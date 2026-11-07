@@ -47,6 +47,19 @@ jobs:
           node -e "const p=require('./scene-rebuild/story-ink-generated.cjs');if(!p.length||p.some(x=>x.manifest.chapters.length!==Object.keys(x.compiledChapters).length))process.exit(1)"
       - name: Ink story integration tests
         run: node scene-rebuild/ink-story-integration.test.cjs
+      - name: Package isolated browser preview
+        if: github.event_name == 'pull_request'
+        run: |
+          mkdir -p preview-package
+          cp -R scene-rebuild assets preview-package/
+          printf '%s\n' 'Preview package for isolated testing only. Serve preview-package/ over HTTP(S); open /scene-rebuild/. No production deployment is performed.' > preview-package/README.txt
+      - name: Upload isolated preview package
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: little-field-farm-ink-preview
+          path: preview-package/
+          retention-days: 14
       - name: Syntax checks
         run: |
           node --check scene-rebuild/main.js
