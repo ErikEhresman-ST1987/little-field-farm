@@ -7,3 +7,11 @@ Plant carrots, wheat, and pumpkins; watch them grow; harvest them into expandabl
 ## Run locally
 
 Open `index.html` in a browser. No installation or build step is required.
+
+## Current scene-rebuild story system
+
+The current `scene-rebuild/` game uses an editable, data-driven story catalog rather than the legacy Ink story bundle. Add approved stories to `scene-rebuild/story-catalog.js`; `scene-rebuild/story-runner.js` handles dialogue, one choice per chapter, delivery objectives, completion and saved progress. `scene-rebuild/story-unlocks.js` gates story invitations through completed NPC orders. The existing `story-preview/` folder is a separate browser-testing copy, not an automatically synced deployment.
+
+The first accepted story is **The Unexpected Dinner Guest** (three chapters). The player completed it in Safari on iPad and verified completion persisted after refresh. Multi-story acceptance and backup/restore of the new runner remain unverified. Old Ink files and build scripts remain as legacy artifacts, not the active scene-rebuild runtime.
+
+For the complete current contract, limitations and story-addition workflow, see [Story Catalog Integration v1.0](https://github.com/ErikEhresman-ST1987/story-engine-test-lab/blob/main/docs/integrations/LITTLE-FIELD-FARM-CATALOG-STORY-SYSTEM-v1.0.md).
