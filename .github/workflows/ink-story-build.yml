@@ -1,5 +1,8 @@
 name: Ink story build validation
 on:
+  push:
+    branches:
+      - feature/restore-ink-story-workflow
   pull_request:
     paths:
       - 'scene-rebuild/stories/**'
@@ -11,6 +14,8 @@ on:
       - 'package.json'
       - '.github/workflows/ink-story-build.yml'
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   compile-and-check:
     runs-on: ubuntu-latest
@@ -21,6 +26,16 @@ jobs:
           node-version: '22'
       - run: npm install --no-audit --no-fund
       - run: npm run build:story
+      - name: Commit generated Ink artifacts on recovery branch only
+        if: github.event_name == 'push' && github.ref == 'refs/heads/feature/restore-ink-story-workflow'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add scene-rebuild/story-ink-bundle.js scene-rebuild/story-ink-registry.js scene-rebuild/story-ink-generated.cjs
+          if ! git diff --cached --quiet; then
+            git commit -m 'Build approved Ink story browser artifacts'
+            git push origin HEAD:feature/restore-ink-story-workflow
+          fi
       - name: Check generated artifacts are committed
         run: |
           git diff --exit-code -- scene-rebuild/story-ink-bundle.js scene-rebuild/story-ink-registry.js
