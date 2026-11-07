@@ -1,14 +1,1 @@
-// Metadata mirrored from stories/juliette/manifest.json for browser unlock/UI.
-// Keep this in sync with manifest until build generation replaces the mirror.
-(function(root){
- 'use strict';
- root.FarmInkStoryRegistry=[{
-  id:'juliette',title:'The Unexpected Dinner Guest',lead:'Juliette',
-  unlockCustomer:0,minOrders:2,maxOrders:4,requires:[],chapterCount:3,
-  chapters:[
-   {id:'chapter-1',objective:{type:'deliver',item:'wheat',quantity:2,event:'wheat.delivered',label:"Deliver 2 wheat for Juliette's dinner"}},
-   {id:'chapter-2',objective:{type:'advance',event:'chapter.advance'}},
-   {id:'chapter-3',objective:{type:'finish',event:'finish.story'}}
-  ]
- }];
-})(window);
+(function(root){'use strict';root.FarmInkStoryRegistry=[{"id":"juliette","title":"The Unexpected Dinner Guest","lead":"Juliette","unlockCustomer":0,"minOrders":2,"maxOrders":4,"requires":[],"chapterCount":3,"chapters":[{"id":"chapter-1","objective":{"type":"deliver","item":"wheat","quantity":2,"event":"wheat.delivered","label":"Deliver 2 wheat for Juliette's dinner"}},{"id":"chapter-2","objective":{"type":"advance","event":"chapter.advance"}},{"id":"chapter-3","objective":{"type":"finish","event":"finish.story"}}]}];})(window);
