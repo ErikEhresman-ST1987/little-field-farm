@@ -18,3 +18,12 @@
 Use the existing `SharedGameNarrative` and farm host adapter. Add each approved story as its own Ink files plus a small declarative manifest. A repeatable local build script compiles all registered stories into one offline bundle. The generic farm Stories UI enumerates that registry, and the unlock gate uses the same manifest IDs. No new narrative engine and no hand-edited compiled bundles.
 
 **Status:** Recovery scaffold only. No claim of functional or player-tested restoration.
+
+## Update: manifest-driven Ink authoring (2026-11-06)
+- Added `stories/juliette/manifest.json` and three `.ink` chapters based on the approved playable *The Unexpected Dinner Guest* catalog narrative; no additional completion dialogue was retained.
+- `compile-ink-stories.cjs` compiles registered manifests and source files into a generated CommonJS package, then `npm run build:story` bundles the existing Ink runtime for offline browser use.
+- `story-ink-entry.cjs` now consumes compiled packages and keeps separate progress records by story ID; the UI loops over `FarmInkStoryRegistry` rather than hardcoding Juliette's panel.
+- **Not yet functional in deployed browser:** the checked-in `story-ink-bundle.js` is still the previous compiled artifact. The new compilation/build has not been run or verified; the generated file is not checked in. The registry metadata is temporarily mirrored manually and needs to be generated from manifests to eliminate duplication.
+- **Important:** the generic host currently accepts declared event names as confirmation. The farm UI checks inventory before decrementing, but full idempotent host-verified transaction handling and rollback remain to be implemented and tested.
+- Existing saves from the previous Ink content version and catalog format are incompatible until migration is explicitly designed; the branch's isolated save key prevents overwrite but does not migrate data.
+- **Testing still required:** compile, unit/integration tests, full chapter playthrough, reload at every checkpoint, alternate choices, concurrent stories, backup/restore, and offline Safari.
