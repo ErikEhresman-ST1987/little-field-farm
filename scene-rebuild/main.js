@@ -1,5 +1,5 @@
 const SCENE_URL = '../assets/farm-v2/background/workshop-scene%20(9).json';
-const KEY = 'little-field-farm-scene-rebuild-v4';
+const KEY = 'little-field-farm-ink-recovery-test-v1';
 const canvas = document.querySelector('#farm'), ctx = canvas.getContext('2d');
 const notice = document.querySelector('#notice'), loading = document.querySelector('#loading');
 const panel = document.querySelector('#panel'), panelTitle = document.querySelector('#panel-title'), panelContent = document.querySelector('#panel-content');
@@ -39,7 +39,7 @@ function itemEntry(id,label,action,disabled=false){
 }
 const TIMES = { wheat:45000, 'rainbow-chard':55000, pineapple:90000, strawberry:65000, squash:75000 };
 let scene, state, art = new Map(), background, selectedBed = -1;
-
+let storyCoordinator=null;
 let liveProductionPanel = null;
 let saveRecoveryRequired = false;
 const animatedObjects = new Map();
@@ -86,7 +86,7 @@ const freshInventory=()=>Object.fromEntries([...Object.keys(NAMES),...Object.key
 const emptyState=()=>({
  version:3,coins:40,welcomeSeen:false,orderHistory:[],beds:Array(6).fill(null),inventory:freshInventory(),order:0,
  queues:{bakery:[],creamery:[],textile:[]},animals:{cow:0,sheep:0,chicken:0},
- unlocked:[],purchases:emptyPurchases(),recipes:[...FREE_RECIPES],pendingOrder:null,storyEngine:window.FarmStories.initial(),storyUnlocks:window.FarmStoryUnlocks.initialize()
+ unlocked:[],purchases:emptyPurchases(),recipes:[...FREE_RECIPES],pendingOrder:null,storyEngine:null,storyUnlocks:window.FarmStoryUnlocks.initialize()
 });
 function validateSave(s){
  const fail=()=>{throw Error('Invalid or incompatible farm backup.');};
@@ -130,8 +130,11 @@ function validateSave(s){
   if(!o||typeof o!=='object'||!integer(o.customer)||o.customer>=CUSTOMERS.length||
    !allIds.includes(o.item)||!integer(o.quantity,1)||!integer(o.reward))fail();
  }
- if(s.storyEngine===undefined||s.storyEngine===null)s.storyEngine=window.FarmStories.initial();
- window.FarmStories.validate(s.storyEngine);
+ if(s.storyEngine!==null&&s.storyEngine!==undefined){
+  if(!window.FarmInk?.createCoordinator)fail();
+  try{window.FarmInk.createCoordinator(s.storyEngine);}catch(e){console.error('Invalid Story Engine save',e);fail();}
+ }
+ if(s.storyEngine===undefined)s.storyEngine=null;
  s.storyUnlocks=window.FarmStoryUnlocks.initialize(s.storyUnlocks);
  window.FarmStoryUnlocks.reconcile(s.storyUnlocks);
  return s;
@@ -460,7 +463,12 @@ function orders(){
 function backup(){openPanel('Farm backup');entry('This new farm has separate saved progress from the previous game.');
  if(saveRecoveryRequired)entry('Saved data could not be loaded. Restore a valid backup to resume saving.');entry('Download a backup',{label:'Export',fn:()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='little-field-farm-new-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);}});
  const input=document.createElement('input');input.type='file';input.accept='.json,application/json';panelContent.append(input);
- entry('Restore selected backup',{label:'Restore',fn:async()=>{if(!input.files?.[0]){tell('Choose a backup first.');return;}try{const s=validateSave(JSON.parse(await input.files[0].text()));if(!confirm('Replace this new farm\'s saved progress?'))return;state=s;saveRecoveryRequired=false;save();refresh();closePanel();tell('Backup restored.');}catch(e){tell('Restore failed: '+e.message);}}});}
+ entry('Restore selected backup',{label:'Restore',fn:async()=>{if(!input.files?.[0]){tell('Choose a backup first.');return;}try{const s=validateSave(JSON.parse(await input.files[0].text()));if(!confirm('Replace this new farm\'s saved progress?'))return;state=s;storyCoordinator=null;saveRecoveryRequired=false;save();refresh();closePanel();tell('Backup restored.');}catch(e){tell('Restore failed: '+e.message);}}});}
+function getStoryCoordinator(){
+ if(!window.FarmInk?.createCoordinator)throw Error('Ink Story Engine bundle missing');
+ if(!storyCoordinator)storyCoordinator=window.FarmInk.createCoordinator(state.storyEngine);
+ return storyCoordinator;
+}
 function storyLine(raw){
  const speakers={
   'Juliette':{name:'Juliette Childers',role:'Restaurant owner',portrait:NPC_ART[0]},
@@ -484,7 +492,106 @@ function storyLine(raw){
  }
  panelContent.append(card);
 }
-function stories(){window.FarmStories.show({state,openPanel,entry,storyLine,inventoryCount,save,refresh});}
+function stories(){
+ openPanel('Your Farm Stories');panel.classList.add('story-panel');
+ entry('Your neighbors have stories to share!');
+ entry('Complete customer orders to discover new adventures.');
+ try{
+  const engine=getStoryCoordinator();
+  let found=false;
+  for(const story of window.FarmInkStoryRegistry||[]){
+   if(!state.storyUnlocks.unlocked.includes(story.id)&&!state.storyUnlocks.completed.includes(story.id))continue;
+   found=true;
+   const view=engine.view(story.id);
+   const status=state.storyUnlocks.completed.includes(story.id)||view.invitation==='completed'?'Completed':view.invitation==='active'?'In progress':'Invitation available';
+   entry(story.lead+' — '+story.title+' · '+status,{label:status==='Completed'?'View':'Open',fn:()=>openInkStory(story)});
+  }
+  if(!found)entry('No story invitations yet.');
+ }catch(e){entry('Story Engine error: '+e.message);console.error(e);}
+}
+function completeStoryObjective(engine,storyId,objective,item=null){
+ const before=engine.snapshot();
+ const inventoryBefore=item?state.inventory[item]:null;
+ if(item&&inventoryCount(item)<objective.quantity)return false;
+ try{
+  if(item)state.inventory[item]-=objective.quantity;
+  const result=engine.event(storyId,objective.event);
+  if(result?.changed!==true||result?.completed!==true)throw Error('Story objective was not confirmed');
+  state.storyEngine=engine.snapshot();
+  save();
+  return true;
+ }catch(error){
+  if(item)state.inventory[item]=inventoryBefore;
+  try{storyCoordinator=window.FarmInk.createCoordinator(before);}catch(restoreError){console.error('Story rollback failed',restoreError);}
+  state.storyEngine=before;
+  tell('Story objective could not be completed.');
+  console.error('Story objective failed',error);
+  return false;
+ }
+}
+function openInkStory(story){
+ openPanel(story.lead+' — '+story.title);panel.classList.add('story-panel');
+ try{
+  const engine=getStoryCoordinator(),view=engine.view(story.id);
+  const unlocked=state.storyUnlocks.unlocked.includes(story.id);
+  const completed=state.storyUnlocks.completed.includes(story.id);
+  if(!unlocked&&!completed){entry('No story invitation yet.');return;}
+  const commit=()=>{state.storyEngine=engine.snapshot();save();openInkStory(story);};
+  if(view.invitation==='available'||view.invitation==='deferred'){
+   entry(story.lead+' has an invitation for the farm.');
+   entry('Accept invitation',{label:'Accept',fn:()=>{engine.decide(story.id,'accept');commit();}});
+   if(view.invitation==='available')entry('Come back later',{label:'Later',fn:()=>{engine.decide(story.id,'later');commit();}});
+  }else if(view.invitation==='completed'){
+   entry('Story completed.');
+  }else if(view.invitation==='active'){
+   const chapterIndex=story.chapters.findIndex(c=>c.id===view.chapter);
+   if(chapterIndex<0)throw Error('Unknown story chapter');
+   const config=story.chapters[chapterIndex];
+   const heading=document.createElement('div');heading.className='story-chapter';
+   heading.textContent='Chapter '+(chapterIndex+1)+' of '+story.chapterCount;panelContent.append(heading);
+   for(const line of view.lines)storyLine(line);
+   for(const choice of view.choices)entry(choice.text,{label:'Choose',fn:()=>{
+    engine.choose(story.id,choice.index);
+    const event=config.choiceEvents?.[choice.index];
+    if(event)engine.event(story.id,event);
+    commit();
+   }});
+   const session=engine.manager.registry.get(story.id),objective=config.objective;
+   if(session.chapterReady&&!session.completed){
+    entry('Chapter objective completed',{label:'Next chapter',fn:()=>{engine.nextChapter(story.id);commit();}});
+   }else if(!session.chapterReady&&objective){
+    if(objective.type==='deliver'){
+     if(view.choices.length){entry('Choose a response before delivering ingredients.');}
+     else {
+     entry(objective.label+'. In barn: '+inventoryCount(objective.item));
+     entry('Deliver ingredients',{label:'Deliver',fn:()=>{
+      if(inventoryCount(objective.item)<objective.quantity)return;
+      if(completeStoryObjective(engine,story.id,objective,objective.item)){openInkStory(story);refresh();}
+     }},inventoryCount(objective.item)<objective.quantity);
+     }
+    }else if(objective.type==='selected-delivery'){
+     const selected=engine.game.snapshot()[objective.selectedKey];
+     if(!selected)entry('Choose an ingredient above.');
+     else{
+      entry('Deliver '+objective.quantity+' '+itemName(selected)+'. In barn: '+inventoryCount(selected));
+      entry('Deliver ingredients',{label:'Deliver',fn:()=>{
+       if(inventoryCount(selected)<objective.quantity)return;
+       if(completeStoryObjective(engine,story.id,objective,selected)){openInkStory(story);refresh();}
+      }},inventoryCount(selected)<objective.quantity);
+     }
+    }else if(objective.type==='advance'){
+     if(view.choices.length)entry('Choose a response before continuing.');
+     else entry('Continue story',{label:'Continue',fn:()=>{if(completeStoryObjective(engine,story.id,objective))openInkStory(story);}});
+    }else if(objective.type==='finish'){
+     if(view.choices.length)entry('Choose a response before finishing.');
+     else entry('Finish story',{label:'Finish',fn:()=>{if(completeStoryObjective(engine,story.id,objective))openInkStory(story);}});
+    }
+   }
+  }
+  if(view.invitation==='completed'&&unlocked)window.FarmStoryUnlocks.complete(state.storyUnlocks,story.id);
+  state.storyEngine=engine.snapshot();save();
+ }catch(e){entry('Story Engine error: '+e.message);console.error(e);}
+}
 const panels={barn,market,orders,bakery,creamery,textile,animals,backup,stories};
 const menuToggle=document.querySelector('#menu-toggle'),farmMenu=document.querySelector('#farm-menu');
 menuToggle.onclick=()=>{

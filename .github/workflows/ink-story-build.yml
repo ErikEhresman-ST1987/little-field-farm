@@ -1,0 +1,67 @@
+name: Ink story build validation
+on:
+  push:
+    branches:
+      - feature/restore-ink-story-workflow
+  pull_request:
+    paths:
+      - 'scene-rebuild/stories/**'
+      - 'scene-rebuild/story-engine/**'
+      - 'scene-rebuild/story-ink-entry.cjs'
+      - 'scene-rebuild/story-ink-generated.cjs'
+      - 'scene-rebuild/ink-story-integration.test.cjs'
+      - 'scene-rebuild/compile-ink-stories.cjs'
+      - 'scene-rebuild/story-ink-registry.js'
+      - 'scene-rebuild/story-ink-bundle.js'
+      - 'package.json'
+      - '.github/workflows/ink-story-build.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  compile-and-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: npm run build:story
+      - name: Commit generated Ink artifacts on recovery branch only
+        if: github.event_name == 'push' && github.ref == 'refs/heads/feature/restore-ink-story-workflow'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add scene-rebuild/story-ink-bundle.js scene-rebuild/story-ink-registry.js scene-rebuild/story-ink-generated.cjs
+          if ! git diff --cached --quiet; then
+            git commit -m 'Build approved Ink story browser artifacts'
+            git push origin HEAD:feature/restore-ink-story-workflow
+          fi
+      - name: Check generated artifacts are committed
+        run: |
+          git diff --exit-code -- scene-rebuild/story-ink-bundle.js scene-rebuild/story-ink-registry.js
+          test -s scene-rebuild/story-ink-generated.cjs
+      - name: Validate generated story metadata
+        run: |
+          node -e "const p=require('./scene-rebuild/story-ink-generated.cjs');if(!p.length||p.some(x=>x.manifest.chapters.length!==Object.keys(x.compiledChapters).length))process.exit(1)"
+      - name: Ink story integration tests
+        run: node scene-rebuild/ink-story-integration.test.cjs
+      - name: Package isolated browser preview
+        if: github.event_name == 'pull_request'
+        run: |
+          mkdir -p preview-package
+          cp -R scene-rebuild assets preview-package/
+          printf '%s\n' 'Preview package for isolated testing only. Serve preview-package/ over HTTP(S); open /scene-rebuild/. No production deployment is performed.' > preview-package/README.txt
+      - name: Upload isolated preview package
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: little-field-farm-ink-preview
+          path: preview-package/
+          retention-days: 14
+      - name: Syntax checks
+        run: |
+          node --check scene-rebuild/main.js
+          node --check scene-rebuild/story-ink-entry.cjs
+          node --check scene-rebuild/compile-ink-stories.cjs

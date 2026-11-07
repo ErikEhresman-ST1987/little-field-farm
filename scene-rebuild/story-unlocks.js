@@ -2,7 +2,7 @@
 (function(root){
  'use strict';
  const LIMIT=2;
- const STORIES=(root.FarmStoryCatalog||[]).map(s=>({id:s.id,customer:s.unlockCustomer,minOrders:2,maxOrders:4,requires:[]}));
+ const STORIES=(root.FarmInkStoryRegistry||[]).map(s=>({id:s.id,customer:s.unlockCustomer,minOrders:s.minOrders,maxOrders:s.maxOrders,requires:s.requires||[]}));
  const fresh=()=>({counts:[0,0,0,0],thresholds:{},unlocked:[],completed:[]});
  function valid(p){
   if(!p||!Array.isArray(p.counts)||p.counts.length!==4||p.counts.some(n=>!Number.isSafeInteger(n)||n<0)||
