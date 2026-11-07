@@ -561,11 +561,14 @@ function openInkStory(story){
     entry('Chapter objective completed',{label:'Next chapter',fn:()=>{engine.nextChapter(story.id);commit();}});
    }else if(!session.chapterReady&&objective){
     if(objective.type==='deliver'){
+     if(view.choices.length){entry('Choose a response before delivering ingredients.');}
+     else {
      entry(objective.label+'. In barn: '+inventoryCount(objective.item));
      entry('Deliver ingredients',{label:'Deliver',fn:()=>{
       if(inventoryCount(objective.item)<objective.quantity)return;
       if(completeStoryObjective(engine,story.id,objective,objective.item)){openInkStory(story);refresh();}
      }},inventoryCount(objective.item)<objective.quantity);
+     }
     }else if(objective.type==='selected-delivery'){
      const selected=engine.game.snapshot()[objective.selectedKey];
      if(!selected)entry('Choose an ingredient above.');
