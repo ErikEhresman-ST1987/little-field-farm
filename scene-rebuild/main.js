@@ -1,5 +1,5 @@
 const SCENE_URL = '../assets/farm-v2/background/workshop-scene%20(9).json';
-const KEY = 'little-field-farm-scene-rebuild-v3';
+const KEY = 'little-field-farm-scene-rebuild-v4';
 const canvas = document.querySelector('#farm'), ctx = canvas.getContext('2d');
 const notice = document.querySelector('#notice'), loading = document.querySelector('#loading');
 const panel = document.querySelector('#panel'), panelTitle = document.querySelector('#panel-title'), panelContent = document.querySelector('#panel-content');
