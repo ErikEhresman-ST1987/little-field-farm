@@ -1,0 +1,32 @@
+name: Ink story build validation
+on:
+  pull_request:
+    paths:
+      - 'scene-rebuild/stories/**'
+      - 'scene-rebuild/story-engine/**'
+      - 'scene-rebuild/story-ink-entry.cjs'
+      - 'scene-rebuild/compile-ink-stories.cjs'
+      - 'scene-rebuild/story-ink-registry.js'
+      - 'scene-rebuild/story-ink-bundle.js'
+      - 'package.json'
+      - '.github/workflows/ink-story-build.yml'
+  workflow_dispatch:
+jobs:
+  compile-and-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: npm run build:story
+      - name: Check generated artifacts are committed
+        run: |
+          git diff --exit-code -- scene-rebuild/story-ink-bundle.js scene-rebuild/story-ink-registry.js
+          test -s scene-rebuild/story-ink-generated.cjs
+      - name: Syntax checks
+        run: |
+          node --check scene-rebuild/main.js
+          node --check scene-rebuild/story-ink-entry.cjs
+          node --check scene-rebuild/compile-ink-stories.cjs
