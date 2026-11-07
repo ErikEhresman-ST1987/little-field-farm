@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "storyId": "juliette",
+  "title": "The Unexpected Dinner Guest",
+  "lead": "Juliette",
+  "unlockCustomer": 0,
+  "contentVersion": "unexpected-dinner-1",
+  "sourceApproval": "Approved playable catalog narrative",
+  "chapters": [
+    {
+      "id": "chapter-1",
+      "inkFile": "chapter-1.ink",
+      "entry": "start",
+      "completion": "complete"
+    },
+    {
+      "id": "chapter-2",
+      "inkFile": "chapter-2.ink",
+      "entry": "start",
+      "completion": "complete"
+    },
+    {
+      "id": "chapter-3",
+      "inkFile": "chapter-3.ink",
+      "entry": "start",
+      "completion": "complete"
+    }
+  ],
+  "requiresFacts": [],
+  "events": [
+    "wheat.delivered",
+    "chapter.advance",
+    "finish.story"
+  ],
+  "effects": [],
+  "chapterObjectives": [
+    {
+      "type": "deliver",
+      "item": "wheat",
+      "quantity": 2,
+      "event": "wheat.delivered",
+      "label": "Deliver 2 wheat for Juliette's dinner"
+    },
+    {
+      "type": "advance",
+      "event": "chapter.advance"
+    },
+    {
+      "type": "finish",
+      "event": "finish.story"
+    }
+  ]
+}
