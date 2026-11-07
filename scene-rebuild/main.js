@@ -581,7 +581,7 @@ function openInkStory(story){
      else entry('Continue story',{label:'Continue',fn:()=>{if(completeStoryObjective(engine,story.id,objective))openInkStory(story);}});
     }else if(objective.type==='finish'){
      if(view.choices.length)entry('Choose a response before finishing.');
-     else entry('Finish story',{label:'Finish',fn:()=>{engine.event(story.id,objective.event);commit();}});
+     else entry('Finish story',{label:'Finish',fn:()=>{if(completeStoryObjective(engine,story.id,objective))openInkStory(story);}});
     }
    }
   }
