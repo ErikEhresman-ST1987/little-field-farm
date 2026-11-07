@@ -16,5 +16,4 @@ Keiko: And chairs?
 Juliette: Six. Apparently, there’s always room for another friend.
 -> END
 === complete ===
-Juliette: Thank you for helping welcome Keiko home.
 -> END
