@@ -558,6 +558,9 @@ function openInkStory(story){
        engine.event(story.id,objective.event);commit();refresh();
       }},inventoryCount(selected)<objective.quantity);
      }
+    }else if(objective.type==='advance'){
+     if(view.choices.length)entry('Choose a response before continuing.');
+     else entry('Continue story',{label:'Continue',fn:()=>{engine.event(story.id,objective.event);commit();}});
     }else if(objective.type==='finish'){
      if(view.choices.length)entry('Choose a response before finishing.');
      else entry('Finish story',{label:'Finish',fn:()=>{engine.event(story.id,objective.event);commit();}});
