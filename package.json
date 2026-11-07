@@ -1,7 +1,13 @@
 {
-  "name":"little-field-farm-story-preview",
-  "private":true,
-  "scripts":{"build:story":"esbuild scene-rebuild/story-ink-entry.cjs --bundle --platform=browser --format=iife --target=safari15 --outfile=scene-rebuild/story-ink-bundle.js"},
-  "dependencies":{"inkjs":"2.4.0"},
-  "devDependencies":{"esbuild":"^0.25.0"}
+  "name": "little-field-farm-story-preview",
+  "private": true,
+  "scripts": {
+    "build:story": "node scene-rebuild/compile-ink-stories.cjs && esbuild scene-rebuild/story-ink-entry.cjs --bundle --platform=browser --format=iife --target=safari15 --outfile=scene-rebuild/story-ink-bundle.js"
+  },
+  "dependencies": {
+    "inkjs": "2.4.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  }
 }
