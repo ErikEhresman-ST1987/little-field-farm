@@ -5,6 +5,7 @@ const vm=require('node:vm');
 const farmSource=fs.readFileSync(require('node:path').join(__dirname,'main.js'),'utf8');
 assert.match(farmSource,/const KEY = 'little-field-farm-ink-recovery-test-v1'/,'Recovery branch must isolate test saves');
 assert.doesNotMatch(farmSource,/const KEY = 'little-field-farm-scene-rebuild-v4'/,'Recovery branch must not use live save key');
+assert.match(farmSource,/if\(view\.choices\.length\)\{entry\('Choose a response before delivering ingredients\.'/,'Farm UI must not skip a pending dialogue choice');
 assert.match(farmSource,/function completeStoryObjective\(/,'Farm must use transactional story objective handling');
 assert.match(farmSource,/if\(completeStoryObjective\(engine,story.id,objective\)\)openInkStory\(story\)/,'Story completion must verify objective success');
 const html=fs.readFileSync(require('node:path').join(__dirname,'index.html'),'utf8');
