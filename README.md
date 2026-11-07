@@ -8,10 +8,14 @@ Plant carrots, wheat, and pumpkins; watch them grow; harvest them into expandabl
 
 Open `index.html` in a browser. No installation or build step is required.
 
-## Current scene-rebuild story system
+## Current scene-rebuild story system (restored Ink/inkjs)
 
-The current `scene-rebuild/` game uses an editable, data-driven story catalog rather than the legacy Ink story bundle. Add approved stories to `scene-rebuild/story-catalog.js`; `scene-rebuild/story-runner.js` handles dialogue, one choice per chapter, delivery objectives, completion and saved progress. `scene-rebuild/story-unlocks.js` gates story invitations through completed NPC orders. The existing `story-preview/` folder is a separate browser-testing copy, not an automatically synced deployment.
+**Ink/inkjs is the active story runtime** on `main` in `scene-rebuild/`. It was restored in [PR #10](https://github.com/ErikEhresman-ST1987/little-field-farm/pull/10), superseding the earlier catalog-only experiment introduced in PR #9.
 
-The first accepted story is **The Unexpected Dinner Guest** (three chapters). The player completed it in Safari on iPad and verified completion persisted after refresh. Multi-story acceptance and backup/restore of the new runner remain unverified. Old Ink files and build scripts remain as legacy artifacts, not the active scene-rebuild runtime.
+The active `scene-rebuild/index.html` loads `story-ink-bundle.js`, `story-ink-registry.js`, `story-unlocks.js`, and `main.js`. Story registration and chapter objectives are defined in the Ink registry; the compiled Ink bundle runs the story. Do not use `story-catalog.js` or `story-runner.js` as the current story-authoring route merely because those old files remain in the repository.
 
-For the complete current contract, limitations and story-addition workflow, see [Story Catalog Integration v1.0](https://github.com/ErikEhresman-ST1987/story-engine-test-lab/blob/main/docs/integrations/LITTLE-FIELD-FARM-CATALOG-STORY-SYSTEM-v1.0.md).
+The completed and accepted three-chapter Juliette story is **The Unexpected Dinner Guest**. The operator tested the restored Ink implementation end-to-end in Safari on iPad, including completion and persistence after refresh. Gramps is the player's living, retired grandfather.
+
+The previous [Story Catalog Integration v1.0](https://github.com/ErikEhresman-ST1987/story-engine-test-lab/blob/main/docs/integrations/LITTLE-FIELD-FARM-CATALOG-STORY-SYSTEM-v1.0.md) describes the **superseded PR #9 architecture**, not the current farm runtime. Before adding stories or changing build/upload steps, inspect the current Ink source, registry and compilation process. Do not redesign the runtime to simplify story uploads.
+
+See [PROJECT-CONTINUITY.md](PROJECT-CONTINUITY.md) for verified status, protected decisions, known limitations and the next approved action.
