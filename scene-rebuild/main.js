@@ -493,81 +493,78 @@ function storyLine(raw){
  panelContent.append(card);
 }
 function stories(){
- openPanel('Your Farm Stories');
- panel.classList.add('story-panel');
+ openPanel('Your Farm Stories');panel.classList.add('story-panel');
  entry('Your neighbors have stories to share!');
- entry('Complete customer orders, get to know the townspeople, and discover new adventures as your friendships grow.');
+ entry('Complete customer orders to discover new adventures.');
  try{
-  const unlocked=state.storyUnlocks.unlocked.includes('juliette');
-  const completed=state.storyUnlocks.completed.includes('juliette');
-  if(!unlocked&&!completed){
-   entry('No story invitations yet.');
-   return;
+  const engine=getStoryCoordinator();
+  let found=false;
+  for(const story of window.FarmInkStoryRegistry||[]){
+   if(!state.storyUnlocks.unlocked.includes(story.id)&&!state.storyUnlocks.completed.includes(story.id))continue;
+   found=true;
+   const view=engine.view(story.id);
+   const status=state.storyUnlocks.completed.includes(story.id)||view.invitation==='completed'?'Completed':view.invitation==='active'?'In progress':'Invitation available';
+   entry(story.lead+' — '+story.title+' · '+status,{label:status==='Completed'?'View':'Open',fn:()=>openInkStory(story)});
   }
-  const view=getStoryCoordinator().view('juliette');
-  const status=completed||view.invitation==='completed'?'Completed':view.invitation==='active'?'In progress':'Invitation available';
-  entry('Juliette — The Dinner That Almost Wasn\'t · '+status,
-   {label:status==='Completed'?'View':status==='In progress'?'Continue':'Open',fn:()=>openJulietteStory()});
+  if(!found)entry('No story invitations yet.');
  }catch(e){entry('Story Engine error: '+e.message);console.error(e);}
 }
-function openJulietteStory(){
-
- openPanel('Juliette — The Dinner That Almost Wasn\'t');
- panel.classList.add('story-panel');
+function openInkStory(story){
+ openPanel(story.lead+' — '+story.title);panel.classList.add('story-panel');
  try{
-  const engine=getStoryCoordinator(),view=engine.view('juliette');
-  if(view.invitation==='completed'&&state.storyUnlocks.unlocked.includes('juliette'))window.FarmStoryUnlocks.complete(state.storyUnlocks,'juliette');
-  if(!state.storyUnlocks.unlocked.includes('juliette')&&!state.storyUnlocks.completed.includes('juliette')){
-   entry('No story invitations yet. Complete customer orders to build relationships with your neighbors.');
-   return;
-  }
-  const commit=()=>{state.storyEngine=engine.snapshot();save();openJulietteStory();};
+  const engine=getStoryCoordinator(),view=engine.view(story.id);
+  const unlocked=state.storyUnlocks.unlocked.includes(story.id);
+  const completed=state.storyUnlocks.completed.includes(story.id);
+  if(!unlocked&&!completed){entry('No story invitation yet.');return;}
+  const commit=()=>{state.storyEngine=engine.snapshot();save();openInkStory(story);};
   if(view.invitation==='available'||view.invitation==='deferred'){
-   entry('Juliette has an invitation for the farm.');
-   entry('Accept invitation',{label:'Accept',fn:()=>{engine.decide('juliette','accept');commit();}});
-   if(view.invitation==='available')entry('Come back later',{label:'Later',fn:()=>{engine.decide('juliette','later');commit();}});
+   entry(story.lead+' has an invitation for the farm.');
+   entry('Accept invitation',{label:'Accept',fn:()=>{engine.decide(story.id,'accept');commit();}});
+   if(view.invitation==='available')entry('Come back later',{label:'Later',fn:()=>{engine.decide(story.id,'later');commit();}});
   }else if(view.invitation==='completed'){
-   entry('The dinner was a success. Juliette thanks you for sharing in it.');
+   entry('Story completed.');
   }else if(view.invitation==='active'){
-   const chapterHeading=document.createElement('div');chapterHeading.className='story-chapter';chapterHeading.textContent='Chapter '+view.chapter.slice(-1)+' of 3';panelContent.append(chapterHeading);
+   const chapterIndex=story.chapters.findIndex(c=>c.id===view.chapter);
+   if(chapterIndex<0)throw Error('Unknown story chapter');
+   const config=story.chapters[chapterIndex];
+   const heading=document.createElement('div');heading.className='story-chapter';
+   heading.textContent='Chapter '+(chapterIndex+1)+' of '+story.chapterCount;panelContent.append(heading);
    for(const line of view.lines)storyLine(line);
-   const progress=engine.game.snapshot();
-   if(view.chapter==='chapter-3'&&progress.vegetable){
-    storyLine(progress.vegetable==='squash'
-     ?'Juliette: The roasted squash was lovely. Felix declared it an excellent use of available produce, which is practically a standing ovation from Felix.'
-     :'Juliette: The rainbow chard looked beautiful on the table. Keiko was explaining the colorful stems to everyone, and I think Andy learned more about vegetables than he planned.');
-   }
    for(const choice of view.choices)entry(choice.text,{label:'Choose',fn:()=>{
-    engine.choose('juliette',choice.index);
-    if(view.chapter==='chapter-2')engine.event('juliette',choice.index===0?'select.squash':'select.rainbow-chard');
+    engine.choose(story.id,choice.index);
+    const event=config.choiceEvents?.[choice.index];
+    if(event)engine.event(story.id,event);
     commit();
    }});
-   const chapter=engine.manager.registry.get('juliette');
-   if(chapter.chapterReady&&!chapter.completed){
-    entry('Chapter objective completed',{label:'Next chapter',fn:()=>{engine.nextChapter('juliette');commit();}});
-   }else if(!chapter.chapterReady){
-    if(view.chapter==='chapter-1'){
-     entry('Deliver 2 wheat for Juliette’s bread. In barn: '+inventoryCount('wheat'));
-     entry('Deliver wheat',{label:'Deliver',fn:()=>{
-      if(inventoryCount('wheat')<2)return;
-      state.inventory.wheat-=2;engine.event('juliette','wheat.delivered');commit();refresh();
-     }},inventoryCount('wheat')<2);
-    }else if(view.chapter==='chapter-2'){
-     if(!progress.vegetable)entry('Choose squash or rainbow chard above to help rescue the menu.');
+   const session=engine.manager.registry.get(story.id),objective=config.objective;
+   if(session.chapterReady&&!session.completed){
+    entry('Chapter objective completed',{label:'Next chapter',fn:()=>{engine.nextChapter(story.id);commit();}});
+   }else if(!session.chapterReady&&objective){
+    if(objective.type==='deliver'){
+     entry(objective.label+'. In barn: '+inventoryCount(objective.item));
+     entry('Deliver ingredients',{label:'Deliver',fn:()=>{
+      if(inventoryCount(objective.item)<objective.quantity)return;
+      state.inventory[objective.item]-=objective.quantity;
+      engine.event(story.id,objective.event);commit();refresh();
+     }},inventoryCount(objective.item)<objective.quantity);
+    }else if(objective.type==='selected-delivery'){
+     const selected=engine.game.snapshot()[objective.selectedKey];
+     if(!selected)entry('Choose an ingredient above.');
      else{
-      entry('Deliver 1 '+itemName(progress.vegetable)+'. In barn: '+inventoryCount(progress.vegetable));
-      entry('Deliver vegetables',{label:'Deliver',fn:()=>{
-       if(inventoryCount(progress.vegetable)<1)return;
-       state.inventory[progress.vegetable]--;engine.event('juliette','vegetable.delivered');commit();refresh();
-      }},inventoryCount(progress.vegetable)<1);
+      entry('Deliver '+objective.quantity+' '+itemName(selected)+'. In barn: '+inventoryCount(selected));
+      entry('Deliver ingredients',{label:'Deliver',fn:()=>{
+       if(inventoryCount(selected)<objective.quantity)return;
+       state.inventory[selected]-=objective.quantity;
+       engine.event(story.id,objective.event);commit();refresh();
+      }},inventoryCount(selected)<objective.quantity);
      }
-    }else if(view.chapter==='chapter-3'){
-     if(view.choices.length)entry('Choose what to say to Juliette before finishing.');
-     else entry('Finish the evening with Juliette',{label:'Finish',fn:()=>{engine.event('juliette','finish.story');commit();}});
+    }else if(objective.type==='finish'){
+     if(view.choices.length)entry('Choose a response before finishing.');
+     else entry('Finish story',{label:'Finish',fn:()=>{engine.event(story.id,objective.event);commit();}});
     }
    }
   }
-  if(view.invitation==='completed'&&state.storyUnlocks.unlocked.includes('juliette'))window.FarmStoryUnlocks.complete(state.storyUnlocks,'juliette');
+  if(view.invitation==='completed'&&unlocked)window.FarmStoryUnlocks.complete(state.storyUnlocks,story.id);
   state.storyEngine=engine.snapshot();save();
  }catch(e){entry('Story Engine error: '+e.message);console.error(e);}
 }
