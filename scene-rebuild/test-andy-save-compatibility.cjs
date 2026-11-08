@@ -43,4 +43,20 @@ assert.throws(()=>create(invalid),/Unknown saved invitation/);
 const bad=oldSave(active.snapshot());
 bad.narrative.registry.stories.juliette.contentVersion='corrupted';
 assert.throws(()=>create(bad));
-console.log('Andy save compatibility checks passed: fresh, active, completed, round-trip, invalid saves');
+// Verify all three Andy chapters, each with three selectable branches.
+for(const choiceIndex of [0,1,2]){
+ const story=create();
+ story.decide('andy','accept');
+ for(const [chapter,event] of [['chapter-1','chapter.advance'],['chapter-2','clues.connected'],['chapter-3','finish.story']]){
+  const view=story.view('andy');
+  assert.equal(view.chapter,chapter);
+  assert.equal(view.choices.length,3);
+  story.choose('andy',choiceIndex);
+  assert.equal(story.event('andy',event).completed,true);
+  if(chapter!=='chapter-3')story.nextChapter('andy');
+ }
+ assert.equal(story.view('andy').invitation,'completed');
+ assert.equal(story.snapshot().game.andy.completedChapters.length,3);
+ assert.deepEqual(create(story.snapshot()).snapshot(),story.snapshot());
+}
+console.log('Story checks passed: legacy Juliette saves, invalid saves, all Andy choices, completion and reload');
