@@ -23,18 +23,6 @@ jobs:
           node -e "const p=require('./scene-rebuild/story-ink-generated.cjs');if(p.length!==2||!p.some(x=>x.manifest.storyId==='andy')||!p.some(x=>x.manifest.storyId==='juliette'))process.exit(1);console.log('Two story packages compiled')"
       - name: Verify backward-compatible story saves
         run: node scene-rebuild/test-andy-save-compatibility.cjs
-      - name: Package isolated iPad preview
-        run: |
-          mkdir -p preview-package
-          cp index.html preview-package/index.html
-          cp -R scene-rebuild preview-package/scene-rebuild
-          find preview-package -type f \( -name '*.cjs' -o -name '*.test.js' \) -delete
-      - name: Upload preview package for review
-        uses: actions/upload-artifact@v4
-        with:
-          name: little-field-farm-andy-preview
-          path: preview-package/
-          retention-days: 14
       - name: Commit generated artifacts on feature branch only
         run: |
           git add scene-rebuild/story-ink-generated.cjs scene-rebuild/story-ink-registry.js scene-rebuild/story-ink-bundle.js
