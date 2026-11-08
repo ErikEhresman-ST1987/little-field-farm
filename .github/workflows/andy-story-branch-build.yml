@@ -22,6 +22,8 @@ jobs:
       - name: Check compiled stories
         run: |
           node -e "const p=require('./scene-rebuild/story-ink-generated.cjs');if(p.length!==2||!p.some(x=>x.manifest.storyId==='andy')||!p.some(x=>x.manifest.storyId==='juliette'))process.exit(1);console.log('Two story packages compiled')"
+      - name: Verify backward-compatible story saves
+        run: node scene-rebuild/test-andy-save-compatibility.cjs
       - name: Commit generated artifacts on feature branch only
         run: |
           git add scene-rebuild/story-ink-generated.cjs scene-rebuild/story-ink-registry.js scene-rebuild/story-ink-bundle.js
