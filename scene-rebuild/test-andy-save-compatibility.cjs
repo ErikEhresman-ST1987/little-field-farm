@@ -59,4 +59,18 @@ for(const choiceIndex of [0,1,2]){
  assert.equal(story.snapshot().game.andy.completedChapters.length,3);
  assert.deepEqual(create(story.snapshot()).snapshot(),story.snapshot());
 }
+// Existing farm unlock records must acquire Andy's threshold without resetting counts.
+require('./story-ink-registry.js');
+require('./story-unlocks.js');
+const unlocks=window.FarmStoryUnlocks;
+const legacyUnlock={counts:[3,2,0,0],thresholds:{juliette:2},unlocked:['juliette'],completed:[]};
+unlocks.initialize(legacyUnlock,()=>0);
+assert.equal(legacyUnlock.counts[0],3);
+assert.equal(legacyUnlock.counts[1],2);
+assert.equal(legacyUnlock.thresholds.juliette,2);
+assert.equal(legacyUnlock.thresholds.andy,2);
+unlocks.reconcile(legacyUnlock);
+assert.ok(legacyUnlock.unlocked.includes('andy'));
+assert.ok(legacyUnlock.unlocked.includes('juliette'));
+assert.equal(legacyUnlock.unlocked.length,2);
 console.log('Story checks passed: legacy Juliette saves, invalid saves, all Andy choices, completion and reload');
