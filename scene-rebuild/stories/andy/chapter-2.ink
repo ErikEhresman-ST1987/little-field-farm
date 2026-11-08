@@ -42,7 +42,7 @@ Andy: That's very good news. Unfortunately, nobody told the people responsible f
 Felix: I see. That would explain your interest.
 Farmer: And Keiko thought the arrangements had been communicated.
 Andy: Exactly. Let's make sure we've got the whole story.
-Keiko joins them after school and confirms the celebration organizer approved the repair but did not update the display volunteers.
+Keiko joins them after school. She explains that she personally removed the stopped watch from its case with the celebration organizer's permission, then brought it to Felix for repair. The organizer had approved the arrangement but had not informed the display volunteers.
 Keiko: Oh dear. I thought everyone knew. I wanted the children to hear it ticking again when they presented it.
 Andy: And that's a fine idea. We just had a little confusion over where the watch had gone.
 Felix: I have the receipt and the authorization right here.
