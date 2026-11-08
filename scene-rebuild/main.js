@@ -1,4 +1,4 @@
-const SCENE_URL = '../assets/farm-v2/background/workshop-scene%20(9).json';
+const SCENE_URL = '../assets/farm-v2/background/workshop-scene-9-repaired.json';
 const KEY = 'little-field-farm-ink-recovery-test-v1';
 const canvas = document.querySelector('#farm'), ctx = canvas.getContext('2d');
 const notice = document.querySelector('#notice'), loading = document.querySelector('#loading');
@@ -609,7 +609,7 @@ canvas.addEventListener('pointerup',e=>{
  if(!scene||!panel.hidden)return;
  const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)*canvas.width/r.width,y=(e.clientY-r.top)*canvas.height/r.height;
  for(const [i,b] of scene.visualLocations.entries())if(hit(b.touchZone,x,y)){tapBed(i);return;}
- for(const h of scene.hotspots)if(hit(h,x,y)){const name=h.name.toLowerCase();if(name.includes('market'))market();else if(name.includes('order'))orders();else if(name.includes('barn')||name.includes('storage'))barn();return;}
+ for(const h of scene.hotspots)if(hit(h,x,y)){const name=h.name.toLowerCase();if(h.action==='farmhouse-stories'||name.includes('farmhouse'))stories();else if(name.includes('market'))market();else if(name.includes('order'))orders();else if(name.includes('barn')||name.includes('storage'))barn();return;}
  for(const o of [...scene.objects].reverse()){if(!o.interactive||!o.touchZone||!hit(o.touchZone,x,y))continue;const name=o.name.toLowerCase();if(name.includes('bakery'))bakery();else if(o.animation||name.includes('chicken')||name.includes('cow')||name.includes('sheep'))animals();else if(name.includes('creamery'))creamery();else if(name.includes('textile'))textile();return;}
 });
 try{
