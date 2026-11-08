@@ -3,14 +3,14 @@
 **Established:** 2026-11-07  
 **Repository:** `ErikEhresman-ST1987/little-field-farm`  
 **Current game:** `main` / `scene-rebuild/`  
-**Status:** Approved continuity baseline.
+**Status:** Updated after verified Andy story release (2026-11-08).
 
 ## Verified state and safe checkpoint
 - Little Field Farm is a playable, mobile-friendly farming and production game. Inspect current code before asserting specific features.
 - **Ink/inkjs is the restored active story runtime.** PR #10 (`feature/restore-ink-story-workflow`) merged into `main` on 2026-11-06, commit `f4baafed92b16a896e30fd48fa17424e8872aad1`.
 - `scene-rebuild/index.html` loads `story-ink-bundle.js`, `story-ink-registry.js`, `story-unlocks.js`, then `main.js`.
 - **Juliette's polished replacement story, *The Unexpected Dinner Guest*, is complete.** The active Ink registry uses stable ID `juliette` and three chapters. **The operator personally tested and verified the complete restored Ink story, choices/progression, and saved progress after refresh.** Do not reopen restoration or replacement as pending.
-- The safe checkpoint is the operator-verified Ink implementation on `main`. The merge message's “work in progress” label predates that user verification.
+- **Andy’s three-chapter story, *The Case of the Missing Keepsake*, is merged into `main` via PR #14 (squash commit `a33ff5fbd0af03e9d80eb2c3b919cfebb9686338`).** The operator played all three chapters and choices on iPad, reached completion, then reloaded and confirmed **both Andy and Juliette remained Completed**; the existing farm and coins remained visible. This is the latest verified safe checkpoint.
 
 ## Protected creative decisions
 - Follow Little Field Farm Goal Box and Community and Story Foundation v0.2: cheerful, cozy, character-led stories, believable relationships, humor, occasional mystery, and meaningful player choice.
@@ -34,15 +34,25 @@
 - **Documentation drift caused a continuity failure:** a later assistant relied on outdated README/guide text and mistakenly called Ink obsolete. The current entry point and newer commits take precedence over stale descriptions.
 - The catalog-only implementation is a superseded historical experiment, **not** the current Little Field Farm architecture.
 
+## Verified story-addition improvement record (2026-11-08)
+**Problem:** Adding a second Ink story risked rejecting existing saves because story invitation, chapter-session, and shared progress records previously expected exactly the old story count. A compiled source story alone also does not guarantee a playable browser build.
+
+**Change:** Added Andy's three approved Ink chapters and manifest, updated save restoration to tolerate newly registered stories while preserving existing story data, compiled both stories into generated registry/bundle assets, and added branch build and backward-compatibility regression tests. Existing Juliette content and stable IDs were retained.
+
+**Verification:** GitHub Actions branch build passed; generated registry, compiled data and browser bundle were checked to contain both stories. Operator played Andy's full three chapters on iPad through completion; after reload, Stories showed both Andy and Juliette Completed, with existing farm state visible. PR #14 merged into `main`; operator confirmed the game working after returning to `main`.
+
+**Repeatable process:** Approve narrative and chapter objectives → implement on a feature branch → compile story assets and run automated compatibility checks → temporarily select that branch in GitHub Settings → Pages (root) → test on iPad with existing save → reload and verify old/new story progress → explicitly approve and merge → return Pages to `main`. For this single-player game, a separate preview hosting system added unnecessary work. Retain a JSON backup before testing because the same site uses the same local save.
+
+**Limits:** This verifies the tested playthrough and reload, not every alternate choice on a real device, offline behavior, or JSON export/import roundtrip. Automated tests cover additional choice paths and legacy save scenarios but are not substitutes for device checks. The story build workflow is branch-specific; adapt its trigger for future branches. GitHub Pages branch changes are manual in the current workflow.
+
 ## Known limits and outstanding work
-- Verified: restored Ink and complete Juliette story, including persistence after refresh.
-- Not established by those checks alone: a second story, the exact new-story upload workflow, backup/export-and-restore of story progress, and offline replay. Do not claim failure or success without checking.
-- Before documenting an upload procedure, inspect actual current Ink source, build and registration scripts. Do not invent steps.
-- Keep README and cross-repository story-engine documentation consistent with this verified state.
+- Proven: two Ink stories coexist, both complete and persist after reload, with existing farm state retained in the observed iPad session.
+- Still not specifically verified: offline story play, JSON backup/restore roundtrip for multi-story progress, and every branch choice on device.
+- Before a third story, reuse the existing Ink compiler, manifest/registry, save-migration pattern, and regression checks rather than creating another runtime.
 
 ## Current direction and next approved action
-- **Approved 2026-11-07:** establish this continuity file and correct stale documentation only. Do not alter the working game code or architecture.
-- After documentation is aligned, collaboratively select the next story under OmniQuest Story Foundry. Story content and implementation still require explicit approval.
+- Andy story is complete and merged. Next story content and implementation require approval.
+- If useful for other projects, **propose** the verified save-migration/story-deployment lesson for the Module Library; do not silently modify that library.
 
 ## Maintenance and new-chat rule
 At meaningful checkpoints, update this concise record with verified state, significant decisions and reasons, protected behavior, fixes, known limits and the next approved action. This is not a development diary. At the start of a new development chat, read this file, Goal Box and Foundation, then inspect relevant code and the last verified checkpoint. Documentation records decisions but does not replace code inspection or authorize unapproved changes.
