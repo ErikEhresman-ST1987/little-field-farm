@@ -1,0 +1,34 @@
+name: Andy story branch build
+on:
+  push:
+    branches:
+      - feature/andy-story-save-compatibility-2026-11-07
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-package-lock
+      - run: npm run build:story
+      - name: Check compiled stories
+        run: |
+          node -e "const p=require('./scene-rebuild/story-ink-generated.cjs');if(p.length!==2||!p.some(x=>x.manifest.storyId==='andy')||!p.some(x=>x.manifest.storyId==='juliette'))process.exit(1);console.log('Two story packages compiled')"
+      - name: Verify backward-compatible story saves
+        run: node scene-rebuild/test-andy-save-compatibility.cjs
+      - name: Commit generated artifacts on feature branch only
+        run: |
+          git add scene-rebuild/story-ink-generated.cjs scene-rebuild/story-ink-registry.js scene-rebuild/story-ink-bundle.js
+          if ! git diff --cached --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "Build Andy and Juliette browser story assets"
+            git push
+          fi

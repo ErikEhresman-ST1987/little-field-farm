@@ -35,16 +35,19 @@ class NarrativeManager{
  restore(saved){
   if(!saved||saved.schema!==SCHEMA||!saved.facts||typeof saved.facts!=='object'||!saved.invitations||typeof saved.invitations!=='object')throw Error('Invalid narrative save');
   const ids=this.packages.map(p=>p.manifest.storyId);
-  if(Object.keys(saved.invitations).length!==ids.length||ids.some(id=>!Object.hasOwn(saved.invitations,id)))throw Error('Invalid invitations');
+  // Older saves may predate newly added stories. Existing story records must remain intact.
+  if(Object.keys(saved.invitations).some(id=>!ids.includes(id)))throw Error('Unknown saved invitation');
+  const invitations={...saved.invitations};
+  for(const id of ids)if(!Object.hasOwn(invitations,id))invitations[id]='hidden';
   const allowed=['hidden','available','deferred','declined','active','completed'];
   for(const p of this.packages){
-   const id=p.manifest.storyId,phase=saved.invitations[id],entry=saved.registry?.stories?.[id];
-   if(!allowed.includes(phase)||!entry||(phase==='completed')!==entry.completed)throw Error('Inconsistent narrative completion');
+   const id=p.manifest.storyId,phase=invitations[id],entry=saved.registry?.stories?.[id];
+   if(!allowed.includes(phase)||(entry&&((phase==='completed')!==entry.completed))||(!entry&&phase!=='hidden'))throw Error('Inconsistent narrative completion');
    if(phase!=='hidden'&&!p.manifest.requiresFacts.every(f=>saved.facts[f]===true))throw Error('Inconsistent narrative eligibility');
    if((phase==='completed')!==(saved.facts[id+'_completed']===true))throw Error('Inconsistent completion fact');
   }
   const candidate=new MultiChapterRegistry({packages:this.packages,hostFactory:this.registry.hostFactory,save:saved.registry});
-  this.registry=candidate;this.facts=structuredClone(saved.facts);this.invitations={...saved.invitations};
+  this.registry=candidate;this.facts=structuredClone(saved.facts);this.invitations=invitations;this.refresh();
  }
 }
 module.exports={NarrativeManager};
