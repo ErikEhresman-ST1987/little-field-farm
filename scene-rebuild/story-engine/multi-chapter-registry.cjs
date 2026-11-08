@@ -20,10 +20,10 @@ class MultiChapterRegistry{
  nextChapter(id){return this.get(id).nextChapter()}
  snapshot(){return {schema:SCHEMA,stories:Object.fromEntries([...this.sessions].map(([id,s])=>[id,s.snapshot()]))}}
  restore(saved){
-  if(!saved||saved.schema!==SCHEMA||!saved.stories||Object.keys(saved.stories).length!==this.packages.size)throw Error('Invalid multi-chapter save');
+  if(!saved||saved.schema!==SCHEMA||!saved.stories||typeof saved.stories!=='object'||Array.isArray(saved.stories)||Object.keys(saved.stories).some(id=>!this.packages.has(id)))throw Error('Invalid multi-chapter save');
   const candidates=new Map();
   for(const [id,pkg] of this.packages){
-   if(!Object.hasOwn(saved.stories,id))throw Error('Missing story save');
+   // A newly registered story starts fresh; existing story snapshots restore unchanged.
    candidates.set(id,new ChapterSession({...pkg,host:this.hostFactory(id),save:saved.stories[id]}));
   }
   this.sessions=candidates;
