@@ -57,8 +57,8 @@ main{position:relative}
 .story-speaker{display:block;font-size:clamp(17px,2.8vw,21px);line-height:1.3;color:#31543b}
 .story-role{display:block;color:#6a6658;font-size:12px;margin-top:2px}
 .story-line p{margin:9px 0 0;font-size:clamp(16px,2.5vw,18px);line-height:1.58;overflow-wrap:anywhere}
-.story-narration{padding:10px 15px;border-left:3px solid #e8d8a5;background:#ffffff0d;border-radius:0 10px 10px 0}
-.story-narration p{margin:0;font-style:italic;color:#f7f0de}
+.story-narration{padding:12px 15px;border-left:4px solid #d1b477;background:#f6eedb;color:#283a2c;border-radius:0 12px 12px 0}
+.story-narration p{margin:0;font-style:italic;color:#283a2c}
 .story-panel .entry{line-height:1.55;gap:12px}
 .story-panel .entry button{min-height:44px}
 @media(max-width:600px){#panel.story-panel{padding:12px}.story-panel .panel-head{top:-12px}.story-spoken{gap:10px;padding:10px}.story-portrait{flex-basis:76px;width:76px;height:96px}.story-line p{font-size:16px}}
