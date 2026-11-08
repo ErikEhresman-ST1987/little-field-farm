@@ -7,12 +7,16 @@ function createCoordinator(saved){
   snapshot(){return JSON.parse(JSON.stringify(this.progress));},
   restore(s){
    if(!s||typeof s!=='object'||Array.isArray(s))throw Error('Invalid game progress');
+   if(Object.keys(s).some(id=>!packages.some(p=>p.manifest.storyId===id)))throw Error('Unknown story progress');
+   const restored=Object.fromEntries(packages.map(p=>[p.manifest.storyId,{completedChapters:[]}]));
    for(const p of packages){
     const id=p.manifest.storyId,v=s[id];
+    if(v===undefined)continue; // Story introduced after this save was created.
     if(!v||!Array.isArray(v.completedChapters)||v.completedChapters.some(c=>!p.manifest.chapters.some(ch=>ch.id===c))||
      new Set(v.completedChapters).size!==v.completedChapters.length)throw Error('Invalid story progress '+id);
+    restored[id]=JSON.parse(JSON.stringify(v));
    }
-   this.progress=JSON.parse(JSON.stringify(s));
+   this.progress=restored;
   },
   event(name,{storyId,chapterId}){
    const pkg=packages.find(p=>p.manifest.storyId===storyId);
